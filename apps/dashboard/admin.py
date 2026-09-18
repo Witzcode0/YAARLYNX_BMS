@@ -1,311 +1,32 @@
 from decimal import Decimal
 
-from django import forms
 from django.contrib import admin
-from django.db import transaction
-from django.db.models import Count, Q, Sum
 from django.utils.html import format_html
 
 from .models import (
     Party,
     PartyPaymentQR,
     PaymentMethod,
-    PartyOrder,
-    Payment,
+    PartyPurchase,
+    PurchasePaymentInstallment,
 )
 
 
 # =========================================================
-# COMMON HELPERS
+# HELPER FUNCTIONS
 # =========================================================
 
-def currency_html(amount, color=None, strong=True):
+def money(value):
     """
-    Safely format Decimal currency for Django Admin.
+    Format Decimal values BEFORE passing them to format_html().
 
-    Important:
-    Django 6.1 can raise:
-        ValueError: Unknown format code 'f' for object of type 'SafeString'
-
-    Therefore the numeric formatting is performed BEFORE
-    passing the value into format_html().
+    Django 6.1 converts format_html arguments to SafeString,
+    therefore {:,.2f} must NOT be used directly inside format_html().
     """
+    if value is None:
+        value = Decimal("0.00")
 
-    amount = amount or Decimal("0.00")
-
-    try:
-        amount = Decimal(str(amount))
-    except Exception:
-        amount = Decimal("0.00")
-
-    formatted_amount = f"{amount:,.2f}"
-
-    if strong and color:
-        return format_html(
-            '<strong style="color:{};">₹{}</strong>',
-            color,
-            formatted_amount,
-        )
-
-    if strong:
-        return format_html(
-            "<strong>₹{}</strong>",
-            formatted_amount,
-        )
-
-    if color:
-        return format_html(
-            '<span style="color:{};">₹{}</span>',
-            color,
-            formatted_amount,
-        )
-
-    return format_html(
-        "₹{}",
-        formatted_amount,
-    )
-
-
-# =========================================================
-# COMMON ADMIN ACTIONS
-# =========================================================
-
-@admin.action(description="Activate selected records")
-def activate_records(modeladmin, request, queryset):
-    updated = queryset.update(is_active=True)
-
-    modeladmin.message_user(
-        request,
-        f"{updated} record(s) activated successfully.",
-    )
-
-
-@admin.action(description="Deactivate selected records")
-def deactivate_records(modeladmin, request, queryset):
-    updated = queryset.update(is_active=False)
-
-    modeladmin.message_user(
-        request,
-        f"{updated} record(s) deactivated successfully.",
-    )
-
-
-# =========================================================
-# PARTY ADMIN FORM
-# =========================================================
-
-class PartyAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = Party
-        fields = "__all__"
-
-        widgets = {
-            "name": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter party / supplier name",
-                }
-            ),
-            "contact_person": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter contact person name",
-                }
-            ),
-            "phone": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter primary phone number",
-                }
-            ),
-            "alternate_phone": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter alternate phone number",
-                }
-            ),
-            "email": forms.EmailInput(
-                attrs={
-                    "placeholder": "Enter email address",
-                }
-            ),
-            "address": forms.Textarea(
-                attrs={
-                    "placeholder": "Enter complete address",
-                    "rows": 3,
-                }
-            ),
-            "city": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter city",
-                }
-            ),
-            "state": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter state",
-                }
-            ),
-            "pincode": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter pincode",
-                }
-            ),
-            "gpay_number": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter G-Pay number (optional)",
-                }
-            ),
-            "gst_number": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter GST number",
-                }
-            ),
-            "bank_name": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter bank name",
-                }
-            ),
-            "account_holder_name": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter account holder name",
-                }
-            ),
-            "account_number": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter account number",
-                }
-            ),
-            "ifsc_code": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter IFSC code",
-                }
-            ),
-            "branch_name": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter branch name",
-                }
-            ),
-            "upi_id": forms.TextInput(
-                attrs={
-                    "placeholder": "Enter UPI ID",
-                }
-            ),
-            "notes": forms.Textarea(
-                attrs={
-                    "placeholder": "Enter additional notes",
-                    "rows": 4,
-                }
-            ),
-        }
-
-    def clean_name(self):
-        value = self.cleaned_data.get("name", "")
-
-        value = " ".join(
-            value.strip().split()
-        )
-
-        if not value:
-            raise forms.ValidationError(
-                "Party name is required."
-            )
-
-        return value
-
-    def clean_email(self):
-        value = self.cleaned_data.get(
-            "email",
-            "",
-        )
-
-        return value.strip().lower()
-
-    def clean_phone(self):
-        return self.cleaned_data.get(
-            "phone",
-            "",
-        ).strip()
-
-    def clean_alternate_phone(self):
-        return self.cleaned_data.get(
-            "alternate_phone",
-            "",
-        ).strip()
-
-    def clean_gpay_number(self):
-        return self.cleaned_data.get(
-            "gpay_number",
-            "",
-        ).strip()
-
-    def clean_gst_number(self):
-        value = self.cleaned_data.get(
-            "gst_number",
-            "",
-        ).strip().upper()
-
-        if value and len(value) != 15:
-            raise forms.ValidationError(
-                "GST number must contain exactly 15 characters."
-            )
-
-        return value
-
-    def clean_ifsc_code(self):
-        return self.cleaned_data.get(
-            "ifsc_code",
-            "",
-        ).strip().upper()
-
-    def clean_upi_id(self):
-        return self.cleaned_data.get(
-            "upi_id",
-            "",
-        ).strip().lower()
-
-
-# =========================================================
-# PARTY PAYMENT QR FORM
-# =========================================================
-
-class PartyPaymentQRAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = PartyPaymentQR
-        fields = "__all__"
-
-        widgets = {
-            "qr_name": forms.TextInput(
-                attrs={
-                    "placeholder": "Example: G-Pay QR",
-                }
-            ),
-            "upi_id": forms.TextInput(
-                attrs={
-                    "placeholder": "Example: name@okaxis",
-                }
-            ),
-        }
-
-    def clean_qr_name(self):
-        value = self.cleaned_data.get(
-            "qr_name",
-            "",
-        )
-
-        value = " ".join(
-            value.strip().split()
-        )
-
-        if not value:
-            raise forms.ValidationError(
-                "QR name is required."
-            )
-
-        return value
-
-    def clean_upi_id(self):
-        return self.cleaned_data.get(
-            "upi_id",
-            "",
-        ).strip().lower()
+    return f"{Decimal(value):,.2f}"
 
 
 # =========================================================
@@ -315,104 +36,60 @@ class PartyPaymentQRAdminForm(forms.ModelForm):
 class PartyPaymentQRInline(admin.TabularInline):
 
     model = PartyPaymentQR
-    form = PartyPaymentQRAdminForm
 
-    extra = 1
-    min_num = 0
+    extra = 0
+
+    show_change_link = True
 
     fields = (
-        "qr_preview",
         "qr_name",
         "qr_image",
         "upi_id",
         "is_primary",
-        "is_active",
     )
 
-    readonly_fields = (
-        "qr_preview",
+    ordering = (
+        "-is_primary",
+        "qr_name",
     )
-
-    show_change_link = True
-
-    verbose_name = "Payment QR"
-    verbose_name_plural = "Payment QR Codes"
-
-    @admin.display(description="Preview")
-    def qr_preview(self, obj):
-
-        if obj and obj.pk and obj.qr_image:
-
-            return format_html(
-                """
-                <div style="
-                    width:80px;
-                    height:80px;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    background:#ffffff;
-                    border:1px solid #e5e7eb;
-                    border-radius:10px;
-                    padding:5px;
-                ">
-                    <img
-                        src="{}"
-                        alt="QR"
-                        style="
-                            max-width:70px;
-                            max-height:70px;
-                            object-fit:contain;
-                            border-radius:5px;
-                        "
-                    >
-                </div>
-                """,
-                obj.qr_image.url,
-            )
-
-        return format_html(
-            '<span style="color:#9ca3af;">{}</span>',
-            "No QR",
-        )
 
 
 # =========================================================
-# PAYMENT INLINE
+# PURCHASE PAYMENT INSTALLMENT INLINE
 # =========================================================
 
-class PaymentInline(admin.TabularInline):
+class PurchasePaymentInstallmentInline(admin.TabularInline):
 
-    model = Payment
+    model = PurchasePaymentInstallment
 
     extra = 0
 
-    fields = (
-        "payment_number",
-        "payment_date",
-        "payment_method",
-        "amount",
-        "status",
-        "transaction_reference",
-        "is_active",
-    )
+    show_change_link = True
 
-    readonly_fields = (
-        "payment_number",
+    ordering = (
+        "installment_number",
     )
 
     autocomplete_fields = (
         "payment_method",
     )
 
-    show_change_link = True
+    fields = (
+        "installment_number",
+        "due_date",
+        "installment_amount",
+        "paid_amount",
+        "remaining_amount",
+        "payment_method",
+        "payment_date",
+        "transaction_reference",
+        "status",
+        "notes",
+    )
 
-    verbose_name = "Payment"
-    verbose_name_plural = "Payments"
-
-    ordering = (
-        "-payment_date",
-        "-created_at",
+    readonly_fields = (
+        "remaining_amount",
+        "status",
     )
 
 
@@ -423,85 +100,75 @@ class PaymentInline(admin.TabularInline):
 @admin.register(Party)
 class PartyAdmin(admin.ModelAdmin):
 
-    form = PartyAdminForm
-
-    inlines = (
-        PartyPaymentQRInline,
-    )
-
     list_display = (
-        "party_display",
-        "party_type_display",
-        "contact_display",
-        "phone_display",
-        "gst_display",
-        "bank_display",
-        "qr_count_display",
-        "status_display",
-        "created_display",
+        "party_name",
+        "party_type_badge",
+        "contact_person",
+        "phone",
+        "email",
+        "city",
+        "state",
+        "gst_number",
+        "purchase_count",
     )
 
     search_fields = (
-        "id",
         "name",
         "contact_person",
         "phone",
         "alternate_phone",
         "email",
         "gst_number",
+        "city",
+        "state",
+        "pincode",
         "gpay_number",
         "bank_name",
         "account_holder_name",
         "account_number",
         "ifsc_code",
+        "branch_name",
         "upi_id",
-        "city",
-        "state",
-        "pincode",
     )
 
     list_filter = (
         "party_type",
-        "is_active",
         "state",
         "city",
-        "created_at",
-        "updated_at",
     )
 
     ordering = (
         "name",
     )
 
-    date_hierarchy = "created_at"
-
     list_per_page = 25
 
-    actions = (
-        activate_records,
-        deactivate_records,
-    )
+    date_hierarchy = "created_at"
 
     readonly_fields = (
-        "id",
-        "qr_summary",
+        "party_summary",
+        "purchase_count",
         "created_at",
         "updated_at",
     )
 
+    inlines = (
+        PartyPaymentQRInline,
+    )
+
     fieldsets = (
+
         (
             "Party Information",
             {
                 "fields": (
-                    "id",
                     "name",
                     "party_type",
                     "contact_person",
-                    "is_active",
-                )
+                ),
             },
         ),
+
         (
             "Contact Information",
             {
@@ -510,40 +177,34 @@ class PartyAdmin(admin.ModelAdmin):
                     "alternate_phone",
                     "email",
                     "gpay_number",
-                )
+                ),
             },
         ),
+
         (
-            "Address",
+            "Address Information",
             {
-                "classes": (
-                    "collapse",
-                ),
                 "fields": (
                     "address",
                     "city",
                     "state",
                     "pincode",
-                )
+                ),
             },
         ),
+
         (
             "GST Information",
             {
-                "classes": (
-                    "collapse",
-                ),
                 "fields": (
                     "gst_number",
-                )
+                ),
             },
         ),
+
         (
             "Bank Information",
             {
-                "classes": (
-                    "collapse",
-                ),
                 "fields": (
                     "bank_name",
                     "account_holder_name",
@@ -551,427 +212,170 @@ class PartyAdmin(admin.ModelAdmin):
                     "ifsc_code",
                     "branch_name",
                     "upi_id",
-                )
-            },
-        ),
-        (
-            "Payment QR Information",
-            {
+                ),
                 "classes": (
                     "collapse",
                 ),
+            },
+        ),
+
+        (
+            "Party Summary",
+            {
                 "fields": (
-                    "qr_summary",
-                )
+                    "party_summary",
+                    "purchase_count",
+                ),
             },
         ),
+
         (
-            "Additional Information",
+            "Notes",
             {
-                "classes": (
-                    "collapse",
-                ),
                 "fields": (
                     "notes",
-                )
+                ),
+                "classes": (
+                    "collapse",
+                ),
             },
         ),
+
         (
             "System Information",
             {
-                "classes": (
-                    "collapse",
-                ),
                 "fields": (
                     "created_at",
                     "updated_at",
-                )
+                ),
+                "classes": (
+                    "collapse",
+                ),
             },
         ),
     )
-
-    @transaction.atomic
-    def save_formset(
-        self,
-        request,
-        form,
-        formset,
-        change,
-    ):
-
-        instances = formset.save(
-            commit=False
-        )
-
-        deleted_objects = formset.deleted_objects
-
-        for instance in instances:
-
-            if isinstance(
-                instance,
-                PartyPaymentQR,
-            ):
-                instance.party = form.instance
-
-            instance.save()
-
-        for obj in deleted_objects:
-            obj.delete()
-
-        formset.save_m2m()
-
-        # -----------------------------------------------------
-        # ONLY ONE PRIMARY QR PER PARTY
-        # -----------------------------------------------------
-
-        primary_qrs = (
-            PartyPaymentQR.objects
-            .filter(
-                party=form.instance,
-                is_primary=True,
-            )
-            .order_by(
-                "-created_at",
-                "-pk",
-            )
-        )
-
-        primary_qr = primary_qrs.first()
-
-        if primary_qr:
-
-            primary_qrs.exclude(
-                pk=primary_qr.pk
-            ).update(
-                is_primary=False
-            )
 
     @admin.display(
         description="Party",
         ordering="name",
     )
-    def party_display(self, obj):
+    def party_name(self, obj):
+
+        if not obj:
+            return "-"
 
         return format_html(
-            """
-            <div>
-                <strong style="
-                    color:#153030;
-                    font-size:13px;
-                ">
-                    {}
-                </strong>
-
-                <div style="
-                    color:#9ca3af;
-                    font-size:10px;
-                    margin-top:2px;
-                ">
-                    ID: {}
-                </div>
-            </div>
-            """,
+            "<strong>{}</strong>",
             obj.name,
-            str(obj.id)[:8],
         )
 
     @admin.display(
         description="Type",
         ordering="party_type",
     )
-    def party_type_display(self, obj):
+    def party_type_badge(self, obj):
+
+        colors = {
+            "MANUFACTURER": "#2563eb",
+            "WHOLESALER": "#7c3aed",
+            "DISTRIBUTOR": "#0891b2",
+            "OTHER": "#6b7280",
+        }
+
+        color = colors.get(
+            obj.party_type,
+            "#6b7280",
+        )
 
         return format_html(
-            """
-            <span style="
-                display:inline-block;
-                padding:4px 9px;
-                border-radius:999px;
-                background:#f1f5f9;
-                color:#334155;
-                font-size:11px;
-                font-weight:600;
-            ">
-                {}
-            </span>
-            """,
+            "<span style='"
+            "background:{};"
+            "color:white;"
+            "padding:5px 9px;"
+            "border-radius:14px;"
+            "font-size:11px;"
+            "font-weight:600;"
+            "'>{}</span>",
+            color,
             obj.get_party_type_display(),
         )
 
     @admin.display(
-        description="Contact",
+        description="Purchases",
     )
-    def contact_display(self, obj):
+    def purchase_count(self, obj):
 
-        if not obj.contact_person:
+        if not obj:
+            return 0
 
-            return format_html(
-                '<span style="color:#9ca3af;">{}</span>',
-                "—",
-            )
-
-        return format_html(
-            """
-            <div>
-                <strong>{}</strong>
-
-                <div style="
-                    color:#9ca3af;
-                    font-size:11px;
-                    margin-top:2px;
-                ">
-                    {}
-                </div>
-            </div>
-            """,
-            obj.contact_person,
-            obj.email or "No email",
-        )
+        return obj.purchases.count()
 
     @admin.display(
-        description="Phone",
+        description="Party Summary",
     )
-    def phone_display(self, obj):
+    def party_summary(self, obj):
 
-        if not obj.phone:
-
-            return format_html(
-                '<span style="color:#9ca3af;">{}</span>',
-                "—",
-            )
-
-        return obj.phone
-
-    @admin.display(
-        description="GST",
-    )
-    def gst_display(self, obj):
-
-        if not obj.gst_number:
-
-            return format_html(
-                '<span style="color:#9ca3af;">{}</span>',
-                "Not Provided",
-            )
-
-        return format_html(
-            """
-            <span style="
-                font-family:monospace;
-                font-size:11px;
-                font-weight:600;
-                color:#153030;
-            ">
-                {}
-            </span>
-            """,
-            obj.gst_number,
-        )
-
-    @admin.display(
-        description="Bank",
-    )
-    def bank_display(self, obj):
-
-        if not obj.bank_name:
-
-            return format_html(
-                '<span style="color:#9ca3af;">{}</span>',
-                "Not Provided",
-            )
-
-        return format_html(
-            """
-            <div>
-                <strong>{}</strong>
-
-                <div style="
-                    color:#9ca3af;
-                    font-size:10px;
-                    margin-top:2px;
-                ">
-                    {}
-                </div>
-            </div>
-            """,
-            obj.bank_name,
-            obj.ifsc_code or "IFSC not provided",
-        )
-
-    @admin.display(
-        description="QR Codes",
-    )
-    def qr_count_display(self, obj):
-
-        count = obj.payment_qrs.count()
-
-        if count == 0:
-
-            return format_html(
-                '<span style="color:#9ca3af;">{}</span>',
-                "No QR",
-            )
-
-        return format_html(
-            """
-            <span style="
-                display:inline-block;
-                padding:4px 9px;
-                border-radius:999px;
-                background:#ecfdf5;
-                color:#047857;
-                font-size:11px;
-                font-weight:700;
-            ">
-                {} QR
-            </span>
-            """,
-            count,
-        )
-
-    @admin.display(
-        description="Status",
-        ordering="is_active",
-    )
-    def status_display(self, obj):
-
-        if obj.is_active:
-
-            return format_html(
-                """
-                <span style="
-                    display:inline-block;
-                    padding:4px 9px;
-                    border-radius:999px;
-                    background:#ecfdf5;
-                    color:#047857;
-                    font-size:11px;
-                    font-weight:700;
-                ">
-                    {}
-                </span>
-                """,
-                "Active",
-            )
-
-        return format_html(
-            """
-            <span style="
-                display:inline-block;
-                padding:4px 9px;
-                border-radius:999px;
-                background:#fef2f2;
-                color:#b91c1c;
-                font-size:11px;
-                font-weight:700;
-            ">
-                {}
-            </span>
-            """,
-            "Inactive",
-        )
-
-    @admin.display(
-        description="Created",
-        ordering="created_at",
-    )
-    def created_display(self, obj):
-
-        return obj.created_at.strftime(
-            "%d %b %Y"
-        )
-
-    @admin.display(
-        description="Payment QR Summary",
-    )
-    def qr_summary(self, obj):
-
-        if not obj or not obj.pk:
-
-            return format_html(
-                """
-                <div style="
-                    padding:12px;
-                    background:#f8fafc;
-                    border:1px solid #e5e7eb;
-                    border-radius:8px;
-                    color:#64748b;
-                ">
-                    {}
-                </div>
-                """,
-                "Save the party first to add payment QR codes.",
-            )
-
-        qrs = obj.payment_qrs.all()
-        count = qrs.count()
-
-        if count == 0:
-
-            return format_html(
-                """
-                <div style="
-                    padding:12px;
-                    background:#f8fafc;
-                    border:1px solid #e5e7eb;
-                    border-radius:8px;
-                    color:#64748b;
-                ">
-                    {}
-                </div>
-                """,
-                "No payment QR codes have been added yet.",
-            )
-
-        primary = qrs.filter(
-            is_primary=True
-        ).first()
-
-        if primary:
-
-            return format_html(
-                """
-                <div style="
-                    padding:12px;
-                    background:#ecfdf5;
-                    border:1px solid #a7f3d0;
-                    border-radius:8px;
-                    color:#065f46;
-                ">
-                    <strong>{} payment QR code(s)</strong>
-
-                    <div style="
-                        margin-top:4px;
-                        font-size:12px;
-                    ">
-                        Primary QR: {}
-                    </div>
-                </div>
-                """,
-                count,
-                primary.qr_name,
-            )
+        if not obj:
+            return "-"
 
         return format_html(
             """
             <div style="
-                padding:12px;
-                background:#fffbeb;
-                border:1px solid #fde68a;
-                border-radius:8px;
-                color:#92400e;
+                background:#f8fafc;
+                border:1px solid #e2e8f0;
+                border-radius:10px;
+                padding:18px;
+                max-width:650px;
+                line-height:1.8;
             ">
-                <strong>{} payment QR code(s)</strong>
 
-                <div style="
-                    margin-top:4px;
-                    font-size:12px;
-                ">
-                    No primary QR has been selected.
-                </div>
+                <h3>Party Summary</h3>
+
+                <p>
+                    <strong>Name:</strong> {}
+                </p>
+
+                <p>
+                    <strong>Type:</strong> {}
+                </p>
+
+                <p>
+                    <strong>Contact Person:</strong> {}
+                </p>
+
+                <p>
+                    <strong>Phone:</strong> {}
+                </p>
+
+                <p>
+                    <strong>Email:</strong> {}
+                </p>
+
+                <p>
+                    <strong>GST:</strong> {}
+                </p>
+
+                <p>
+                    <strong>Location:</strong>
+                    {}, {}, {}
+                </p>
+
+                <p>
+                    <strong>UPI:</strong> {}
+                </p>
+
             </div>
             """,
-            count,
+            obj.name,
+            obj.get_party_type_display(),
+            obj.contact_person or "-",
+            obj.phone or "-",
+            obj.email or "-",
+            obj.gst_number or "-",
+            obj.city or "-",
+            obj.state or "-",
+            obj.pincode or "-",
+            obj.upi_id or "-",
         )
 
 
@@ -982,43 +386,25 @@ class PartyAdmin(admin.ModelAdmin):
 @admin.register(PartyPaymentQR)
 class PartyPaymentQRAdmin(admin.ModelAdmin):
 
-    form = PartyPaymentQRAdminForm
-
     list_display = (
-        "qr_display",
-        "party_display",
-        "upi_display",
-        "primary_display",
-        "status_display",
-        "created_display",
+        "qr_name_display",
+        "party_name",
+        "upi_id_display",
+        "primary_badge",
+        "qr_image_preview",
     )
 
     search_fields = (
-        "id",
         "qr_name",
         "upi_id",
         "party__name",
-        "party__contact_person",
         "party__phone",
         "party__email",
     )
 
     list_filter = (
         "is_primary",
-        "is_active",
-        "created_at",
-        "updated_at",
-    )
-
-    autocomplete_fields = (
         "party",
-    )
-
-    readonly_fields = (
-        "id",
-        "qr_preview",
-        "created_at",
-        "updated_at",
     )
 
     ordering = (
@@ -1028,268 +414,126 @@ class PartyPaymentQRAdmin(admin.ModelAdmin):
 
     list_per_page = 25
 
-    date_hierarchy = "created_at"
+    autocomplete_fields = (
+        "party",
+    )
 
-    actions = (
-        activate_records,
-        deactivate_records,
+    readonly_fields = (
+        "qr_image_preview",
+        "created_at",
+        "updated_at",
     )
 
     fieldsets = (
+
         (
-            "Payment QR Information",
+            "QR Information",
             {
                 "fields": (
-                    "id",
                     "party",
                     "qr_name",
-                    "qr_image",
-                    "qr_preview",
                     "upi_id",
                     "is_primary",
-                    "is_active",
-                )
+                ),
             },
         ),
+
+        (
+            "QR Image",
+            {
+                "fields": (
+                    "qr_image",
+                    "qr_image_preview",
+                ),
+            },
+        ),
+
         (
             "System Information",
             {
-                "classes": (
-                    "collapse",
-                ),
                 "fields": (
                     "created_at",
                     "updated_at",
-                )
+                ),
+                "classes": (
+                    "collapse",
+                ),
             },
         ),
     )
 
-    @admin.display(description="QR")
-    def qr_display(self, obj):
+    @admin.display(
+        description="QR Name",
+        ordering="qr_name",
+    )
+    def qr_name_display(self, obj):
 
-        if obj.qr_image:
-
-            return format_html(
-                """
-                <img
-                    src="{}"
-                    alt="QR"
-                    style="
-                        width:60px;
-                        height:60px;
-                        object-fit:contain;
-                        border:1px solid #e5e7eb;
-                        border-radius:8px;
-                        padding:4px;
-                        background:#fff;
-                    "
-                >
-                """,
-                obj.qr_image.url,
-            )
+        if not obj:
+            return "-"
 
         return format_html(
-            '<span style="color:#9ca3af;">{}</span>',
-            "No QR",
+            "<strong>{}</strong>",
+            obj.qr_name,
         )
 
     @admin.display(
         description="Party",
         ordering="party__name",
     )
-    def party_display(self, obj):
+    def party_name(self, obj):
 
-        return format_html(
-            "<strong>{}</strong>",
-            obj.party.name,
-        )
+        if not obj or not obj.party:
+            return "-"
+
+        return obj.party.name
 
     @admin.display(
         description="UPI ID",
+        ordering="upi_id",
     )
-    def upi_display(self, obj):
+    def upi_id_display(self, obj):
 
-        if not obj.upi_id:
+        if not obj:
+            return "-"
 
-            return format_html(
-                '<span style="color:#9ca3af;">{}</span>',
-                "—",
-            )
-
-        return format_html(
-            """
-            <span style="
-                font-family:monospace;
-                font-size:11px;
-            ">
-                {}
-            </span>
-            """,
-            obj.upi_id,
-        )
+        return obj.upi_id or "-"
 
     @admin.display(
         description="Primary",
+        boolean=True,
     )
-    def primary_display(self, obj):
+    def primary_badge(self, obj):
 
-        if obj.is_primary:
+        if not obj:
+            return False
 
-            return format_html(
-                """
-                <span style="
-                    display:inline-block;
-                    padding:4px 9px;
-                    border-radius:999px;
-                    background:#ecfdf5;
-                    color:#047857;
-                    font-size:11px;
-                    font-weight:700;
-                ">
-                    {}
-                </span>
-                """,
-                "Primary",
-            )
-
-        return format_html(
-            '<span style="color:#9ca3af;">{}</span>',
-            "—",
-        )
+        return obj.is_primary
 
     @admin.display(
-        description="Status",
-        ordering="is_active",
+        description="QR Preview",
     )
-    def status_display(self, obj):
+    def qr_image_preview(self, obj):
 
-        if obj.is_active:
+        if obj and obj.qr_image:
 
             return format_html(
-                '<strong style="color:#166534;">{}</strong>',
-                "Active",
-            )
-
-        return format_html(
-            '<strong style="color:#991B1B;">{}</strong>',
-            "Inactive",
-        )
-
-    @admin.display(
-        description="Created",
-        ordering="created_at",
-    )
-    def created_display(self, obj):
-
-        return obj.created_at.strftime(
-            "%d %b %Y"
-        )
-
-    @admin.display(description="QR Preview")
-    def qr_preview(self, obj):
-
-        if obj and obj.pk and obj.qr_image:
-
-            return format_html(
-                """
-                <div style="
-                    width:220px;
-                    height:220px;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    background:#ffffff;
-                    border:1px solid #e5e7eb;
-                    border-radius:12px;
-                    padding:10px;
-                ">
-                    <img
-                        src="{}"
-                        alt="Payment QR"
-                        style="
-                            max-width:200px;
-                            max-height:200px;
-                            object-fit:contain;
-                        "
-                    >
-                </div>
-                """,
+                "<img src='{}' "
+                "style='"
+                "width:120px;"
+                "height:120px;"
+                "object-fit:contain;"
+                "border:1px solid #e5e7eb;"
+                "border-radius:8px;"
+                "padding:5px;"
+                "background:white;"
+                "' />",
                 obj.qr_image.url,
             )
 
         return format_html(
-            '<span style="color:#9ca3af;">{}</span>',
-            "No QR image uploaded.",
+            "<span style='color:#9ca3af;'>{}</span>",
+            "No QR Image",
         )
-
-    def save_model(
-        self,
-        request,
-        obj,
-        form,
-        change,
-    ):
-
-        if obj.is_primary:
-
-            PartyPaymentQR.objects.filter(
-                party=obj.party,
-                is_primary=True,
-            ).exclude(
-                pk=obj.pk,
-            ).update(
-                is_primary=False,
-            )
-
-        super().save_model(
-            request,
-            obj,
-            form,
-            change,
-        )
-
-
-# =========================================================
-# PAYMENT METHOD FORM
-# =========================================================
-
-class PaymentMethodAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = PaymentMethod
-        fields = "__all__"
-
-        widgets = {
-            "name": forms.TextInput(
-                attrs={
-                    "placeholder": "Example: UPI",
-                }
-            ),
-            "description": forms.TextInput(
-                attrs={
-                    "placeholder": "Optional description",
-                }
-            ),
-        }
-
-    def clean_name(self):
-
-        value = self.cleaned_data.get(
-            "name",
-            "",
-        )
-
-        value = " ".join(
-            value.strip().split()
-        )
-
-        if not value:
-            raise forms.ValidationError(
-                "Payment method name is required."
-            )
-
-        return value
 
 
 # =========================================================
@@ -1299,34 +543,15 @@ class PaymentMethodAdminForm(forms.ModelForm):
 @admin.register(PaymentMethod)
 class PaymentMethodAdmin(admin.ModelAdmin):
 
-    form = PaymentMethodAdminForm
-
     list_display = (
-        "name",
+        "name_display",
         "description",
-        "payment_count",
-        "status_badge",
-        "created_at",
-        "updated_at",
+        "purchase_installment_count",
     )
 
     search_fields = (
-        "id",
         "name",
         "description",
-    )
-
-    list_filter = (
-        "is_active",
-        "created_at",
-        "updated_at",
-    )
-
-    readonly_fields = (
-        "id",
-        "payment_count",
-        "created_at",
-        "updated_at",
     )
 
     ordering = (
@@ -1335,363 +560,333 @@ class PaymentMethodAdmin(admin.ModelAdmin):
 
     list_per_page = 25
 
-    date_hierarchy = "created_at"
-
-    actions = (
-        activate_records,
-        deactivate_records,
+    readonly_fields = (
+        "purchase_installment_count",
+        "created_at",
+        "updated_at",
     )
 
     fieldsets = (
+
         (
             "Payment Method",
             {
                 "fields": (
                     "name",
                     "description",
-                    "is_active",
-                )
+                ),
             },
         ),
+
+        (
+            "Usage",
+            {
+                "fields": (
+                    "purchase_installment_count",
+                ),
+            },
+        ),
+
         (
             "System Information",
             {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                ),
                 "classes": (
                     "collapse",
                 ),
-                "fields": (
-                    "id",
-                    "payment_count",
-                    "created_at",
-                    "updated_at",
-                )
             },
         ),
     )
 
-    def get_queryset(self, request):
+    @admin.display(
+        description="Payment Method",
+        ordering="name",
+    )
+    def name_display(self, obj):
 
+        if not obj:
+            return "-"
+
+        return format_html(
+            "<strong>{}</strong>",
+            obj.name,
+        )
+
+    @admin.display(
+        description="Installments",
+    )
+    def purchase_installment_count(self, obj):
+
+        if not obj:
+            return 0
+
+        return obj.purchase_installments.count()
+
+
+# =========================================================
+# PARTY PURCHASE ADMIN
+# =========================================================
+
+@admin.register(PartyPurchase)
+class PartyPurchaseAdmin(admin.ModelAdmin):
+
+    def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
-            .annotate(
-                _payment_count=Count(
-                    "payments"
-                )
-            )
+            .select_related("party")
         )
-
-    @admin.display(
-        description="Payments",
-        ordering="_payment_count",
-    )
-    def payment_count(self, obj):
-
-        return obj._payment_count
-
-    @admin.display(
-        description="Status",
-    )
-    def status_badge(self, obj):
-
-        if obj.is_active:
-
-            return format_html(
-                """
-                <span style="
-                    background:#DCFCE7;
-                    color:#166534;
-                    padding:4px 10px;
-                    border-radius:999px;
-                    font-weight:600;
-                    font-size:12px;
-                ">
-                    {}
-                </span>
-                """,
-                "Active",
-            )
-
-        return format_html(
-            """
-            <span style="
-                background:#FEE2E2;
-                color:#991B1B;
-                padding:4px 10px;
-                border-radius:999px;
-                font-weight:600;
-                font-size:12px;
-            ">
-                {}
-            </span>
-            """,
-            "Inactive",
-        )
-
-
-# =========================================================
-# PARTY ORDER FORM
-# =========================================================
-
-class PartyOrderAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = PartyOrder
-        fields = "__all__"
-
-    def clean_gst_number(self):
-
-        value = self.cleaned_data.get(
-            "gst_number",
-            "",
-        ).strip().upper()
-
-        if value and len(value) != 15:
-
-            raise forms.ValidationError(
-                "GST number must contain exactly 15 characters."
-            )
-
-        return value
-
-    def clean(self):
-
-        cleaned_data = super().clean()
-
-        tax_type = cleaned_data.get(
-            "tax_type"
-        )
-
-        gst_number = cleaned_data.get(
-            "gst_number"
-        )
-
-        if (
-            tax_type == PartyOrder.TaxType.GST
-            and not gst_number
-        ):
-
-            self.add_error(
-                "gst_number",
-                "GST number is required when Tax Type is GST.",
-            )
-
-        # -----------------------------------------------------
-        # AMOUNT VALIDATION
-        # -----------------------------------------------------
-
-        amount_fields = (
-            "subtotal",
-            "cgst_amount",
-            "sgst_amount",
-            "igst_amount",
-            "other_charges",
-            "discount_amount",
-            "total_amount",
-        )
-
-        for field_name in amount_fields:
-
-            value = cleaned_data.get(field_name)
-
-            if value is not None and value < Decimal("0.00"):
-
-                self.add_error(
-                    field_name,
-                    "Amount cannot be negative.",
-                )
-
-        return cleaned_data
-
-
-# =========================================================
-# PARTY ORDER ADMIN
-# =========================================================
-
-@admin.register(PartyOrder)
-class PartyOrderAdmin(admin.ModelAdmin):
-
-    form = PartyOrderAdminForm
-
-    inlines = (
-        PaymentInline,
-    )
 
     list_display = (
-        "order_number_display",
+        "purchase_number_display",
         "party_display",
-        "order_date",
-        "status_badge",
-        "tax_type",
-        "total_amount_display",
+        "purchase_date",
+        "invoice_number_display",
+        "grand_total_display",
         "paid_amount_display",
-        "outstanding_display",
+        "due_amount_display",
+        "status_badge",
         "payment_status_badge",
-        "created_display",
     )
 
     search_fields = (
-        "id",
-        "order_number",
+        "purchase_number",
+        "invoice_number",
         "party__name",
         "party__contact_person",
         "party__phone",
+        "party__alternate_phone",
         "party__email",
-        "gst_number",
-        "notes",
+        "party__gst_number",
     )
 
     list_filter = (
         "status",
-        "tax_type",
-        "party",
-        "is_active",
-        "order_date",
-        "created_at",
-        "updated_at",
+        "payment_status",
+        "purchase_date",
+        "invoice_date",
     )
+
+    date_hierarchy = "purchase_date"
+
+    ordering = (
+        "-purchase_date",
+        "-created_at",
+    )
+
+    list_per_page = 25
 
     autocomplete_fields = (
         "party",
     )
 
+    inlines = (
+        PurchasePaymentInstallmentInline,
+    )
+
     readonly_fields = (
-        "id",
-        "order_number",
-        "total_gst",
-        "total_paid_display",
-        "outstanding_amount_display",
+        "purchase_number_display",
+
+        # Automatic purchase calculations
+        "discount_amount",
+        "taxable_amount",
+        "cgst_amount",
+        "sgst_amount",
+        "igst_amount",
+        "round_off",
+        "grand_total",
+
+        # Automatic payment calculations
+        "paid_amount_display",
+        "due_amount_display",
         "payment_status_display",
+
+        "purchase_summary",
+        "payment_summary",
         "created_at",
         "updated_at",
     )
 
-    list_per_page = 25
-
-    date_hierarchy = "order_date"
-
-    ordering = (
-        "-order_date",
-        "-created_at",
-    )
-
-    actions = (
-        activate_records,
-        deactivate_records,
-    )
-
     fieldsets = (
+
         (
-            "Order Information",
+            "Purchase Information",
             {
                 "fields": (
-                    "order_number",
+                    "purchase_number_display",
                     "party",
-                    "order_date",
+                    "purchase_date",
                     "status",
-                    "is_active",
-                )
+                ),
             },
         ),
+
         (
-            "GST Information",
+            "Supplier Invoice",
             {
                 "fields": (
-                    "tax_type",
-                    "gst_number",
-                )
+                    "invoice_number",
+                    "invoice_date",
+                ),
             },
         ),
+
         (
-            "Amount Details",
+            "Purchase Amount",
             {
                 "fields": (
                     "subtotal",
-                    "cgst_amount",
-                    "sgst_amount",
-                    "igst_amount",
-                    "total_gst",
-                    "other_charges",
+                    "discount_percent",
                     "discount_amount",
-                    "total_amount",
-                )
+                    "taxable_amount",
+                ),
+                "description": (
+                    "Enter Subtotal and Discount %. "
+                    "Discount Amount and Taxable Amount are calculated automatically."
+                ),
             },
         ),
+
         (
-            "Payment Summary",
+            "GST / Tax",
             {
                 "fields": (
-                    "total_paid_display",
-                    "outstanding_amount_display",
-                    "payment_status_display",
-                )
+                    "cgst_percent",
+                    "cgst_amount",
+                    "sgst_percent",
+                    "sgst_amount",
+                    "igst_percent",
+                    "igst_amount",
+                ),
+                "description": (
+                    "Enter GST percentages. GST amounts are calculated automatically "
+                    "from the taxable amount. Use either CGST + SGST or IGST."
+                ),
             },
         ),
+
+        (
+            "Additional Charges & Total",
+            {
+                "fields": (
+                    "other_charges",
+                    "round_off",
+                    "grand_total",
+                ),
+                "description": (
+                    "Grand Total is calculated automatically from taxable amount, "
+                    "GST, other charges and round-off."
+                ),
+            },
+        ),
+
+        (
+            "Payment Information",
+            {
+                "fields": (
+                    "paid_amount_display",
+                    "due_amount_display",
+                    "payment_status_display",
+                    "payment_summary",
+                ),
+            },
+        ),
+
+        (
+            "Purchase Summary",
+            {
+                "fields": (
+                    "purchase_summary",
+                ),
+            },
+        ),
+
         (
             "Notes",
             {
+                "fields": (
+                    "notes",
+                ),
                 "classes": (
                     "collapse",
                 ),
-                "fields": (
-                    "notes",
-                )
             },
         ),
+
         (
             "System Information",
             {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                ),
                 "classes": (
                     "collapse",
                 ),
-                "fields": (
-                    "id",
-                    "created_at",
-                    "updated_at",
-                )
             },
         ),
     )
 
-    def get_queryset(self, request):
-
-        return (
-            super()
-            .get_queryset(request)
-            .select_related(
-                "party",
-            )
-            .annotate(
-                _paid_amount=Sum(
-                    "payments__amount",
-                    filter=Q(
-                        payments__status=(
-                            Payment.PaymentStatus.COMPLETED
-                        ),
-                        payments__is_active=True,
-                    ),
-                )
-            )
-        )
+    # =====================================================
+    # AUTOMATIC CALCULATION
+    # =====================================================
+    # Source fields entered by admin:
+    #   subtotal, discount_percent, cgst_percent,
+    #   sgst_percent, igst_percent, other_charges
+    #
+    # Automatically calculated by PartyPurchase model:
+    #   discount_amount, taxable_amount,
+    #   cgst_amount, sgst_amount, igst_amount,
+    #   round_off, grand_total
+    #
+    # Payment is calculated from PurchasePaymentInstallment:
+    #   paid_amount, due_amount, payment_status
+    #
+    # =====================================================
+    # PURCHASE NUMBER
+    # =====================================================
 
     @admin.display(
-        description="Order",
-        ordering="order_number",
+        description="Purchase Number",
+        ordering="purchase_number",
     )
-    def order_number_display(self, obj):
+    def purchase_number_display(self, obj):
+
+        if not obj:
+            return "Will be generated automatically"
+
+        if not obj.purchase_number:
+            return format_html(
+                "<span style='color:#9ca3af;'>{}</span>",
+                "Will be generated automatically",
+            )
 
         return format_html(
             """
-            <strong style="
-                color:#153030;
+            <div style="
+                display:inline-block;
+                background:#f1f5f9;
+                border:1px solid #cbd5e1;
+                border-radius:8px;
+                padding:8px 14px;
                 font-family:monospace;
-                font-size:12px;
+                font-size:14px;
+                font-weight:700;
+                color:#0f172a;
+                letter-spacing:0.3px;
             ">
                 {}
-            </strong>
+            </div>
             """,
-            obj.order_number,
+            obj.purchase_number,
         )
+
+    # =====================================================
+    # PARTY
+    # =====================================================
 
     @admin.display(
         description="Party",
@@ -1699,497 +894,817 @@ class PartyOrderAdmin(admin.ModelAdmin):
     )
     def party_display(self, obj):
 
-        return obj.party.name
+        if not obj or not obj.party:
+            return "-"
+
+        return format_html(
+            "<strong>{}</strong><br>"
+            "<small>{}</small>",
+            obj.party.name,
+            obj.party.phone or "-",
+        )
+
+    # =====================================================
+    # INVOICE
+    # =====================================================
 
     @admin.display(
-        description="Total",
-        ordering="total_amount",
+        description="Invoice No.",
+        ordering="invoice_number",
     )
-    def total_amount_display(self, obj):
+    def invoice_number_display(self, obj):
 
-        return currency_html(
-            obj.total_amount,
-            color="#153030",
-            strong=True,
+        if obj.invoice_number:
+            return obj.invoice_number
+
+        return format_html(
+            "<span style='color:#9ca3af;'>{}</span>",
+            "Not Added",
         )
+
+    # =====================================================
+    # GRAND TOTAL
+    # =====================================================
+
+    @admin.display(
+        description="Grand Total",
+        ordering="grand_total",
+    )
+    def grand_total_display(self, obj):
+
+        amount = money(obj.grand_total)
+
+        return format_html(
+            "<strong>₹ {}</strong>",
+            amount,
+        )
+
+    # =====================================================
+    # PAID
+    # =====================================================
 
     @admin.display(
         description="Paid",
-        ordering="_paid_amount",
+        ordering="paid_amount",
     )
     def paid_amount_display(self, obj):
 
-        amount = (
-            obj._paid_amount
-            or Decimal("0.00")
+        amount = money(obj.paid_amount)
+
+        return format_html(
+            "<span style='color:#16a34a;font-weight:600;'>"
+            "₹ {}"
+            "</span>",
+            amount,
         )
 
-        return currency_html(
-            amount,
-            color="#166534",
-            strong=True,
-        )
+    # =====================================================
+    # DUE
+    # =====================================================
 
     @admin.display(
-        description="Outstanding",
+        description="Due",
+        ordering="due_amount",
     )
-    def outstanding_display(self, obj):
+    def due_amount_display(self, obj):
 
-        paid = (
-            obj._paid_amount
-            or Decimal("0.00")
-        )
+        due = obj.due_amount or Decimal("0.00")
 
-        amount = (
-            obj.total_amount - paid
-        )
+        amount = money(due)
 
-        if amount < Decimal("0.00"):
-            amount = Decimal("0.00")
+        if due > Decimal("0.00"):
 
-        if amount == Decimal("0.00"):
-
-            return currency_html(
+            return format_html(
+                "<strong style='color:#dc2626;'>"
+                "₹ {}"
+                "</strong>",
                 amount,
-                color="#166534",
-                strong=True,
             )
 
-        return currency_html(
+        return format_html(
+            "<strong style='color:#16a34a;'>"
+            "₹ {}"
+            "</strong>",
             amount,
-            color="#b91c1c",
-            strong=True,
         )
 
+    # =====================================================
+    # PAYMENT STATUS DISPLAY
+    # =====================================================
+
     @admin.display(
-        description="Order Status",
+        description="Payment Status",
+        ordering="payment_status",
+    )
+    def payment_status_display(self, obj):
+
+        if not obj:
+            return "-"
+
+        colors = {
+            "UNPAID": "#dc2626",
+            "PARTIAL": "#f59e0b",
+            "PAID": "#16a34a",
+        }
+
+        color = colors.get(
+            obj.payment_status,
+            "#6b7280",
+        )
+
+        return format_html(
+            "<span style='"
+            "background:{};"
+            "color:white;"
+            "padding:5px 10px;"
+            "border-radius:15px;"
+            "font-size:11px;"
+            "font-weight:600;"
+            "'>{}</span>",
+            color,
+            obj.get_payment_status_display(),
+        )
+
+
+    # =====================================================
+    # PURCHASE STATUS
+    # =====================================================
+
+    @admin.display(
+        description="Purchase Status",
         ordering="status",
     )
     def status_badge(self, obj):
 
-        styles = {
-            "PENDING": (
-                "#FEF3C7",
-                "#92400E",
-                "Pending",
-            ),
-            "CONFIRMED": (
-                "#DBEAFE",
-                "#1E40AF",
-                "Confirmed",
-            ),
-            "COMPLETED": (
-                "#DCFCE7",
-                "#166534",
-                "Completed",
-            ),
-            "CANCELLED": (
-                "#FEE2E2",
-                "#991B1B",
-                "Cancelled",
-            ),
+        colors = {
+            "DRAFT": "#6b7280",
+            "CONFIRMED": "#2563eb",
+            "RECEIVED": "#16a34a",
+            "PARTIAL": "#f59e0b",
+            "CANCELLED": "#dc2626",
         }
 
-        bg, text, label = styles.get(
+        color = colors.get(
             obj.status,
-            (
-                "#F3F4F6",
-                "#374151",
-                obj.status,
-            ),
+            "#6b7280",
         )
 
         return format_html(
-            """
-            <span style="
-                background:{};
-                color:{};
-                padding:4px 10px;
-                border-radius:999px;
-                font-weight:600;
-                font-size:12px;
-            ">
-                {}
-            </span>
-            """,
-            bg,
-            text,
-            label,
+            "<span style='"
+            "background:{};"
+            "color:white;"
+            "padding:5px 10px;"
+            "border-radius:15px;"
+            "font-size:11px;"
+            "font-weight:600;"
+            "'>{}</span>",
+            color,
+            obj.get_status_display(),
         )
 
+    # =====================================================
+    # PAYMENT STATUS
+    # =====================================================
+
     @admin.display(
-        description="Payment Status",
+        description="Payment",
+        ordering="payment_status",
     )
     def payment_status_badge(self, obj):
 
-        paid = (
-            obj._paid_amount
-            or Decimal("0.00")
+        colors = {
+            "UNPAID": "#dc2626",
+            "PARTIAL": "#f59e0b",
+            "PAID": "#16a34a",
+        }
+
+        color = colors.get(
+            obj.payment_status,
+            "#6b7280",
         )
 
-        total = (
-            obj.total_amount
-            or Decimal("0.00")
+        return format_html(
+            "<span style='"
+            "background:{};"
+            "color:white;"
+            "padding:5px 10px;"
+            "border-radius:15px;"
+            "font-size:11px;"
+            "font-weight:600;"
+            "'>{}</span>",
+            color,
+            obj.get_payment_status_display(),
         )
 
-        if total <= Decimal("0.00"):
+    # =====================================================
+    # PURCHASE SUMMARY
+    # =====================================================
 
-            label = "No Amount"
-            bg = "#F3F4F6"
-            text = "#6B7280"
+    @admin.display(
+        description="Purchase Summary",
+    )
+    def purchase_summary(self, obj):
 
-        elif paid <= Decimal("0.00"):
+        if not obj:
+            return "-"
 
-            label = "Unpaid"
-            bg = "#FEE2E2"
-            text = "#991B1B"
+        subtotal = money(obj.subtotal)
+        discount_percent = f"{Decimal(obj.discount_percent or 0):.2f}"
+        discount = money(obj.discount_amount)
+        taxable = money(obj.taxable_amount)
 
-        elif paid >= total:
+        cgst_percent = f"{Decimal(obj.cgst_percent or 0):.2f}"
+        cgst = money(obj.cgst_amount)
 
-            label = "Paid"
-            bg = "#DCFCE7"
-            text = "#166534"
+        sgst_percent = f"{Decimal(obj.sgst_percent or 0):.2f}"
+        sgst = money(obj.sgst_amount)
 
-        else:
+        igst_percent = f"{Decimal(obj.igst_percent or 0):.2f}"
+        igst = money(obj.igst_amount)
 
-            label = "Partially Paid"
-            bg = "#FEF3C7"
-            text = "#92400E"
+        other_charges = money(obj.other_charges)
+        round_off = money(obj.round_off)
+        grand_total = money(obj.grand_total)
 
         return format_html(
             """
-            <span style="
-                background:{};
-                color:{};
-                padding:4px 10px;
-                border-radius:999px;
-                font-weight:600;
-                font-size:12px;
+            <div style="
+                background:#f8fafc;
+                border:1px solid #e2e8f0;
+                border-radius:10px;
+                padding:18px;
+                max-width:650px;
+                line-height:1.8;
             ">
-                {}
-            </span>
+
+                <h3 style="margin-top:0;">
+                    Purchase Summary
+                </h3>
+
+                <p>
+                    <strong>Purchase No:</strong>
+                    {}
+                </p>
+
+                <p>
+                    <strong>Party:</strong>
+                    {}
+                </p>
+
+                <p>
+                    <strong>Date:</strong>
+                    {}
+                </p>
+
+                <p>
+                    <strong>Invoice:</strong>
+                    {}
+                </p>
+
+                <hr>
+
+                <p>
+                    <strong>Subtotal:</strong>
+                    ₹ {}
+                </p>
+
+                <p>
+                    <strong>Discount ({}%):</strong>
+                    ₹ {}
+                </p>
+
+                <p>
+                    <strong>Taxable:</strong>
+                    ₹ {}
+                </p>
+
+                <p>
+                    <strong>CGST ({}%):</strong>
+                    ₹ {}
+                </p>
+
+                <p>
+                    <strong>SGST ({}%):</strong>
+                    ₹ {}
+                </p>
+
+                <p>
+                    <strong>IGST ({}%):</strong>
+                    ₹ {}
+                </p>
+
+                <p>
+                    <strong>Other Charges:</strong>
+                    ₹ {}
+                </p>
+
+                <p>
+                    <strong>Round Off:</strong>
+                    ₹ {}
+                </p>
+
+                <hr>
+
+                <p style="
+                    font-size:17px;
+                    font-weight:700;
+                    margin-bottom:0;
+                ">
+                    Grand Total:
+                    ₹ {}
+                </p>
+
+            </div>
             """,
-            bg,
-            text,
-            label,
+            obj.purchase_number or "-",
+            obj.party.name if obj.party else "-",
+            obj.purchase_date,
+            obj.invoice_number or "-",
+            subtotal,
+            discount_percent,
+            discount,
+            taxable,
+            cgst_percent,
+            cgst,
+            sgst_percent,
+            sgst,
+            igst_percent,
+            igst,
+            other_charges,
+            round_off,
+            grand_total,
         )
+
+    # =====================================================
+    # PAYMENT SUMMARY
+    # =====================================================
 
     @admin.display(
-        description="Total GST",
+        description="Payment Summary",
     )
-    def total_gst(self, obj):
+    def payment_summary(self, obj):
 
-        return currency_html(
-            obj.total_gst,
-            strong=False,
+        if not obj:
+            return "-"
+
+        installments = obj.installments.all()
+
+        total = installments.count()
+
+        paid = installments.filter(
+            status=PurchasePaymentInstallment.Status.PAID
+        ).count()
+
+        partial = installments.filter(
+            status=PurchasePaymentInstallment.Status.PARTIAL
+        ).count()
+
+        pending = installments.filter(
+            status=PurchasePaymentInstallment.Status.PENDING
+        ).count()
+
+        cancelled = installments.filter(
+            status=PurchasePaymentInstallment.Status.CANCELLED
+        ).count()
+
+        grand_total = money(obj.grand_total)
+        paid_amount = money(obj.paid_amount)
+        due_amount = money(obj.due_amount)
+
+        return format_html(
+            """
+            <div style="
+                background:#f8fafc;
+                border:1px solid #e2e8f0;
+                border-radius:10px;
+                padding:18px;
+                max-width:650px;
+                line-height:1.8;
+            ">
+
+                <h3 style="margin-top:0;">
+                    Payment Summary
+                </h3>
+
+                <p>
+                    <strong>Grand Total:</strong>
+                    ₹ {}
+                </p>
+
+                <p>
+                    <strong>Paid:</strong>
+                    <span style="
+                        color:#16a34a;
+                        font-weight:600;
+                    ">
+                        ₹ {}
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Due:</strong>
+                    <span style="
+                        color:#dc2626;
+                        font-weight:600;
+                    ">
+                        ₹ {}
+                    </span>
+                </p>
+
+                <hr>
+
+                <p>
+                    <strong>Total Installments:</strong>
+                    {}
+                </p>
+
+                <p>
+                    <strong>Paid Installments:</strong>
+                    <span style="color:#16a34a;">
+                        {}
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Partial:</strong>
+                    <span style="color:#f59e0b;">
+                        {}
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Pending:</strong>
+                    <span style="color:#dc2626;">
+                        {}
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Cancelled:</strong>
+                    {}
+                </p>
+
+            </div>
+            """,
+            grand_total,
+            paid_amount,
+            due_amount,
+            total,
+            paid,
+            partial,
+            pending,
+            cancelled,
         )
 
-    @admin.display(
-        description="Total Paid",
+    # =====================================================
+    # ACTIONS
+    # =====================================================
+
+    @admin.action(
+        description="Recalculate selected purchase totals & payments"
     )
-    def total_paid_display(self, obj):
+    def recalculate_selected_purchases(self, request, queryset):
 
-        return currency_html(
-            obj.total_paid,
-            color="#166534",
-            strong=True,
-        )
+        updated = 0
 
-    @admin.display(
-        description="Outstanding",
-    )
-    def outstanding_amount_display(self, obj):
+        for purchase in queryset:
 
-        amount = obj.outstanding_amount
+            # Re-run subtotal/discount/GST/charges calculation.
+            purchase.calculate_amounts()
 
-        if amount < Decimal("0.00"):
-            amount = Decimal("0.00")
-
-        color = (
-            "#166534"
-            if amount == Decimal("0.00")
-            else "#b91c1c"
-        )
-
-        return currency_html(
-            amount,
-            color=color,
-            strong=True,
-        )
-
-    @admin.display(
-        description="Payment Status",
-    )
-    def payment_status_display(self, obj):
-
-        labels = {
-            "NO_AMOUNT": "No Amount",
-            "UNPAID": "Unpaid",
-            "PARTIALLY_PAID": "Partially Paid",
-            "PAID": "Paid",
-        }
-
-        status = obj.payment_status
-
-        return labels.get(
-            status,
-            status,
-        )
-
-    @admin.display(
-        description="Created",
-        ordering="created_at",
-    )
-    def created_display(self, obj):
-
-        return obj.created_at.strftime(
-            "%d %b %Y"
-        )
-
-
-# =========================================================
-# PAYMENT FORM
-# =========================================================
-
-class PaymentAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = Payment
-        fields = "__all__"
-
-        widgets = {
-            "transaction_reference": forms.TextInput(
-                attrs={
-                    "placeholder": "UPI / bank transaction reference",
-                }
-            ),
-            "notes": forms.Textarea(
-                attrs={
-                    "placeholder": "Optional payment notes",
-                    "rows": 3,
-                }
-            ),
-        }
-
-    def clean_amount(self):
-
-        amount = self.cleaned_data.get(
-            "amount"
-        )
-
-        if amount is None:
-            return amount
-
-        if amount <= Decimal("0.00"):
-
-            raise forms.ValidationError(
-                "Payment amount must be greater than zero."
+            # Persist calculated purchase amounts without touching
+            # the editable source fields.
+            PartyPurchase.objects.filter(
+                pk=purchase.pk
+            ).update(
+                discount_amount=purchase.discount_amount,
+                taxable_amount=purchase.taxable_amount,
+                cgst_amount=purchase.cgst_amount,
+                sgst_amount=purchase.sgst_amount,
+                igst_amount=purchase.igst_amount,
+                round_off=purchase.round_off,
+                grand_total=purchase.grand_total,
             )
 
-        return amount
+            # Recalculate payment summary from installments.
+            purchase.update_payment_summary()
 
-    def clean_transaction_reference(self):
+            updated += 1
 
-        return self.cleaned_data.get(
-            "transaction_reference",
-            "",
-        ).strip()
+        self.message_user(
+            request,
+            f"{updated} purchase(s) recalculated successfully.",
+        )
 
-    def clean_notes(self):
 
-        return self.cleaned_data.get(
-            "notes",
-            "",
-        ).strip()
+    @admin.action(
+        description="Mark selected purchases as Confirmed"
+    )
+    def mark_confirmed(self, request, queryset):
+
+        queryset.update(
+            status=PartyPurchase.Status.CONFIRMED
+        )
+
+    @admin.action(
+        description="Mark selected purchases as Received"
+    )
+    def mark_received(self, request, queryset):
+
+        queryset.update(
+            status=PartyPurchase.Status.RECEIVED
+        )
+
+    @admin.action(
+        description="Mark selected purchases as Cancelled"
+    )
+    def mark_cancelled(self, request, queryset):
+
+        queryset.update(
+            status=PartyPurchase.Status.CANCELLED
+        )
+
+    actions = (
+        "recalculate_selected_purchases",
+        "mark_confirmed",
+        "mark_received",
+        "mark_cancelled",
+    )
 
 
 # =========================================================
-# PAYMENT ADMIN
+# PURCHASE PAYMENT INSTALLMENT ADMIN
 # =========================================================
 
-@admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
+@admin.register(PurchasePaymentInstallment)
+class PurchasePaymentInstallmentAdmin(admin.ModelAdmin):
 
-    form = PaymentAdminForm
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "purchase",
+                "purchase__party",
+                "payment_method",
+            )
+        )
 
     list_display = (
-        "payment_number_display",
-        "order_display",
+        "purchase_display",
         "party_display",
+        "installment_number_display",
+        "due_date",
+        "installment_amount_display",
+        "paid_amount_display",
+        "remaining_amount_display",
+        "payment_method_display",
         "payment_date",
-        "payment_method",
-        "amount_display",
         "status_badge",
-        "transaction_reference_display",
-        "created_display",
     )
 
     search_fields = (
-        "id",
-        "payment_number",
-        "order__order_number",
-        "order__party__name",
-        "order__party__contact_person",
-        "order__party__phone",
-        "order__party__email",
+        "purchase__purchase_number",
+        "purchase__invoice_number",
+        "purchase__party__name",
+        "purchase__party__contact_person",
+        "purchase__party__phone",
+        "purchase__party__email",
+        "purchase__party__gst_number",
         "transaction_reference",
-        "notes",
+        "payment_method__name",
     )
 
     list_filter = (
         "status",
         "payment_method",
+        "due_date",
         "payment_date",
-        "is_active",
-        "created_at",
-        "updated_at",
     )
 
-    autocomplete_fields = (
-        "order",
-        "payment_method",
-    )
+    date_hierarchy = "due_date"
 
-    readonly_fields = (
-        "id",
-        "payment_number",
-        "order_total_display",
-        "order_paid_display",
-        "order_outstanding_display",
-        "created_at",
-        "updated_at",
+    ordering = (
+        "due_date",
+        "installment_number",
     )
 
     list_per_page = 25
 
-    date_hierarchy = "payment_date"
-
-    ordering = (
-        "-payment_date",
-        "-created_at",
+    autocomplete_fields = (
+        "purchase",
+        "payment_method",
     )
 
-    actions = (
-        activate_records,
-        deactivate_records,
+    readonly_fields = (
+        "remaining_amount",
+        "status",
+        "installment_summary",
+        "created_at",
+        "updated_at",
     )
 
     fieldsets = (
+
+        (
+            "Installment Information",
+            {
+                "fields": (
+                    "purchase",
+                    "installment_number",
+                    "due_date",
+                    "installment_amount",
+                ),
+            },
+        ),
+
         (
             "Payment Information",
             {
                 "fields": (
-                    "payment_number",
-                    "order",
-                    "payment_date",
+                    "paid_amount",
+                    "remaining_amount",
                     "payment_method",
-                    "amount",
-                    "status",
-                    "is_active",
-                )
-            },
-        ),
-        (
-            "Order Payment Summary",
-            {
-                "fields": (
-                    "order_total_display",
-                    "order_paid_display",
-                    "order_outstanding_display",
-                )
-            },
-        ),
-        (
-            "Transaction Details",
-            {
-                "fields": (
+                    "payment_date",
                     "transaction_reference",
-                    "notes",
-                )
+                    "status",
+                ),
             },
         ),
+
         (
-            "System Information",
+            "Installment Summary",
             {
+                "fields": (
+                    "installment_summary",
+                ),
+            },
+        ),
+
+        (
+            "Notes",
+            {
+                "fields": (
+                    "notes",
+                ),
                 "classes": (
                     "collapse",
                 ),
+            },
+        ),
+
+        (
+            "System Information",
+            {
                 "fields": (
-                    "id",
                     "created_at",
                     "updated_at",
-                )
+                ),
+                "classes": (
+                    "collapse",
+                ),
             },
         ),
     )
 
-    def get_queryset(self, request):
-
-        return (
-            super()
-            .get_queryset(request)
-            .select_related(
-                "order",
-                "order__party",
-                "payment_method",
-            )
-        )
+    # =====================================================
+    # PURCHASE
+    # =====================================================
 
     @admin.display(
-        description="Payment",
-        ordering="payment_number",
+        description="Purchase",
+        ordering="purchase__purchase_number",
     )
-    def payment_number_display(self, obj):
+    def purchase_display(self, obj):
+
+        if not obj or not obj.purchase:
+            return "-"
 
         return format_html(
-            """
-            <strong style="
-                color:#153030;
-                font-family:monospace;
-                font-size:12px;
-            ">
-                {}
-            </strong>
-            """,
-            obj.payment_number,
+            "<strong>{}</strong>",
+            obj.purchase.purchase_number,
         )
 
-    @admin.display(
-        description="Order",
-        ordering="order__order_number",
-    )
-    def order_display(self, obj):
-
-        return format_html(
-            """
-            <strong style="
-                font-family:monospace;
-                font-size:11px;
-            ">
-                {}
-            </strong>
-            """,
-            obj.order.order_number,
-        )
+    # =====================================================
+    # PARTY
+    # =====================================================
 
     @admin.display(
         description="Party",
-        ordering="order__party__name",
+        ordering="purchase__party__name",
     )
     def party_display(self, obj):
 
-        return obj.order.party.name
+        if not obj or not obj.purchase or not obj.purchase.party:
+            return "-"
+
+        return obj.purchase.party.name
+
+    # =====================================================
+    # INSTALLMENT NUMBER
+    # =====================================================
+
+    @admin.display(
+        description="Installment",
+        ordering="installment_number",
+    )
+    def installment_number_display(self, obj):
+
+        return format_html(
+            "<strong>#{}</strong>",
+            obj.installment_number,
+        )
+
+    # =====================================================
+    # INSTALLMENT AMOUNT
+    # =====================================================
 
     @admin.display(
         description="Amount",
-        ordering="amount",
+        ordering="installment_amount",
     )
-    def amount_display(self, obj):
+    def installment_amount_display(self, obj):
 
-        return currency_html(
-            obj.amount,
-            strong=True,
+        amount = money(obj.installment_amount)
+
+        return format_html(
+            "<strong>₹ {}</strong>",
+            amount,
         )
+
+    # =====================================================
+    # PAID AMOUNT
+    # =====================================================
+
+    @admin.display(
+        description="Paid",
+        ordering="paid_amount",
+    )
+    def paid_amount_display(self, obj):
+
+        amount = money(obj.paid_amount)
+
+        return format_html(
+            "<span style='color:#16a34a;font-weight:600;'>"
+            "₹ {}"
+            "</span>",
+            amount,
+        )
+
+    # =====================================================
+    # REMAINING AMOUNT
+    # =====================================================
+
+    @admin.display(
+        description="Remaining",
+        ordering="remaining_amount",
+    )
+    def remaining_amount_display(self, obj):
+
+        remaining = (
+            obj.remaining_amount
+            or Decimal("0.00")
+        )
+
+        amount = money(remaining)
+
+        if remaining > Decimal("0.00"):
+
+            return format_html(
+                "<strong style='color:#dc2626;'>"
+                "₹ {}"
+                "</strong>",
+                amount,
+            )
+
+        return format_html(
+            "<strong style='color:#16a34a;'>"
+            "₹ {}"
+            "</strong>",
+            amount,
+        )
+
+    # =====================================================
+    # PAYMENT METHOD
+    # =====================================================
+
+    @admin.display(
+        description="Payment Method",
+        ordering="payment_method__name",
+    )
+    def payment_method_display(self, obj):
+
+        if obj.payment_method:
+            return obj.payment_method.name
+
+        return format_html(
+            "<span style='color:#9ca3af;'>{}</span>",
+            "Not Added",
+        )
+
+    # =====================================================
+    # STATUS
+    # =====================================================
 
     @admin.display(
         description="Status",
@@ -2197,119 +1712,201 @@ class PaymentAdmin(admin.ModelAdmin):
     )
     def status_badge(self, obj):
 
-        styles = {
-            "PENDING": (
-                "#FEF3C7",
-                "#92400E",
-                "Pending",
-            ),
-            "COMPLETED": (
-                "#DCFCE7",
-                "#166534",
-                "Completed",
-            ),
-            "FAILED": (
-                "#FEE2E2",
-                "#991B1B",
-                "Failed",
-            ),
-            "CANCELLED": (
-                "#FEE2E2",
-                "#991B1B",
-                "Cancelled",
-            ),
+        colors = {
+            "PENDING": "#dc2626",
+            "PARTIAL": "#f59e0b",
+            "PAID": "#16a34a",
+            "CANCELLED": "#6b7280",
         }
 
-        bg, text, label = styles.get(
+        color = colors.get(
             obj.status,
-            (
-                "#F3F4F6",
-                "#374151",
-                obj.status,
-            ),
+            "#6b7280",
+        )
+
+        return format_html(
+            "<span style='"
+            "background:{};"
+            "color:white;"
+            "padding:5px 10px;"
+            "border-radius:15px;"
+            "font-size:11px;"
+            "font-weight:600;"
+            "'>{}</span>",
+            color,
+            obj.get_status_display(),
+        )
+
+    # =====================================================
+    # INSTALLMENT SUMMARY
+    # =====================================================
+
+    @admin.display(
+        description="Installment Summary",
+    )
+    def installment_summary(self, obj):
+
+        if not obj:
+            return "-"
+
+        installment_amount = (
+            obj.installment_amount
+            or Decimal("0.00")
+        )
+
+        paid_amount = (
+            obj.paid_amount
+            or Decimal("0.00")
+        )
+
+        remaining_amount = (
+            obj.remaining_amount
+            or Decimal("0.00")
+        )
+
+        percentage = Decimal("0.00")
+
+        if installment_amount > Decimal("0.00"):
+
+            percentage = (
+                paid_amount / installment_amount
+            ) * Decimal("100")
+
+        installment_amount_text = money(
+            installment_amount
+        )
+
+        paid_amount_text = money(
+            paid_amount
+        )
+
+        remaining_amount_text = money(
+            remaining_amount
+        )
+
+        percentage_text = f"{percentage:.2f}"
+
+        purchase_number = (
+            obj.purchase.purchase_number
+            if obj.purchase
+            else "-"
+        )
+
+        party_name = (
+            obj.purchase.party.name
+            if obj.purchase and obj.purchase.party
+            else "-"
+        )
+
+        payment_method = (
+            obj.payment_method.name
+            if obj.payment_method
+            else "-"
         )
 
         return format_html(
             """
-            <span style="
-                background:{};
-                color:{};
-                padding:4px 10px;
-                border-radius:999px;
-                font-weight:600;
-                font-size:12px;
+            <div style="
+                background:#f8fafc;
+                border:1px solid #e2e8f0;
+                border-radius:10px;
+                padding:18px;
+                max-width:650px;
+                line-height:1.8;
             ">
-                {}
-            </span>
+
+                <h3>Installment #{}</h3>
+
+                <p>
+                    <strong>Purchase:</strong>
+                    {}
+                </p>
+
+                <p>
+                    <strong>Party:</strong>
+                    {}
+                </p>
+
+                <p>
+                    <strong>Due Date:</strong>
+                    {}
+                </p>
+
+                <hr>
+
+                <p>
+                    <strong>Installment Amount:</strong>
+                    ₹ {}
+                </p>
+
+                <p>
+                    <strong>Paid:</strong>
+                    <span style="
+                        color:#16a34a;
+                        font-weight:600;
+                    ">
+                        ₹ {}
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Remaining:</strong>
+                    <span style="
+                        color:#dc2626;
+                        font-weight:600;
+                    ">
+                        ₹ {}
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Payment Progress:</strong>
+                    {}%
+                </p>
+
+                <p>
+                    <strong>Payment Method:</strong>
+                    {}
+                </p>
+
+                <p>
+                    <strong>Payment Date:</strong>
+                    {}
+                </p>
+
+                <p>
+                    <strong>Transaction Reference:</strong>
+                    {}
+                </p>
+
+            </div>
             """,
-            bg,
-            text,
-            label,
+            obj.installment_number,
+            purchase_number,
+            party_name,
+            obj.due_date,
+            installment_amount_text,
+            paid_amount_text,
+            remaining_amount_text,
+            percentage_text,
+            payment_method,
+            obj.payment_date or "-",
+            obj.transaction_reference or "-",
         )
 
-    @admin.display(
-        description="Reference",
+    # =====================================================
+    # ACTION
+    # =====================================================
+
+    @admin.action(
+        description="Cancel selected installments"
     )
-    def transaction_reference_display(self, obj):
+    def mark_cancelled(self, request, queryset):
 
-        if obj.transaction_reference:
-
-            return obj.transaction_reference
-
-        return format_html(
-            '<span style="color:#9CA3AF;">{}</span>',
-            "—",
+        queryset.update(
+            status=PurchasePaymentInstallment.Status.CANCELLED
         )
 
-    @admin.display(
-        description="Order Total",
+    actions = (
+        "mark_cancelled",
     )
-    def order_total_display(self, obj):
-
-        return currency_html(
-            obj.order.total_amount,
-            strong=True,
-        )
-
-    @admin.display(
-        description="Total Paid",
-    )
-    def order_paid_display(self, obj):
-
-        return currency_html(
-            obj.order.total_paid,
-            color="#166534",
-            strong=True,
-        )
-
-    @admin.display(
-        description="Outstanding",
-    )
-    def order_outstanding_display(self, obj):
-
-        amount = obj.order.outstanding_amount
-
-        if amount < Decimal("0.00"):
-            amount = Decimal("0.00")
-
-        color = (
-            "#166534"
-            if amount == Decimal("0.00")
-            else "#b91c1c"
-        )
-
-        return currency_html(
-            amount,
-            color=color,
-            strong=True,
-        )
-
-    @admin.display(
-        description="Created",
-        ordering="created_at",
-    )
-    def created_display(self, obj):
-
-        return obj.created_at.strftime(
-            "%d %b %Y"
-        )

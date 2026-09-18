@@ -3,9 +3,12 @@ from django.shortcuts import redirect, render
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
+from decimal import Decimal
+
+from django.db.models import Sum, Count
 
 from apps.accounts.models import UserAccount
-from apps.dashboard.models import Party, PartyPaymentQR
+from apps.dashboard.models import Party, PartyPaymentQR, PartyPurchase, PurchasePaymentInstallment
 
 from apps.dashboard.session import (
     get_logged_in_user,
@@ -497,11 +500,272 @@ def party_detail(request, pk):
         }
     )
 
+
+def party_orders_view(request, party_id):
+    """
+    Display all purchase orders for a particular party.
+    """
+
+    party = get_object_or_404(
+        Party,
+        pk=party_id,
+    )
+
+
+    orders = (
+        PartyPurchase.objects
+        .filter(party=party)
+        .select_related("party")
+        .order_by(
+            "-purchase_date",
+            "-created_at",
+        )
+    )
+
+    summary = orders.aggregate(
+        total_purchase=Sum("grand_total"),
+        total_paid=Sum("paid_amount"),
+        total_due=Sum("due_amount"),
+    )
+
+    total_purchase = (
+        summary["total_purchase"]
+        or Decimal("0.00")
+    )
+
+    total_paid = (
+        summary["total_paid"]
+        or Decimal("0.00")
+    )
+
+    total_due = (
+        summary["total_due"]
+        or Decimal("0.00")
+    )
+
+    context = {
+        "party": party,
+        "orders": orders,
+
+        "total_orders": orders.count(),
+
+        "total_purchase": total_purchase,
+
+        "total_paid": total_paid,
+
+        "total_due": total_due,
+    }
+
+    return render(
+        request,
+        "dashboard/party_orders.html",
+        context,
+    )
+
+def party_purchase_detail_view(request, purchase_id):
+
+    purchase = get_object_or_404(
+        PartyPurchase.objects.select_related("party"),
+        pk=purchase_id,
+    )
+
+    installments = (
+        PurchasePaymentInstallment.objects
+        .filter(purchase=purchase)
+        .select_related("payment_method")
+        .order_by("installment_number")
+    )
+
+    installment_summary = installments.aggregate(
+        total_installment=Sum("installment_amount"),
+        total_paid=Sum("paid_amount"),
+        total_remaining=Sum("remaining_amount"),
+    )
+
+    context = {
+        "purchase": purchase,
+        "party": purchase.party,
+        "installments": installments,
+
+        "total_installments": installments.count(),
+
+        "total_installment": (
+            installment_summary["total_installment"]
+            or Decimal("0.00")
+        ),
+
+        "installment_paid": (
+            installment_summary["total_paid"]
+            or Decimal("0.00")
+        ),
+
+        "installment_remaining": (
+            installment_summary["total_remaining"]
+            or Decimal("0.00")
+        ),
+    }
+
+    return render(
+        request,
+        "dashboard/party_purchase_detail.html",
+        context,
+    )
+def purchase_installments_view(request, purchase_id):
+
+    purchase = get_object_or_404(
+        PartyPurchase.objects.select_related("party"),
+        pk=purchase_id,
+    )
+
+    installments = (
+        PurchasePaymentInstallment.objects
+        .filter(purchase=purchase)
+        .select_related("payment_method")
+        .order_by("installment_number")
+    )
+
+    summary = installments.aggregate(
+        total_installment=Sum("installment_amount"),
+        total_paid=Sum("paid_amount"),
+        total_remaining=Sum("remaining_amount"),
+    )
+
+    context = {
+        "purchase": purchase,
+        "party": purchase.party,
+        "installments": installments,
+
+        "total_installments": installments.count(),
+
+        "total_installment": (
+            summary["total_installment"]
+            or Decimal("0.00")
+        ),
+
+        "total_paid": (
+            summary["total_paid"]
+            or Decimal("0.00")
+        ),
+
+        "total_remaining": (
+            summary["total_remaining"]
+            or Decimal("0.00")
+        ),
+    }
+
+    return render(
+        request,
+        "dashboard/purchase_installments.html",
+        context,
+    )
+
 @dashboard_access_required
 def payment_list(request):
+    installments = (
+        PurchasePaymentInstallment.objects
+        .select_related(
+            "purchase",
+            "purchase__party",
+            "payment_method",
+        )
+        .order_by("-payment_date", "-created_at")
+    )
+
+    purchase_summary = PartyPurchase.objects.aggregate(
+        total_purchase=Sum("grand_total"),
+        total_paid=Sum("paid_amount"),
+        total_due=Sum("due_amount"),
+    )
+
+    payment_summary = installments.aggregate(
+        total_payment_records=Count("id"),
+        total_installment_amount=Sum("installment_amount"),
+        total_paid_amount=Sum("paid_amount"),
+        total_remaining_amount=Sum("remaining_amount"),
+    )
+
+    recent_payments = (
+        installments
+        .filter(paid_amount__gt=Decimal("0.00"))
+        .order_by("-payment_date", "-created_at")[:10]
+    )
+
+    payment_methods = (
+        installments
+        .filter(paid_amount__gt=Decimal("0.00"))
+        .values(
+            "payment_method__name"
+        )
+        .annotate(
+            total_amount=Sum("paid_amount"),
+            payment_count=Count("id"),
+        )
+        .order_by("-total_amount")
+    )
+
+    total_paid = (
+        payment_summary["total_paid_amount"]
+        or Decimal("0.00")
+    )
+
+    total_purchase = (
+        purchase_summary["total_purchase"]
+        or Decimal("0.00")
+    )
+
+    payment_percentage = Decimal("0.00")
+
+    if total_purchase > Decimal("0.00"):
+        payment_percentage = (
+            total_paid / total_purchase
+        ) * Decimal("100.00")
+
+    context = {
+        "total_payments": (
+            payment_summary["total_payment_records"] or 0
+        ),
+
+        "total_installment_amount": (
+            payment_summary["total_installment_amount"]
+            or Decimal("0.00")
+        ),
+
+        "total_paid": (
+            payment_summary["total_paid_amount"]
+            or Decimal("0.00")
+        ),
+
+        "total_remaining": (
+            payment_summary["total_remaining_amount"]
+            or Decimal("0.00")
+        ),
+
+        "total_purchase": total_purchase,
+
+        "purchase_paid": (
+            purchase_summary["total_paid"]
+            or Decimal("0.00")
+        ),
+
+        "purchase_due": (
+            purchase_summary["total_due"]
+            or Decimal("0.00")
+        ),
+
+        "payment_percentage": min(
+            payment_percentage,
+            Decimal("100.00")
+        ),
+
+        "recent_payments": recent_payments,
+
+        "payment_methods": payment_methods,
+    }
+
     return render(
         request,
         "dashboard/payment_list.html",
+        context,
     )
 
 # ==========================================================

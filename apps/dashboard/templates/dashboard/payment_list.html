@@ -2,298 +2,201 @@
 
 {% block title %}Payments | Yaarlynx{% endblock %}
 
-{% block page_heading %}
-    Payments
-{% endblock %}
+{% block page_heading %}Payments{% endblock %}
 
 {% block meta_description %}
-    Manage supplier payments, outstanding amounts and payment history
+    Payment tracking, collections and outstanding purchase balances.
 {% endblock %}
+
 
 {% block content %}
 
-<div class="w-full px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+<div class="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-6 lg:px-8">
 
-    <div class="mx-auto w-full max-w-[1600px] space-y-6">
 
-        <!-- ========================================================= -->
-        <!-- PAGE HEADER -->
-        <!-- ========================================================= -->
+    <!-- ========================================================= -->
+    <!-- HEADER -->
+    <!-- ========================================================= -->
 
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div class="mb-5 flex items-center justify-between gap-4">
 
-            <div>
+        <div class="min-w-0">
 
-                <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2.5">
 
-                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#153030] text-white">
-
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M3 7.5h18M5.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 17.25V6.75A2.25 2.25 0 015.25 4.5zM3 9.75h18"
-                            />
-                        </svg>
-
-                    </div>
-
-                    <div>
-
-                        <h1 class="text-xl font-bold tracking-tight text-[#153030] sm:text-2xl">
-                            Payments
-                        </h1>
-
-                        <p class="mt-0.5 text-sm text-gray-500">
-                            Track supplier payments, outstanding balances and payment history
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-
-                <button
-                    type="button"
-                    class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 transition hover:border-[#153030] hover:text-[#153030]"
-                >
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#153030]/10">
 
                     <svg
-                        class="h-4 w-4"
+                        class="h-[18px] w-[18px] text-[#153030]"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         stroke-width="1.8"
                     >
+                        <rect
+                            x="2.5"
+                            y="5"
+                            width="19"
+                            height="14"
+                            rx="2"
+                        />
+
+                        <path d="M2.5 10h19" />
+
                         <path
                             stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"
+                            d="M7 15h4"
                         />
+
                     </svg>
 
-                    Export
+                </div>
 
-                </button>
+                <div>
 
-                <a
-                    href="#"
-                    class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#153030] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2424]"
-                >
+                    <h1 class="text-xl font-bold tracking-tight text-[#153030] sm:text-2xl">
+                        Payments
+                    </h1>
+
+                    <p class="hidden text-xs text-gray-400 sm:block">
+                        Collection & payment overview
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- REFRESH -->
+
+        <button
+            type="button"
+            onclick="window.location.reload()"
+            title="Refresh"
+            class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white"
+        >
+
+            <svg
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.8"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M20 11a8 8 0 00-15.5-2M4 5v4h4"
+                />
+
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M4 13a8 8 0 0015.5 2M20 19v-4h-4"
+                />
+
+            </svg>
+
+        </button>
+
+    </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- MICRO KPI BAR -->
+    <!-- ========================================================= -->
+
+    <div class="mb-5 grid grid-cols-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm sm:grid-cols-4">
+
+
+        <!-- TOTAL PAYMENTS -->
+
+        <div class="border-b border-r border-gray-100 px-4 py-4 sm:border-b-0">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                        Payments
+                    </p>
+
+                    <p class="mt-1 text-xl font-bold tracking-tight text-[#153030]">
+                        {{ total_payments|default:0 }}
+                    </p>
+
+                </div>
+
+                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-[#153030]/5 sm:flex">
 
                     <svg
-                        class="h-4 w-4"
+                        class="h-4 w-4 text-[#153030]"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         stroke-width="1.8"
                     >
+                        <rect
+                            x="4"
+                            y="3"
+                            width="16"
+                            height="18"
+                            rx="2"
+                        />
+
+                        <path
+                            stroke-linecap="round"
+                            d="M8 8h8M8 12h8M8 16h5"
+                        />
+
+                    </svg>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- PAID -->
+
+        <div class="border-b border-gray-100 px-4 py-4 sm:border-b-0 sm:border-r">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                        Collected
+                    </p>
+
+                    <p class="mt-1 text-xl font-bold tracking-tight text-emerald-600">
+                        ₹{{ total_paid|default:0|floatformat:0 }}
+                    </p>
+
+                </div>
+
+                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 sm:flex">
+
+                    <svg
+                        class="h-4 w-4 text-emerald-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
                         <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                            d="M12 5v14M5 12h14"
+                            d="M5 12l4 4L19 6"
                         />
+
                     </svg>
 
-                    Record Payment
-
-                </a>
-
-            </div>
-
-        </div>
-
-
-        <!-- ========================================================= -->
-        <!-- MONEY SUMMARY -->
-        <!-- ========================================================= -->
-
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-            <!-- Total Payable -->
-
-            <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
-
-                <div class="flex items-start justify-between">
-
-                    <div>
-
-                        <p class="text-sm font-medium text-gray-500">
-                            Total Payable
-                        </p>
-
-                        <p class="mt-2 text-2xl font-bold text-[#153030]">
-                            ₹0.00
-                        </p>
-
-                        <p class="mt-1 text-xs text-gray-400">
-                            Total supplier bills
-                        </p>
-
-                    </div>
-
-                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F1F5F5] text-[#153030]">
-
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M12 3v18m-4-3h5.25a3.75 3.75 0 000-7.5H10.75a3.75 3.75 0 010-7.5H16"
-                            />
-                        </svg>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Total Paid -->
-
-            <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
-
-                <div class="flex items-start justify-between">
-
-                    <div>
-
-                        <p class="text-sm font-medium text-gray-500">
-                            Total Paid
-                        </p>
-
-                        <p class="mt-2 text-2xl font-bold text-[#153030]">
-                            ₹0.00
-                        </p>
-
-                        <p class="mt-1 text-xs text-gray-400">
-                            Successfully paid
-                        </p>
-
-                    </div>
-
-                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F1F5F5] text-[#153030]">
-
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M5 13l4 4L19 7"
-                            />
-                        </svg>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Outstanding -->
-
-            <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
-
-                <div class="flex items-start justify-between">
-
-                    <div>
-
-                        <p class="text-sm font-medium text-gray-500">
-                            Outstanding
-                        </p>
-
-                        <p class="mt-2 text-2xl font-bold text-[#153030]">
-                            ₹0.00
-                        </p>
-
-                        <p class="mt-1 text-xs text-gray-400">
-                            Amount still to pay
-                        </p>
-
-                    </div>
-
-                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F1F5F5] text-[#153030]">
-
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Overdue -->
-
-            <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
-
-                <div class="flex items-start justify-between">
-
-                    <div>
-
-                        <p class="text-sm font-medium text-gray-500">
-                            Overdue
-                        </p>
-
-                        <p class="mt-2 text-2xl font-bold text-[#153030]">
-                            ₹0.00
-                        </p>
-
-                        <p class="mt-1 text-xs text-gray-400">
-                            Past payment due date
-                        </p>
-
-                    </div>
-
-                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F1F5F5] text-[#153030]">
-
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M12 9v3m0 3h.01M10.29 3.86l-8.1 14a2 2 0 001.73 3h16.16a2 2 0 001.73-3l-8.1-14a2 2 0 00-3.46 0z"
-                            />
-                        </svg>
-
-                    </div>
-
                 </div>
 
             </div>
@@ -301,473 +204,920 @@
         </div>
 
 
-        <!-- ========================================================= -->
-        <!-- PAYMENT COUNT SUMMARY -->
-        <!-- ========================================================= -->
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <!-- REMAINING -->
 
-            <!-- Total -->
+        <div class="border-r border-gray-100 px-4 py-4">
 
-            <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-
-                <p class="text-sm font-medium text-gray-500">
-                    Total Payments
-                </p>
-
-                <div class="mt-3 flex items-end justify-between">
-
-                    <p class="text-2xl font-bold text-[#153030]">
-                        0
-                    </p>
-
-                    <span class="text-xs text-gray-400">
-                        Transactions
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <!-- Paid -->
-
-            <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-
-                <p class="text-sm font-medium text-gray-500">
-                    Paid Payments
-                </p>
-
-                <div class="mt-3 flex items-end justify-between">
-
-                    <p class="text-2xl font-bold text-[#153030]">
-                        0
-                    </p>
-
-                    <span class="text-xs text-gray-400">
-                        Completed
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <!-- Pending -->
-
-            <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-
-                <p class="text-sm font-medium text-gray-500">
-                    Pending Payments
-                </p>
-
-                <div class="mt-3 flex items-end justify-between">
-
-                    <p class="text-2xl font-bold text-[#153030]">
-                        0
-                    </p>
-
-                    <span class="text-xs text-gray-400">
-                        Awaiting payment
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <!-- Overdue -->
-
-            <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-
-                <p class="text-sm font-medium text-gray-500">
-                    Overdue Payments
-                </p>
-
-                <div class="mt-3 flex items-end justify-between">
-
-                    <p class="text-2xl font-bold text-[#153030]">
-                        0
-                    </p>
-
-                    <span class="text-xs text-gray-400">
-                        Need attention
-                    </span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ========================================================= -->
-        <!-- SEARCH & FILTER -->
-        <!-- ========================================================= -->
-
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-
-            <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
-
-                <!-- Search -->
-
-                <div class="lg:col-span-5">
-
-                    <label class="mb-2 block text-sm font-medium text-[#153030]">
-                        Search Payments
-                    </label>
-
-                    <div class="relative">
-
-                        <svg
-                            class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="m21 21-4.35-4.35m1.35-5.4a6.75 6.75 0 11-13.5 0 6.75 6.75 0 0113.5 0z"
-                            />
-                        </svg>
-
-                        <input
-                            type="text"
-                            name="search"
-                            placeholder="Party, transaction ID, UPI..."
-                            class="h-12 w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 text-sm text-[#153030] outline-none transition focus:border-[#153030] focus:ring-2 focus:ring-[#153030]/10"
-                        >
-
-                    </div>
-
-                </div>
-
-
-                <!-- Party -->
-
-                <div class="lg:col-span-3">
-
-                    <label class="mb-2 block text-sm font-medium text-[#153030]">
-                        Party
-                    </label>
-
-                    <select
-                        class="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-600 outline-none transition focus:border-[#153030] focus:ring-2 focus:ring-[#153030]/10"
-                    >
-                        <option value="">
-                            All Parties
-                        </option>
-                    </select>
-
-                </div>
-
-
-                <!-- Status -->
-
-                <div class="lg:col-span-2">
-
-                    <label class="mb-2 block text-sm font-medium text-[#153030]">
-                        Status
-                    </label>
-
-                    <select
-                        class="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-600 outline-none transition focus:border-[#153030] focus:ring-2 focus:ring-[#153030]/10"
-                    >
-                        <option value="">
-                            All Status
-                        </option>
-
-                        <option value="paid">
-                            Paid
-                        </option>
-
-                        <option value="pending">
-                            Pending
-                        </option>
-
-                        <option value="overdue">
-                            Overdue
-                        </option>
-                    </select>
-
-                </div>
-
-
-                <!-- Method -->
-
-                <div class="lg:col-span-2">
-
-                    <label class="mb-2 block text-sm font-medium text-[#153030]">
-                        Method
-                    </label>
-
-                    <select
-                        class="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-600 outline-none transition focus:border-[#153030] focus:ring-2 focus:ring-[#153030]/10"
-                    >
-                        <option value="">
-                            All Methods
-                        </option>
-
-                        <option value="upi">
-                            UPI
-                        </option>
-
-                        <option value="bank">
-                            Bank Transfer
-                        </option>
-
-                        <option value="cash">
-                            Cash
-                        </option>
-
-                        <option value="other">
-                            Other
-                        </option>
-
-                    </select>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ========================================================= -->
-        <!-- OUTSTANDING PAYMENTS -->
-        <!-- ========================================================= -->
-
-        <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-
-            <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div class="flex items-center justify-between">
 
                 <div>
 
-                    <h2 class="text-base font-semibold text-[#153030]">
-                        Payments to Pay
-                    </h2>
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                        Remaining
+                    </p>
 
-                    <p class="mt-0.5 text-xs text-gray-500">
-                        Supplier balances that are still outstanding
+                    <p class="mt-1 text-xl font-bold tracking-tight text-amber-600">
+                        ₹{{ total_remaining|default:0|floatformat:0 }}
                     </p>
 
                 </div>
 
-                <span class="rounded-full bg-[#F1F5F5] px-3 py-1 text-xs font-semibold text-[#153030]">
-                    ₹0.00 Outstanding
-                </span>
+                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-amber-50 sm:flex">
 
-            </div>
+                    <svg
+                        class="h-4 w-4 text-amber-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                    >
+                        <circle cx="12" cy="12" r="8.5" />
 
+                        <path
+                            stroke-linecap="round"
+                            d="M12 7v5l3 2"
+                        />
 
-            <div class="overflow-x-auto">
+                    </svg>
 
-                <table class="min-w-full divide-y divide-gray-100">
-
-                    <thead class="bg-[#F7F9F9]">
-
-                        <tr>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Party
-                            </th>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Bill Amount
-                            </th>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Paid
-                            </th>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Outstanding
-                            </th>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Due Date
-                            </th>
-
-                            <th class="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Action
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody class="divide-y divide-gray-100">
-
-                        <tr>
-
-                            <td colspan="6" class="px-5 py-14 text-center">
-
-                                <div class="mx-auto max-w-sm">
-
-                                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F1F5F5] text-[#153030]">
-
-                                        <svg
-                                            class="h-7 w-7"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            stroke-width="1.5"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                            />
-                                        </svg>
-
-                                    </div>
-
-                                    <h3 class="mt-4 text-sm font-semibold text-[#153030]">
-                                        No outstanding payments
-                                    </h3>
-
-                                    <p class="mt-1 text-sm text-gray-500">
-                                        All supplier payments are currently settled.
-                                    </p>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
+                </div>
 
             </div>
 
         </div>
 
 
-        <!-- ========================================================= -->
-        <!-- RECENT PAYMENTS -->
-        <!-- ========================================================= -->
 
-        <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <!-- PURCHASE DUE -->
 
-            <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div class="px-4 py-4">
+
+            <div class="flex items-center justify-between">
 
                 <div>
 
-                    <h2 class="text-base font-semibold text-[#153030]">
-                        Recent Payments
-                    </h2>
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
+                        Purchase Due
+                    </p>
 
-                    <p class="mt-0.5 text-xs text-gray-500">
-                        Latest payment transactions
+                    <p class="mt-1 text-xl font-bold tracking-tight text-rose-600">
+                        ₹{{ purchase_due|default:0|floatformat:0 }}
                     </p>
 
                 </div>
 
-                <a
-                    href="#"
-                    class="text-sm font-semibold text-[#153030] hover:underline"
-                >
-                    View All
-                </a>
+                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-rose-50 sm:flex">
 
-            </div>
+                    <svg
+                        class="h-4 w-4 text-rose-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                    >
+                        <circle cx="12" cy="12" r="8.5" />
 
+                        <path
+                            stroke-linecap="round"
+                            d="M12 8v4"
+                        />
 
-            <div class="overflow-x-auto">
+                        <circle
+                            cx="12"
+                            cy="16"
+                            r=".5"
+                            fill="currentColor"
+                        />
 
-                <table class="min-w-full divide-y divide-gray-100">
+                    </svg>
 
-                    <thead class="bg-[#F7F9F9]">
-
-                        <tr>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Payment
-                            </th>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Party
-                            </th>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Method
-                            </th>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Amount
-                            </th>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Date
-                            </th>
-
-                            <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Status
-                            </th>
-
-                            <th class="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Action
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody class="divide-y divide-gray-100">
-
-                        <tr>
-
-                            <td colspan="7" class="px-5 py-14 text-center">
-
-                                <div class="mx-auto max-w-sm">
-
-                                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F1F5F5] text-[#153030]">
-
-                                        <svg
-                                            class="h-7 w-7"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            stroke-width="1.5"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M3 7.5h18M5.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 17.25V6.75A2.25 2.25 0 015.25 4.5z"
-                                            />
-                                        </svg>
-
-                                    </div>
-
-                                    <h3 class="mt-4 text-sm font-semibold text-[#153030]">
-                                        No payment transactions
-                                    </h3>
-
-                                    <p class="mt-1 text-sm text-gray-500">
-                                        Recorded payments will appear here.
-                                    </p>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
+                </div>
 
             </div>
 
         </div>
 
     </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- MAIN SMART GRID -->
+    <!-- ========================================================= -->
+
+    <div class="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
+
+
+        <!-- ===================================================== -->
+        <!-- COLLECTION CARD -->
+        <!-- ===================================================== -->
+
+        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm xl:col-span-2">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h2 class="text-sm font-bold text-[#153030]">
+                        Collection Overview
+                    </h2>
+
+                    <p class="mt-0.5 text-[11px] text-gray-400">
+                        Purchase value vs collected amount
+                    </p>
+
+                </div>
+
+
+                <!-- COLLECTION RATE -->
+
+                <div class="text-right">
+
+                    <p class="text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                        Collection Rate
+                    </p>
+
+                    <p class="mt-0.5 text-lg font-bold text-[#153030]">
+                        {{ payment_percentage|default:0|floatformat:1 }}%
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- NUMBERS -->
+
+            <div class="mt-5 grid grid-cols-3 divide-x divide-gray-100">
+
+                <div class="pr-3">
+
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400">
+                        Purchase
+                    </p>
+
+                    <p class="mt-1 text-base font-bold text-gray-900">
+                        ₹{{ total_purchase|default:0|floatformat:0 }}
+                    </p>
+
+                </div>
+
+
+                <div class="px-3">
+
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400">
+                        Collected
+                    </p>
+
+                    <p class="mt-1 text-base font-bold text-emerald-600">
+                        ₹{{ purchase_paid|default:0|floatformat:0 }}
+                    </p>
+
+                </div>
+
+
+                <div class="pl-3">
+
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400">
+                        Outstanding
+                    </p>
+
+                    <p class="mt-1 text-base font-bold text-rose-600">
+                        ₹{{ purchase_due|default:0|floatformat:0 }}
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- SMART PROGRESS -->
+
+            <div class="mt-5">
+
+                <div class="h-2 overflow-hidden rounded-full bg-gray-100">
+
+                    <div
+                        class="h-full rounded-full bg-[#153030] transition-all duration-700"
+                        style="width: {{ payment_percentage|default:0 }}%;"
+                    ></div>
+
+                </div>
+
+                <div class="mt-2 flex justify-between text-[10px] text-gray-400">
+
+                    <span>
+                        Collected
+                    </span>
+
+                    <span>
+                        {{ payment_percentage|default:0|floatformat:1 }}%
+                    </span>
+
+                    <span>
+                        Outstanding
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ===================================================== -->
+        <!-- PAYMENT METHODS -->
+        <!-- ===================================================== -->
+
+        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <h2 class="text-sm font-bold text-[#153030]">
+                        Payment Methods
+                    </h2>
+
+                    <p class="mt-0.5 text-[11px] text-gray-400">
+                        Collection by method
+                    </p>
+
+                </div>
+
+
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#153030]/5">
+
+                    <svg
+                        class="h-4 w-4 text-[#153030]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                    >
+                        <rect
+                            x="2.5"
+                            y="5"
+                            width="19"
+                            height="14"
+                            rx="2"
+                        />
+
+                        <path d="M2.5 10h19" />
+
+                    </svg>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="mt-4 space-y-3">
+
+                {% for method in payment_methods %}
+
+                    <div>
+
+                        <div class="mb-1.5 flex items-center justify-between gap-2">
+
+                            <div class="flex min-w-0 items-center gap-2">
+
+                                <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[#153030]"></span>
+
+                                <span class="truncate text-xs font-semibold text-gray-700">
+                                    {{ method.payment_method__name|default:"Not Specified" }}
+                                </span>
+
+                            </div>
+
+                            <span class="shrink-0 text-xs font-bold text-gray-800">
+                                ₹{{ method.total_amount|floatformat:0 }}
+                            </span>
+
+                        </div>
+
+
+                        <div class="h-1.5 overflow-hidden rounded-full bg-gray-100">
+
+                            {% if total_paid %}
+
+                                <div
+                                    class="h-full rounded-full bg-[#527b7b]"
+                                    style="width: {% widthratio method.total_amount total_paid 100 %}%;"
+                                ></div>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                {% empty %}
+
+                    <div class="flex min-h-[130px] items-center justify-center rounded-lg border border-dashed border-gray-200">
+
+                        <p class="text-xs text-gray-400">
+                            No payment data available
+                        </p>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- RECENT PAYMENTS -->
+    <!-- ========================================================= -->
+
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+
+
+        <!-- TABLE HEADER -->
+
+        <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3.5 sm:px-5">
+
+            <div>
+
+                <h2 class="text-sm font-bold text-[#153030]">
+                    Recent Payments
+                </h2>
+
+                <p class="mt-0.5 text-[11px] text-gray-400">
+                    Latest payment transactions
+                </p>
+
+            </div>
+
+
+            <span class="rounded-full bg-[#153030]/5 px-2.5 py-1 text-[10px] font-bold text-[#153030]">
+                Latest 10
+            </span>
+
+        </div>
+
+
+
+        <!-- ===================================================== -->
+        <!-- DESKTOP -->
+        <!-- ===================================================== -->
+
+        <div class="hidden overflow-x-auto md:block">
+
+            <table class="min-w-full">
+
+                <thead>
+
+                    <tr class="border-b border-gray-100 bg-gray-50/70">
+
+                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                            Payment
+                        </th>
+
+                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                            Party
+                        </th>
+
+                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                            Purchase
+                        </th>
+
+                        <th class="px-4 py-2.5 text-right text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                            Amount
+                        </th>
+
+                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                            Date
+                        </th>
+
+                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                            Method
+                        </th>
+
+                        <th class="px-4 py-2.5 text-right text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody class="divide-y divide-gray-100">
+
+                    {% for payment in recent_payments %}
+
+                        <tr class="group transition hover:bg-[#153030]/[0.025]">
+
+
+                            <!-- PAYMENT -->
+
+                            <td class="px-4 py-3">
+
+                                <div class="flex items-center gap-2.5">
+
+                                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+
+                                        <svg
+                                            class="h-3.5 w-3.5 text-emerald-600"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M5 12l4 4L19 6"
+                                            />
+
+                                        </svg>
+
+                                    </div>
+
+                                    <div>
+
+                                        <p class="text-xs font-bold text-gray-800">
+                                            #{{ payment.installment_number }}
+                                        </p>
+
+                                        <p class="text-[9px] text-gray-400">
+                                            ID {{ payment.pk }}
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+
+
+                            <!-- PARTY -->
+
+                            <td class="px-4 py-3">
+
+                                <p class="max-w-[160px] truncate text-xs font-semibold text-gray-700">
+                                    {{ payment.purchase.party }}
+                                </p>
+
+                            </td>
+
+
+
+                            <!-- PURCHASE -->
+
+                            <td class="px-4 py-3">
+
+                                <a
+                                    href="{% url 'party_purchase_detail' payment.purchase.pk %}"
+                                    class="text-xs font-bold text-[#153030] hover:underline"
+                                >
+                                    {{ payment.purchase.purchase_number }}
+                                </a>
+
+                            </td>
+
+
+
+                            <!-- AMOUNT -->
+
+                            <td class="px-4 py-3 text-right">
+
+                                <p class="text-xs font-bold text-emerald-600">
+                                    ₹{{ payment.paid_amount|floatformat:2 }}
+                                </p>
+
+                                <p class="text-[9px] text-gray-400">
+                                    of ₹{{ payment.installment_amount|floatformat:0 }}
+                                </p>
+
+                            </td>
+
+
+
+                            <!-- DATE -->
+
+                            <td class="px-4 py-3">
+
+                                {% if payment.payment_date %}
+
+                                    <span class="text-xs font-medium text-gray-600">
+                                        {{ payment.payment_date|date:"d M Y" }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-[10px] text-gray-400">
+                                        Not added
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+
+                            <!-- METHOD -->
+
+                            <td class="px-4 py-3">
+
+                                <span class="inline-flex rounded-md bg-gray-100 px-2 py-1 text-[10px] font-semibold text-gray-600">
+
+                                    {{ payment.payment_method.name|default:"Not Specified" }}
+
+                                </span>
+
+                            </td>
+
+
+
+                            <!-- ACTION -->
+
+                            <td class="px-4 py-3">
+
+                                <div class="flex justify-end gap-1.5">
+
+
+                                    <!-- VIEW -->
+
+                                    <a
+                                        href="{% url 'party_purchase_detail' payment.purchase.pk %}"
+                                        title="View Purchase"
+                                        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-400 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white"
+                                    >
+
+                                        <svg
+                                            class="h-3.5 w-3.5"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"
+                                            />
+
+                                            <circle
+                                                cx="12"
+                                                cy="12"
+                                                r="2.5"
+                                            />
+
+                                        </svg>
+
+                                    </a>
+
+
+                                    <!-- INSTALLMENTS -->
+
+                                    <a
+                                        href="{% url 'purchase_installments' payment.purchase.pk %}"
+                                        title="View Installments"
+                                        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-400 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white"
+                                    >
+
+                                        <svg
+                                            class="h-3.5 w-3.5"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                        >
+                                            <rect
+                                                x="4"
+                                                y="4"
+                                                width="16"
+                                                height="16"
+                                                rx="2"
+                                            />
+
+                                            <path
+                                                stroke-linecap="round"
+                                                d="M8 9h8M8 13h8M8 17h5"
+                                            />
+
+                                        </svg>
+
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td colspan="7" class="px-5 py-14 text-center">
+
+                                <div class="mx-auto flex max-w-xs flex-col items-center">
+
+                                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50">
+
+                                        <svg
+                                            class="h-5 w-5 text-gray-300"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                        >
+                                            <rect
+                                                x="2.5"
+                                                y="5"
+                                                width="19"
+                                                height="14"
+                                                rx="2"
+                                            />
+
+                                            <path d="M2.5 10h19" />
+
+                                        </svg>
+
+                                    </div>
+
+                                    <p class="mt-3 text-xs font-semibold text-gray-600">
+                                        No recent payments
+                                    </p>
+
+                                    <p class="mt-1 text-[10px] text-gray-400">
+                                        Payment transactions will appear here.
+                                    </p>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+
+        <!-- ===================================================== -->
+        <!-- MOBILE -->
+        <!-- ===================================================== -->
+
+        <div class="divide-y divide-gray-100 md:hidden">
+
+            {% for payment in recent_payments %}
+
+                <div class="p-4">
+
+
+                    <!-- TOP -->
+
+                    <div class="flex items-center justify-between gap-3">
+
+                        <div class="flex min-w-0 items-center gap-2.5">
+
+                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+
+                                <svg
+                                    class="h-4 w-4 text-emerald-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M5 12l4 4L19 6"
+                                    />
+
+                                </svg>
+
+                            </div>
+
+                            <div class="min-w-0">
+
+                                <p class="text-xs font-bold text-gray-800">
+                                    Installment #{{ payment.installment_number }}
+                                </p>
+
+                                <a
+                                    href="{% url 'party_purchase_detail' payment.purchase.pk %}"
+                                    class="block truncate text-[10px] font-semibold text-[#527b7b]"
+                                >
+                                    {{ payment.purchase.purchase_number }}
+                                </a>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="text-right">
+
+                            <p class="text-sm font-bold text-emerald-600">
+                                ₹{{ payment.paid_amount|floatformat:2 }}
+                            </p>
+
+                            <p class="text-[9px] text-gray-400">
+                                Paid
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- DETAILS -->
+
+                    <div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg bg-gray-50 px-3 py-2.5">
+
+                        <div>
+
+                            <p class="text-[9px] uppercase tracking-wide text-gray-400">
+                                Party
+                            </p>
+
+                            <p class="mt-0.5 truncate text-[10px] font-semibold text-gray-700">
+                                {{ payment.purchase.party }}
+                            </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <p class="text-[9px] uppercase tracking-wide text-gray-400">
+                                Date
+                            </p>
+
+                            <p class="mt-0.5 text-[10px] font-semibold text-gray-700">
+
+                                {% if payment.payment_date %}
+                                    {{ payment.payment_date|date:"d M Y" }}
+                                {% else %}
+                                    —
+                                {% endif %}
+
+                            </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <p class="text-[9px] uppercase tracking-wide text-gray-400">
+                                Method
+                            </p>
+
+                            <p class="mt-0.5 truncate text-[10px] font-semibold text-gray-700">
+                                {{ payment.payment_method.name|default:"Not Specified" }}
+                            </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <p class="text-[9px] uppercase tracking-wide text-gray-400">
+                                Remaining
+                            </p>
+
+                            <p class="mt-0.5 text-[10px] font-bold text-amber-600">
+                                ₹{{ payment.remaining_amount|floatformat:2 }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- ACTIONS -->
+
+                    <div class="mt-3 flex justify-end gap-1.5">
+
+                        <a
+                            href="{% url 'party_purchase_detail' payment.purchase.pk %}"
+                            title="View Purchase"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:bg-[#153030] hover:text-white"
+                        >
+
+                            <svg
+                                class="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"
+                                />
+
+                                <circle
+                                    cx="12"
+                                    cy="12"
+                                    r="2.5"
+                                />
+
+                            </svg>
+
+                        </a>
+
+
+                        <a
+                            href="{% url 'purchase_installments' payment.purchase.pk %}"
+                            title="View Installments"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#153030] text-white transition hover:bg-[#0f2424]"
+                        >
+
+                            <svg
+                                class="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            >
+                                <rect
+                                    x="4"
+                                    y="4"
+                                    width="16"
+                                    height="16"
+                                    rx="2"
+                                />
+
+                                <path
+                                    stroke-linecap="round"
+                                    d="M8 9h8M8 13h8M8 17h5"
+                                />
+
+                            </svg>
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+            {% empty %}
+
+                <div class="px-5 py-12 text-center">
+
+                    <p class="text-xs font-semibold text-gray-600">
+                        No recent payments
+                    </p>
+
+                    <p class="mt-1 text-[10px] text-gray-400">
+                        Payment transactions will appear here.
+                    </p>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- SMALL FOOTER -->
+    <!-- ========================================================= -->
+
+    <div class="mt-4 flex items-center justify-between text-[9px] uppercase tracking-wide text-gray-300">
+
+        <span>
+            Payment Management
+        </span>
+
+        <span>
+            Yaarlynx Accounting
+        </span>
+
+    </div>
+
 
 </div>
 

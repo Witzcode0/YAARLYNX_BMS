@@ -1,9 +1,12 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
+from django.db.models import Sum
 
 from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.master.models import BaseModel
+
+import uuid
 
 
 # =========================================================
@@ -212,455 +215,1054 @@ class PaymentMethod(BaseModel):
     def __str__(self):
         return self.name
 
-
 # =========================================================
-# PARTY ORDER
+# PARTY PURCHASE ORDER
 # =========================================================
 
-class PartyOrder(BaseModel):
+class PartyPurchase(BaseModel):
 
-    class OrderStatus(models.TextChoices):
-        PENDING = "PENDING", "Pending"
+    # ---------------------------------------------------------
+    # PURCHASE STATUS
+    # ---------------------------------------------------------
+
+    class Status(models.TextChoices):
+
+        DRAFT = "DRAFT", "Draft"
+
         CONFIRMED = "CONFIRMED", "Confirmed"
-        COMPLETED = "COMPLETED", "Completed"
+
+        RECEIVED = "RECEIVED", "Received"
+
+        PARTIAL = "PARTIAL", "Partially Received"
+
         CANCELLED = "CANCELLED", "Cancelled"
 
-    class TaxType(models.TextChoices):
-        GST = "GST", "GST"
-        NON_GST = "NON_GST", "Non-GST"
 
     # ---------------------------------------------------------
-    # PARTY
+    # PAYMENT STATUS
     # ---------------------------------------------------------
 
-    party = models.ForeignKey(
-        Party,
-        on_delete=models.PROTECT,
-        related_name="orders",
-        db_index=True,
-    )
+    class PaymentStatus(models.TextChoices):
 
-    # ---------------------------------------------------------
-    # ORDER INFORMATION
-    # ---------------------------------------------------------
+        UNPAID = "UNPAID", "Unpaid"
 
-    order_number = models.CharField(
+        PARTIAL = "PARTIAL", "Partially Paid"
+
+        PAID = "PAID", "Paid"
+
+
+    # =========================================================
+    # PURCHASE DETAILS
+    # =========================================================
+
+    purchase_number = models.CharField(
         max_length=50,
         unique=True,
+        db_index=True,
+        blank=True,
         editable=False,
-        db_index=True,
     )
 
-    order_date = models.DateField(
-        db_index=True,
+    party = models.ForeignKey(
+        "Party",
+        on_delete=models.PROTECT,
+        related_name="purchases",
     )
 
-    status = models.CharField(
-        max_length=20,
-        choices=OrderStatus.choices,
-        default=OrderStatus.PENDING,
-        db_index=True,
-    )
+    purchase_date = models.DateField()
 
-    # ---------------------------------------------------------
-    # GST
-    # ---------------------------------------------------------
 
-    tax_type = models.CharField(
-        max_length=20,
-        choices=TaxType.choices,
-        default=TaxType.NON_GST,
-        db_index=True,
-    )
+    # =========================================================
+    # SUPPLIER INVOICE
+    # =========================================================
 
-    gst_number = models.CharField(
-        max_length=15,
+    invoice_number = models.CharField(
+        max_length=100,
         blank=True,
     )
 
-    # ---------------------------------------------------------
-    # AMOUNT
-    # ---------------------------------------------------------
+    invoice_date = models.DateField(
+        null=True,
+        blank=True,
+    )
 
+
+    # =========================================================
+    # PURCHASE STATUS
+    # =========================================================
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.DRAFT,
+        db_index=True,
+    )
+
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.UNPAID,
+        db_index=True,
+        editable=False,
+    )
+
+
+    # =========================================================
+    # BASIC AMOUNT
+    # =========================================================
+
+    # Product/service total before discount
     subtotal = models.DecimalField(
-        max_digits=14,
+        max_digits=15,
         decimal_places=2,
         default=Decimal("0.00"),
     )
 
-    cgst_amount = models.DecimalField(
-        max_digits=14,
-        decimal_places=2,
-        default=Decimal("0.00"),
-    )
 
-    sgst_amount = models.DecimalField(
-        max_digits=14,
-        decimal_places=2,
-        default=Decimal("0.00"),
-    )
+    # =========================================================
+    # DISCOUNT
+    # =========================================================
 
-    igst_amount = models.DecimalField(
-        max_digits=14,
+    discount_percent = models.DecimalField(
+        max_digits=5,
         decimal_places=2,
         default=Decimal("0.00"),
-    )
-
-    other_charges = models.DecimalField(
-        max_digits=14,
-        decimal_places=2,
-        default=Decimal("0.00"),
+        help_text="Enter discount percentage.",
     )
 
     discount_amount = models.DecimalField(
-        max_digits=14,
+        max_digits=15,
         decimal_places=2,
         default=Decimal("0.00"),
+        editable=False,
     )
 
-    total_amount = models.DecimalField(
-        max_digits=14,
+
+    # =========================================================
+    # TAXABLE AMOUNT
+    # =========================================================
+
+    taxable_amount = models.DecimalField(
+        max_digits=15,
         decimal_places=2,
         default=Decimal("0.00"),
+        editable=False,
     )
 
-    # ---------------------------------------------------------
+
+    # =========================================================
+    # CGST
+    # =========================================================
+
+    cgst_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Enter CGST percentage.",
+    )
+
+    cgst_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        editable=False,
+    )
+
+
+    # =========================================================
+    # SGST
+    # =========================================================
+
+    sgst_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Enter SGST percentage.",
+    )
+
+    sgst_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        editable=False,
+    )
+
+
+    # =========================================================
+    # IGST
+    # =========================================================
+
+    igst_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Enter IGST percentage.",
+    )
+
+    igst_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        editable=False,
+    )
+
+
+    # =========================================================
+    # OTHER CHARGES
+    # =========================================================
+
+    other_charges = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Transport, packing, shipping, etc.",
+    )
+
+
+    # =========================================================
+    # ROUND OFF
+    # =========================================================
+
+    round_off = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        editable=False,
+    )
+
+
+    # =========================================================
+    # GRAND TOTAL
+    # =========================================================
+
+    grand_total = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        editable=False,
+    )
+
+
+    # =========================================================
+    # PAYMENT SUMMARY
+    # =========================================================
+
+    paid_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        editable=False,
+    )
+
+    due_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        editable=False,
+    )
+
+
+    # =========================================================
     # NOTES
-    # ---------------------------------------------------------
+    # =========================================================
 
     notes = models.TextField(
         blank=True,
     )
 
-    # ---------------------------------------------------------
+
+    # =========================================================
     # META
-    # ---------------------------------------------------------
+    # =========================================================
 
     class Meta:
-        db_table = "party_orders"
+
+        db_table = "party_purchases"
 
         ordering = [
-            "-order_date",
+            "-purchase_date",
             "-created_at",
         ]
 
-        verbose_name = "Party Order"
-        verbose_name_plural = "Party Orders"
+        verbose_name = "Party Purchase"
 
-        indexes = [
-            models.Index(
-                fields=["party", "order_date"],
-                name="party_order_party_date_idx",
-            ),
-            models.Index(
-                fields=["status", "order_date"],
-                name="party_order_status_date_idx",
-            ),
-        ]
+        verbose_name_plural = "Party Purchases"
 
-    # ---------------------------------------------------------
+
+    # =========================================================
     # STRING
-    # ---------------------------------------------------------
+    # =========================================================
 
     def __str__(self):
-        return self.order_number
-
-    # ---------------------------------------------------------
-    # GST
-    # ---------------------------------------------------------
-
-    @property
-    def total_gst(self):
-        return (
-            self.cgst_amount
-            + self.sgst_amount
-            + self.igst_amount
-        )
-
-    # ---------------------------------------------------------
-    # PAYMENT SUMMARY
-    # ---------------------------------------------------------
-
-    @property
-    def total_paid(self):
-        """
-        Total amount successfully paid against this order.
-        """
 
         return (
-            self.payments
-            .filter(
-                status=Payment.PaymentStatus.COMPLETED,
-                is_active=True,
-            )
-            .aggregate(
-                total=models.Sum("amount")
-            )["total"]
-            or Decimal("0.00")
+            f"{self.purchase_number} - "
+            f"{self.party.name}"
         )
 
-    @property
-    def outstanding_amount(self):
-        """
-        Remaining amount to be paid.
-        """
 
-        outstanding = self.total_amount - self.total_paid
+    # =========================================================
+    # PURCHASE NUMBER
+    # =========================================================
 
-        if outstanding < Decimal("0.00"):
+    def generate_purchase_number(self):
+
+        return f"BO/SUP/{uuid.uuid4().hex[:12].upper()}"
+
+
+    # =========================================================
+    # DECIMAL HELPER
+    # =========================================================
+
+    @staticmethod
+    def decimal(value):
+
+        if value is None:
             return Decimal("0.00")
 
-        return outstanding
+        return Decimal(value)
 
-    @property
-    def payment_status(self):
 
-        if self.total_amount <= Decimal("0.00"):
-            return "NO_AMOUNT"
+    # =========================================================
+    # CALCULATE PURCHASE AMOUNTS
+    # =========================================================
 
-        if self.total_paid <= Decimal("0.00"):
-            return "UNPAID"
+    def calculate_amounts(self):
 
-        if self.total_paid >= self.total_amount:
-            return "PAID"
+        # -----------------------------------------------------
+        # BASIC VALUES
+        # -----------------------------------------------------
 
-        return "PARTIALLY_PAID"
+        subtotal = self.decimal(self.subtotal)
 
-    # ---------------------------------------------------------
-    # AUTOMATIC ORDER NUMBER
-    # ---------------------------------------------------------
+        discount_percent = self.decimal(
+            self.discount_percent
+        )
+
+        cgst_percent = self.decimal(
+            self.cgst_percent
+        )
+
+        sgst_percent = self.decimal(
+            self.sgst_percent
+        )
+
+        igst_percent = self.decimal(
+            self.igst_percent
+        )
+
+        other_charges = self.decimal(
+            self.other_charges
+        )
+
+
+        # -----------------------------------------------------
+        # VALIDATION
+        # -----------------------------------------------------
+
+        if subtotal < Decimal("0.00"):
+
+            raise ValidationError(
+                "Subtotal cannot be negative."
+            )
+
+
+        if discount_percent < Decimal("0.00"):
+
+            raise ValidationError(
+                "Discount percentage cannot be negative."
+            )
+
+
+        if discount_percent > Decimal("100.00"):
+
+            raise ValidationError(
+                "Discount percentage cannot be greater than 100%."
+            )
+
+
+        for name, value in (
+            ("CGST", cgst_percent),
+            ("SGST", sgst_percent),
+            ("IGST", igst_percent),
+        ):
+
+            if value < Decimal("0.00"):
+
+                raise ValidationError(
+                    f"{name} percentage cannot be negative."
+                )
+
+            if value > Decimal("100.00"):
+
+                raise ValidationError(
+                    f"{name} percentage cannot be greater than 100%."
+                )
+
+
+        if other_charges < Decimal("0.00"):
+
+            raise ValidationError(
+                "Other charges cannot be negative."
+            )
+
+
+        # -----------------------------------------------------
+        # DISCOUNT AMOUNT
+        # -----------------------------------------------------
+
+        discount_amount = (
+            subtotal * discount_percent / Decimal("100")
+        )
+
+        discount_amount = discount_amount.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+
+        # -----------------------------------------------------
+        # TAXABLE AMOUNT
+        # -----------------------------------------------------
+
+        taxable_amount = (
+            subtotal - discount_amount
+        )
+
+        if taxable_amount < Decimal("0.00"):
+
+            taxable_amount = Decimal("0.00")
+
+
+        taxable_amount = taxable_amount.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+
+        # -----------------------------------------------------
+        # CGST
+        # -----------------------------------------------------
+
+        cgst_amount = (
+            taxable_amount
+            * cgst_percent
+            / Decimal("100")
+        )
+
+        cgst_amount = cgst_amount.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+
+        # -----------------------------------------------------
+        # SGST
+        # -----------------------------------------------------
+
+        sgst_amount = (
+            taxable_amount
+            * sgst_percent
+            / Decimal("100")
+        )
+
+        sgst_amount = sgst_amount.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+
+        # -----------------------------------------------------
+        # IGST
+        # -----------------------------------------------------
+
+        igst_amount = (
+            taxable_amount
+            * igst_percent
+            / Decimal("100")
+        )
+
+        igst_amount = igst_amount.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+
+        # -----------------------------------------------------
+        # GST VALIDATION
+        # -----------------------------------------------------
+        # Normally:
+        #
+        # Intra-state:
+        # CGST + SGST
+        #
+        # Inter-state:
+        # IGST
+        #
+        # Do not allow all three together.
+        # -----------------------------------------------------
+
+        if (
+            cgst_percent > Decimal("0.00")
+            or sgst_percent > Decimal("0.00")
+        ):
+
+            if igst_percent > Decimal("0.00"):
+
+                raise ValidationError(
+                    "Use either CGST/SGST or IGST. "
+                    "Do not use IGST together with CGST/SGST."
+                )
+
+
+        # -----------------------------------------------------
+        # TOTAL BEFORE ROUND OFF
+        # -----------------------------------------------------
+
+        total_before_round = (
+            taxable_amount
+            + cgst_amount
+            + sgst_amount
+            + igst_amount
+            + other_charges
+        )
+
+
+        total_before_round = total_before_round.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+
+        # -----------------------------------------------------
+        # ROUND OFF
+        # -----------------------------------------------------
+        # Example:
+        #
+        # 10720.40 -> 10720.00
+        # 10720.60 -> 10721.00
+        #
+        # -----------------------------------------------------
+
+        rounded_total = total_before_round.quantize(
+            Decimal("1"),
+            rounding=ROUND_HALF_UP,
+        )
+
+        round_off = (
+            rounded_total - total_before_round
+        )
+
+        round_off = round_off.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+
+        # -----------------------------------------------------
+        # GRAND TOTAL
+        # -----------------------------------------------------
+
+        grand_total = (
+            total_before_round + round_off
+        )
+
+        grand_total = grand_total.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+
+
+        # -----------------------------------------------------
+        # ASSIGN VALUES
+        # -----------------------------------------------------
+
+        self.discount_amount = discount_amount
+
+        self.taxable_amount = taxable_amount
+
+        self.cgst_amount = cgst_amount
+
+        self.sgst_amount = sgst_amount
+
+        self.igst_amount = igst_amount
+
+        self.round_off = round_off
+
+        self.grand_total = grand_total
+
+
+    # =========================================================
+    # PAYMENT CALCULATION
+    # =========================================================
+
+    def update_payment_summary(self):
+
+        if not self.pk:
+
+            return
+
+
+        # -----------------------------------------------------
+        # GET TOTAL PAID FROM INSTALLMENTS
+        # -----------------------------------------------------
+
+        total_paid = self.installments.aggregate(
+            total=Sum("paid_amount")
+        )["total"]
+
+
+        if total_paid is None:
+
+            total_paid = Decimal("0.00")
+
+
+        total_paid = self.decimal(
+            total_paid
+        )
+
+
+        # -----------------------------------------------------
+        # PROTECT AGAINST OVER PAYMENT
+        # -----------------------------------------------------
+
+        if total_paid > self.grand_total:
+
+            total_paid = self.grand_total
+
+
+        # -----------------------------------------------------
+        # PAID
+        # -----------------------------------------------------
+
+        self.paid_amount = total_paid
+
+
+        # -----------------------------------------------------
+        # DUE
+        # -----------------------------------------------------
+
+        self.due_amount = (
+            self.grand_total
+            - self.paid_amount
+        )
+
+
+        if self.due_amount < Decimal("0.00"):
+
+            self.due_amount = Decimal("0.00")
+
+
+        # -----------------------------------------------------
+        # PAYMENT STATUS
+        # -----------------------------------------------------
+
+        if self.grand_total <= Decimal("0.00"):
+
+            self.payment_status = (
+                self.PaymentStatus.UNPAID
+            )
+
+        elif self.paid_amount >= self.grand_total:
+
+            self.payment_status = (
+                self.PaymentStatus.PAID
+            )
+
+        elif self.paid_amount > Decimal("0.00"):
+
+            self.payment_status = (
+                self.PaymentStatus.PARTIAL
+            )
+
+        else:
+
+            self.payment_status = (
+                self.PaymentStatus.UNPAID
+            )
+
+
+        # -----------------------------------------------------
+        # UPDATE DATABASE
+        # -----------------------------------------------------
+
+        PartyPurchase.objects.filter(
+            pk=self.pk
+        ).update(
+            paid_amount=self.paid_amount,
+            due_amount=self.due_amount,
+            payment_status=self.payment_status,
+        )
+
+
+    # =========================================================
+    # SAVE
+    # =========================================================
 
     def save(self, *args, **kwargs):
 
-        if not self.order_number:
+        # -----------------------------------------------------
+        # GENERATE PURCHASE NUMBER
+        # -----------------------------------------------------
 
-            prefix = "YL\\SUP\\ORD\\"
+        if not self.purchase_number:
 
-            last_order = (
-                PartyOrder.objects
-                .filter(
-                    order_number__startswith=prefix
-                )
-                .order_by("-created_at")
-                .first()
+            self.purchase_number = (
+                self.generate_purchase_number()
             )
 
-            if last_order and last_order.order_number:
 
-                try:
-                    last_number = int(
-                        last_order.order_number.split("\\")[-1]
-                    )
+        # -----------------------------------------------------
+        # AUTOMATIC AMOUNT CALCULATION
+        # -----------------------------------------------------
 
-                    next_number = last_number + 1
+        self.calculate_amounts()
 
-                except (ValueError, AttributeError):
 
-                    next_number = 1
+        # -----------------------------------------------------
+        # NEW PURCHASE PAYMENT DEFAULT
+        # -----------------------------------------------------
 
-            else:
+        if not self.pk:
 
-                next_number = 1
+            self.paid_amount = Decimal("0.00")
 
-            self.order_number = (
-                f"{prefix}{next_number:06d}"
+            self.due_amount = self.grand_total
+
+            self.payment_status = (
+                self.PaymentStatus.UNPAID
             )
+
+
+        # -----------------------------------------------------
+        # SAVE PURCHASE
+        # -----------------------------------------------------
 
         super().save(*args, **kwargs)
 
 
+        # -----------------------------------------------------
+        # UPDATE PAYMENT FROM INSTALLMENTS
+        # -----------------------------------------------------
+
+        self.update_payment_summary()
+
 # =========================================================
-# PAYMENT
+# PURCHASE PAYMENT INSTALLMENT
+# =========================================================
+# =========================================================
+# PURCHASE PAYMENT INSTALLMENT
 # =========================================================
 
-class Payment(BaseModel):
+class PurchasePaymentInstallment(BaseModel):
 
-    class PaymentStatus(models.TextChoices):
+    # ---------------------------------------------------------
+    # STATUS
+    # ---------------------------------------------------------
+
+    class Status(models.TextChoices):
+
         PENDING = "PENDING", "Pending"
-        COMPLETED = "COMPLETED", "Completed"
-        FAILED = "FAILED", "Failed"
+
+        PAID = "PAID", "Paid"
+
+        PARTIAL = "PARTIAL", "Partially Paid"
+
         CANCELLED = "CANCELLED", "Cancelled"
 
-    # ---------------------------------------------------------
-    # ORDER
-    # ---------------------------------------------------------
 
-    order = models.ForeignKey(
-        PartyOrder,
-        on_delete=models.PROTECT,
-        related_name="payments",
-        db_index=True,
+    # =========================================================
+    # PURCHASE
+    # =========================================================
+
+    purchase = models.ForeignKey(
+        PartyPurchase,
+        on_delete=models.CASCADE,
+        related_name="installments",
     )
 
-    # ---------------------------------------------------------
-    # PAYMENT INFORMATION
-    # ---------------------------------------------------------
 
-    payment_number = models.CharField(
-        max_length=50,
-        unique=True,
-        editable=False,
-        db_index=True,
-    )
+    # =========================================================
+    # INSTALLMENT DETAILS
+    # =========================================================
 
-    payment_date = models.DateField(
-        db_index=True,
-    )
+    installment_number = models.PositiveIntegerField()
 
-    payment_method = models.ForeignKey(
-        PaymentMethod,
-        on_delete=models.PROTECT,
-        related_name="payments",
-        db_index=True,
-    )
+    due_date = models.DateField()
 
-    amount = models.DecimalField(
-        max_digits=14,
+
+    # =========================================================
+    # INSTALLMENT AMOUNT
+    # =========================================================
+
+    installment_amount = models.DecimalField(
+        max_digits=15,
         decimal_places=2,
     )
 
-    status = models.CharField(
-        max_length=20,
-        choices=PaymentStatus.choices,
-        default=PaymentStatus.COMPLETED,
-        db_index=True,
+
+    # =========================================================
+    # PAYMENT
+    # =========================================================
+
+    paid_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
     )
 
-    # ---------------------------------------------------------
-    # TRANSACTION DETAILS
-    # ---------------------------------------------------------
+    remaining_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        editable=False,
+    )
+
+
+    # =========================================================
+    # PAYMENT METHOD
+    # =========================================================
+
+    payment_method = models.ForeignKey(
+        "PaymentMethod",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="purchase_installments",
+    )
+
+
+    payment_date = models.DateField(
+        null=True,
+        blank=True,
+    )
+
 
     transaction_reference = models.CharField(
         max_length=150,
         blank=True,
     )
 
+
+    # =========================================================
+    # STATUS
+    # =========================================================
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+        editable=False,
+    )
+
+
+    # =========================================================
+    # NOTES
+    # =========================================================
+
     notes = models.TextField(
         blank=True,
     )
 
-    # ---------------------------------------------------------
+
+    # =========================================================
     # META
-    # ---------------------------------------------------------
+    # =========================================================
 
     class Meta:
-        db_table = "payments"
+
+        db_table = "purchase_payment_installments"
 
         ordering = [
-            "-payment_date",
-            "-created_at",
+            "installment_number",
         ]
 
-        verbose_name = "Payment"
-        verbose_name_plural = "Payments"
-
-        indexes = [
-            models.Index(
-                fields=["order", "payment_date"],
-                name="payment_order_date_idx",
-            ),
-            models.Index(
-                fields=["status", "payment_date"],
-                name="payment_status_date_idx",
-            ),
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "purchase",
+                    "installment_number",
+                ],
+                name="unique_purchase_installment",
+            )
         ]
 
-    # ---------------------------------------------------------
+        verbose_name = (
+            "Purchase Payment Installment"
+        )
+
+        verbose_name_plural = (
+            "Purchase Payment Installments"
+        )
+
+
+    # =========================================================
     # STRING
-    # ---------------------------------------------------------
+    # =========================================================
 
     def __str__(self):
-        return self.payment_number
 
-    # ---------------------------------------------------------
+        return (
+            f"{self.purchase.purchase_number} - "
+            f"Installment {self.installment_number}"
+        )
+
+
+    # =========================================================
     # VALIDATION
-    # ---------------------------------------------------------
+    # =========================================================
 
     def clean(self):
 
-        super().clean()
+        if self.installment_amount is None:
 
-        if self.amount is None:
-            return
-
-        if self.amount <= Decimal("0.00"):
-            raise ValidationError({
-                "amount": "Payment amount must be greater than zero."
-            })
-
-        if not self.order_id:
-            return
-
-        # Only completed payments affect the paid amount.
-        if self.status != self.PaymentStatus.COMPLETED:
-            return
-
-        existing_paid = (
-            Payment.objects
-            .filter(
-                order=self.order,
-                status=self.PaymentStatus.COMPLETED,
-                is_active=True,
+            raise ValidationError(
+                "Installment amount is required."
             )
-            .exclude(pk=self.pk)
-            .aggregate(
-                total=models.Sum("amount")
-            )["total"]
-            or Decimal("0.00")
-        )
 
-        remaining_amount = (
-            self.order.total_amount - existing_paid
-        )
 
-        if self.amount > remaining_amount:
-            raise ValidationError({
-                "amount": (
-                    f"Payment cannot exceed the outstanding "
-                    f"amount of ₹{remaining_amount:.2f}."
+        if self.installment_amount < Decimal("0.00"):
+
+            raise ValidationError(
+                "Installment amount cannot be negative."
+            )
+
+
+        if self.paid_amount is None:
+
+            self.paid_amount = Decimal("0.00")
+
+
+        if self.paid_amount < Decimal("0.00"):
+
+            raise ValidationError(
+                "Paid amount cannot be negative."
+            )
+
+
+        if self.paid_amount > self.installment_amount:
+
+            raise ValidationError(
+                "Paid amount cannot be greater "
+                "than installment amount."
+            )
+
+
+        # -----------------------------------------------------
+        # CHECK TOTAL INSTALLMENTS AGAINST PURCHASE
+        # -----------------------------------------------------
+
+        if self.purchase_id:
+
+            existing_paid = (
+                PurchasePaymentInstallment.objects
+                .filter(
+                    purchase_id=self.purchase_id
                 )
-            })
+                .exclude(
+                    pk=self.pk
+                )
+                .aggregate(
+                    total=Sum("paid_amount")
+                )["total"]
+                or Decimal("0.00")
+            )
 
-    # ---------------------------------------------------------
-    # AUTOMATIC PAYMENT NUMBER
-    # ---------------------------------------------------------
+
+            total_paid = (
+                existing_paid
+                + self.paid_amount
+            )
+
+
+            if total_paid > self.purchase.grand_total:
+
+                raise ValidationError(
+                    "Total installment payments "
+                    "cannot be greater than "
+                    "purchase grand total."
+                )
+
+
+    # =========================================================
+    # SAVE
+    # =========================================================
 
     def save(self, *args, **kwargs):
 
+        # -----------------------------------------------------
+        # RUN VALIDATION
+        # -----------------------------------------------------
+
         self.full_clean()
 
-        if not self.payment_number:
 
-            prefix = "YL\\SUP\\PAY\\"
+        # -----------------------------------------------------
+        # REMAINING AMOUNT
+        # -----------------------------------------------------
 
-            last_payment = (
-                Payment.objects
-                .filter(
-                    payment_number__startswith=prefix
-                )
-                .order_by("-created_at")
-                .first()
-            )
+        self.remaining_amount = (
+            self.installment_amount
+            - self.paid_amount
+        )
 
-            if last_payment and last_payment.payment_number:
 
-                try:
-                    last_number = int(
-                        last_payment.payment_number.split("\\")[-1]
-                    )
+        if self.remaining_amount < Decimal("0.00"):
 
-                    next_number = last_number + 1
+            self.remaining_amount = Decimal("0.00")
 
-                except (ValueError, AttributeError):
 
-                    next_number = 1
+        # -----------------------------------------------------
+        # STATUS
+        # -----------------------------------------------------
 
-            else:
+        if self.paid_amount >= self.installment_amount:
 
-                next_number = 1
+            self.status = self.Status.PAID
 
-            self.payment_number = (
-                f"{prefix}{next_number:06d}"
-            )
+        elif self.paid_amount > Decimal("0.00"):
+
+            self.status = self.Status.PARTIAL
+
+        else:
+
+            self.status = self.Status.PENDING
+
+
+        # -----------------------------------------------------
+        # SAVE
+        # -----------------------------------------------------
 
         super().save(*args, **kwargs)
+
+
+        # -----------------------------------------------------
+        # UPDATE PARENT PURCHASE
+        # -----------------------------------------------------
+
+        self.purchase.update_payment_summary()
+
+
+    # =========================================================
+    # DELETE
+    # =========================================================
+
+    def delete(self, *args, **kwargs):
+
+        purchase = self.purchase
+
+
+        result = super().delete(
+            *args,
+            **kwargs
+        )
+
+
+        # Recalculate parent after deletion
+        if purchase and purchase.pk:
+
+            purchase.update_payment_summary()
+
+
+        return result
