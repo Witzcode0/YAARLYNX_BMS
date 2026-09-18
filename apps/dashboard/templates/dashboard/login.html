@@ -1,0 +1,1977 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#153030"
+    >
+
+    <meta
+        name="description"
+        content="Yaarlynx Admin Login"
+    >
+
+    <title>Login | Yaarlynx</title>
+
+
+    <!-- =========================================================
+         TAILWIND CSS
+    ========================================================== -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+
+        tailwind.config = {
+
+            theme: {
+
+                extend: {
+
+                    colors: {
+                        yaarlynx: "#153030",
+                    },
+
+                },
+
+            },
+
+        };
+
+    </script>
+
+
+    <!-- =========================================================
+         CUSTOM CSS
+    ========================================================== -->
+
+    <style>
+
+        /* =====================================================
+           RESET
+        ====================================================== */
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+
+        html {
+            min-height: 100%;
+        }
+
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+
+        /* =====================================================
+           LOGIN CARD
+        ====================================================== */
+
+        .login-card {
+
+            position: relative;
+
+            overflow: hidden;
+
+            background: rgba(255, 255, 255, 0.97);
+
+            border: 1px solid #e8eeee;
+
+            border-radius: 22px;
+
+            padding: 30px;
+
+            box-shadow:
+                0 20px 50px rgba(21, 48, 48, 0.07),
+                0 2px 8px rgba(21, 48, 48, 0.03);
+
+            transition:
+                box-shadow 0.25s ease,
+                transform 0.25s ease;
+        }
+
+
+        .login-card::before {
+
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+
+            left: 30px;
+            right: 30px;
+
+            height: 2px;
+
+            background: linear-gradient(
+                90deg,
+                transparent,
+                #153030,
+                transparent
+            );
+
+            opacity: 0.7;
+        }
+
+
+        .login-card:hover {
+
+            box-shadow:
+                0 25px 60px rgba(21, 48, 48, 0.10),
+                0 3px 10px rgba(21, 48, 48, 0.04);
+        }
+
+
+        /* =====================================================
+           LOGIN FIELD
+        ====================================================== */
+
+        .login-field {
+
+            position: relative;
+
+            margin-bottom: 20px;
+        }
+
+
+        /* =====================================================
+           LABEL
+        ====================================================== */
+
+        .login-label {
+
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #344444;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            letter-spacing: 0.01em;
+        }
+
+
+        /* =====================================================
+           INPUT WRAPPER
+        ====================================================== */
+
+        .login-input-wrapper {
+
+            position: relative;
+        }
+
+
+        /* =====================================================
+           INPUT
+        ====================================================== */
+
+        .login-input {
+
+            width: 100%;
+
+            height: 54px;
+
+            border: 1px solid #e1e8e8;
+
+            border-radius: 13px;
+
+            background: #f8faf9;
+
+            color: #172323;
+
+            font-size: 14px;
+
+            font-weight: 500;
+
+            outline: none;
+
+            padding-left: 46px;
+
+            padding-right: 16px;
+
+            transition:
+                border-color 0.2s ease,
+                background-color 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        .login-input::placeholder {
+
+            color: #a1adad;
+
+            font-weight: 400;
+        }
+
+
+        .login-input:hover {
+
+            border-color: #cbd7d7;
+
+            background: #fbfcfc;
+        }
+
+
+        .login-input:focus {
+
+            border-color: #153030;
+
+            background: #ffffff;
+
+            box-shadow:
+                0 0 0 4px rgba(21, 48, 48, 0.07);
+        }
+
+
+        /* =====================================================
+           INPUT ICON
+        ====================================================== */
+
+        .login-input-icon {
+
+            position: absolute;
+
+            left: 15px;
+
+            top: 50%;
+
+            width: 19px;
+
+            height: 19px;
+
+            color: #899696;
+
+            transform: translateY(-50%);
+
+            pointer-events: none;
+
+            z-index: 2;
+
+            transition:
+                color 0.2s ease;
+        }
+
+
+        .login-input-wrapper:focus-within
+        .login-input-icon {
+
+            color: #153030;
+        }
+
+
+        /* =====================================================
+           PASSWORD INPUT
+        ====================================================== */
+
+        .login-input-password {
+
+            padding-right: 52px;
+        }
+
+
+        /* =====================================================
+           PASSWORD TOGGLE
+        ====================================================== */
+
+        .password-toggle {
+
+            position: absolute;
+
+            top: 50%;
+
+            right: 7px;
+
+            width: 40px;
+
+            height: 40px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            transform: translateY(-50%);
+
+            border: 0;
+
+            border-radius: 9px;
+
+            background: transparent;
+
+            color: #8b9999;
+
+            cursor: pointer;
+
+            transition:
+                color 0.2s ease,
+                background-color 0.2s ease;
+        }
+
+
+        .password-toggle:hover {
+
+            color: #153030;
+
+            background: #eef3f2;
+        }
+
+
+        .password-toggle:active {
+
+            transform:
+                translateY(-50%)
+                scale(0.96);
+        }
+
+
+        .password-toggle:focus-visible {
+
+            outline: 2px solid rgba(21, 48, 48, 0.25);
+
+            outline-offset: 1px;
+        }
+
+
+        /* =====================================================
+           OPTIONS
+        ====================================================== */
+
+        .login-options {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-top: 4px;
+
+            margin-bottom: 24px;
+        }
+
+
+        /* =====================================================
+           REMEMBER LABEL
+        ====================================================== */
+
+        .remember-label {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            color: #667373;
+
+            font-size: 13px;
+
+            font-weight: 500;
+
+            cursor: pointer;
+
+            user-select: none;
+        }
+
+
+        /* =====================================================
+           CUSTOM CHECKBOX
+        ====================================================== */
+
+        .remember-checkbox {
+
+            appearance: none;
+
+            width: 17px;
+
+            height: 17px;
+
+            flex-shrink: 0;
+
+            border: 1.5px solid #ccd6d6;
+
+            border-radius: 5px;
+
+            background: #ffffff;
+
+            cursor: pointer;
+
+            position: relative;
+
+            transition:
+                background-color 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.15s ease;
+        }
+
+
+        .remember-checkbox:hover {
+
+            border-color: #153030;
+        }
+
+
+        .remember-checkbox:checked {
+
+            border-color: #153030;
+
+            background: #153030;
+        }
+
+
+        .remember-checkbox:checked::after {
+
+            content: "";
+
+            position: absolute;
+
+            left: 5px;
+
+            top: 2px;
+
+            width: 5px;
+
+            height: 9px;
+
+            border: solid #ffffff;
+
+            border-width:
+                0 2px 2px 0;
+
+            transform: rotate(45deg);
+        }
+
+
+        /* =====================================================
+           FORGOT PASSWORD
+        ====================================================== */
+
+        .forgot-link {
+
+            color: #153030;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            text-decoration: none;
+
+            white-space: nowrap;
+
+            transition:
+                opacity 0.2s ease;
+        }
+
+
+        .forgot-link:hover {
+
+            opacity: 0.65;
+        }
+
+
+        /* =====================================================
+           LOGIN BUTTON
+        ====================================================== */
+
+        .login-button {
+
+            position: relative;
+
+            width: 100%;
+
+            height: 54px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 9px;
+
+            overflow: hidden;
+
+            border: 0;
+
+            border-radius: 13px;
+
+            background: #153030;
+
+            color: #ffffff;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            letter-spacing: 0.01em;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 8px 18px rgba(21, 48, 48, 0.14);
+
+            transition:
+                background-color 0.2s ease,
+                box-shadow 0.2s ease,
+                transform 0.15s ease;
+        }
+
+
+        /* Button shine */
+
+        .login-button::before {
+
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+
+            left: -100%;
+
+            width: 70%;
+
+            height: 100%;
+
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.08),
+                transparent
+            );
+
+            transform: skewX(-20deg);
+
+            transition:
+                left 0.6s ease;
+        }
+
+
+        .login-button:hover::before {
+
+            left: 140%;
+        }
+
+
+        .login-button:hover {
+
+            background: #102626;
+
+            box-shadow:
+                0 12px 25px rgba(21, 48, 48, 0.20);
+        }
+
+
+        .login-button:active {
+
+            transform: translateY(1px);
+
+            box-shadow:
+                0 5px 12px rgba(21, 48, 48, 0.15);
+        }
+
+
+        .login-button:focus-visible {
+
+            outline: none;
+
+            box-shadow:
+                0 0 0 4px rgba(21, 48, 48, 0.13),
+                0 8px 18px rgba(21, 48, 48, 0.14);
+        }
+
+
+        .login-button:disabled {
+
+            cursor: not-allowed;
+
+            opacity: 0.75;
+
+            box-shadow: none;
+        }
+
+
+        /* =====================================================
+           SECURITY
+        ====================================================== */
+
+        .login-security {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 7px;
+
+            margin-top: 18px;
+
+            color: #9aa5a5;
+
+            font-size: 11px;
+
+            font-weight: 500;
+        }
+
+
+        .login-security-icon {
+
+            width: 14px;
+
+            height: 14px;
+
+            color: #809090;
+        }
+
+
+        /* =====================================================
+           BRAND DECORATION
+        ====================================================== */
+
+        .brand-circle-one {
+
+            width: 430px;
+
+            height: 430px;
+
+            border-radius: 9999px;
+
+            border:
+                1px solid rgba(255,255,255,0.08);
+
+            position: absolute;
+
+            top: -180px;
+
+            left: -180px;
+        }
+
+
+        .brand-circle-two {
+
+            width: 550px;
+
+            height: 550px;
+
+            border-radius: 9999px;
+
+            border:
+                1px solid rgba(255,255,255,0.07);
+
+            position: absolute;
+
+            bottom: -280px;
+
+            right: -250px;
+        }
+
+
+        .brand-circle-three {
+
+            width: 720px;
+
+            height: 720px;
+
+            border-radius: 9999px;
+
+            border:
+                1px solid rgba(255,255,255,0.035);
+
+            position: absolute;
+
+            left: 50%;
+
+            top: 50%;
+
+            transform:
+                translate(-50%, -50%);
+        }
+
+
+        /* =====================================================
+           BRAND CONTENT
+        ====================================================== */
+
+        .brand-content {
+
+            position: relative;
+
+            z-index: 10;
+
+            width: 100%;
+
+            max-width: 580px;
+
+            padding: 48px;
+        }
+
+
+        /* =====================================================
+           TABLET
+        ====================================================== */
+
+        @media (max-width: 1023px) {
+
+            .desktop-brand {
+
+                display: none;
+            }
+
+
+            .login-area {
+
+                width: 100%;
+            }
+
+        }
+
+
+        /* =====================================================
+           MOBILE
+        ====================================================== */
+
+        @media (max-width: 639px) {
+
+            .login-area {
+
+                min-height: 100svh;
+
+                padding:
+                    24px 16px;
+            }
+
+
+            .login-container {
+
+                max-width: 100%;
+            }
+
+
+            .login-card {
+
+                padding:
+                    24px 20px;
+
+                border-radius: 19px;
+            }
+
+
+            .login-card::before {
+
+                left: 22px;
+
+                right: 22px;
+            }
+
+
+            .mobile-logo {
+
+                width: 145px;
+            }
+
+
+            .login-title {
+
+                font-size: 26px;
+
+                line-height: 34px;
+            }
+
+
+            .login-description {
+
+                font-size: 14px;
+
+                line-height: 22px;
+            }
+
+
+            .login-input {
+
+                height: 52px;
+            }
+
+
+            .login-button {
+
+                height: 52px;
+            }
+
+        }
+
+
+        /* =====================================================
+           VERY SMALL MOBILE
+        ====================================================== */
+
+        @media (max-width: 374px) {
+
+            .login-area {
+
+                padding:
+                    20px 12px;
+            }
+
+
+            .login-card {
+
+                padding:
+                    21px 17px;
+
+                border-radius: 17px;
+            }
+
+
+            .mobile-logo {
+
+                width: 130px;
+            }
+
+
+            .login-title {
+
+                font-size: 24px;
+
+                line-height: 31px;
+            }
+
+
+            .login-input {
+
+                height: 50px;
+
+                font-size: 13px;
+            }
+
+
+            .login-button {
+
+                height: 50px;
+            }
+
+
+            .login-options {
+
+                gap: 8px;
+            }
+
+
+            .remember-label,
+            .forgot-link {
+
+                font-size: 12px;
+            }
+
+        }
+
+
+        /* =====================================================
+           SHORT MOBILE SCREEN
+        ====================================================== */
+
+        @media (
+            max-height: 650px
+        ) and (
+            max-width: 1023px
+        ) {
+
+            .login-area {
+
+                align-items: flex-start;
+
+                padding-top: 20px;
+
+                padding-bottom: 20px;
+            }
+
+
+            .mobile-logo-wrapper {
+
+                margin-bottom: 18px;
+            }
+
+
+            .login-header {
+
+                margin-bottom: 18px;
+            }
+
+        }
+
+
+        /* =====================================================
+           AUTOFILL
+        ====================================================== */
+
+        .login-input:-webkit-autofill,
+        .login-input:-webkit-autofill:hover,
+        .login-input:-webkit-autofill:focus {
+
+            -webkit-text-fill-color: #172323;
+
+            -webkit-box-shadow:
+                0 0 0 1000px #f8faf9 inset;
+
+            transition:
+                background-color 5000s ease-in-out 0s;
+        }
+
+
+        /* =====================================================
+           REDUCED MOTION
+        ====================================================== */
+
+        @media (
+            prefers-reduced-motion: reduce
+        ) {
+
+            *,
+            *::before,
+            *::after {
+
+                animation-duration:
+                    0.01ms !important;
+
+                animation-iteration-count:
+                    1 !important;
+
+                transition-duration:
+                    0.01ms !important;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body class="bg-gray-50">
+
+
+<!-- ============================================================
+     MAIN PAGE
+============================================================= -->
+
+<div class="min-h-screen w-full lg:flex">
+
+
+    <!-- ========================================================
+         LEFT BRANDING PANEL
+    ========================================================= -->
+
+    <section
+        class="
+            desktop-brand
+            relative
+            hidden
+            min-h-screen
+            overflow-hidden
+            bg-[#153030]
+            lg:flex
+            lg:w-[48%]
+            xl:w-1/2
+            items-center
+            justify-center
+        "
+    >
+
+
+        <!-- DECORATIVE CIRCLES -->
+
+        <div class="brand-circle-one"></div>
+
+        <div class="brand-circle-two"></div>
+
+        <div class="brand-circle-three"></div>
+
+
+        <!-- BRAND CONTENT -->
+
+        <div class="brand-content text-center">
+
+
+            <!-- LOGO -->
+
+            <div class="flex justify-center">
+
+                <img
+                    src="{% static 'dashboard/images/white_logo.png' %}"
+                    alt="Yaarlynx"
+                    class="
+                        w-48
+                        max-w-full
+                        h-auto
+                        object-contain
+                    "
+                >
+
+            </div>
+
+
+            <!-- TITLE -->
+
+            <h1
+                class="
+                    mt-10
+                    text-4xl
+                    font-bold
+                    leading-tight
+                    tracking-tight
+                    text-white
+                    xl:text-5xl
+                "
+            >
+                Welcome to Yaarlynx
+            </h1>
+
+
+            <!-- DESCRIPTION -->
+
+            <p
+                class="
+                    mx-auto
+                    mt-5
+                    max-w-md
+                    text-base
+                    leading-7
+                    text-white/65
+                    xl:text-lg
+                    xl:leading-8
+                "
+            >
+                Manage your business, products, customers
+                and operations from one powerful dashboard.
+            </p>
+
+
+            <!-- FEATURES -->
+
+            <div
+                class="
+                    mx-auto
+                    mt-10
+                    grid
+                    max-w-md
+                    grid-cols-3
+                    gap-3
+                    sm:gap-4
+                "
+            >
+
+
+                <!-- SIMPLE -->
+
+                <div
+                    class="
+                        rounded-2xl
+                        border
+                        border-white/10
+                        bg-white/[0.05]
+                        px-3
+                        py-5
+                    "
+                >
+
+                    <div
+                        class="
+                            flex
+                            justify-center
+                            text-2xl
+                            text-white
+                        "
+                    >
+                        ✦
+                    </div>
+
+                    <p
+                        class="
+                            mt-2
+                            text-xs
+                            font-medium
+                            text-white/60
+                            sm:text-sm
+                        "
+                    >
+                        Simple
+                    </p>
+
+                </div>
+
+
+                <!-- SECURE -->
+
+                <div
+                    class="
+                        rounded-2xl
+                        border
+                        border-white/10
+                        bg-white/[0.05]
+                        px-3
+                        py-5
+                    "
+                >
+
+                    <div
+                        class="
+                            flex
+                            justify-center
+                            text-2xl
+                            text-white
+                        "
+                    >
+                        ◈
+                    </div>
+
+                    <p
+                        class="
+                            mt-2
+                            text-xs
+                            font-medium
+                            text-white/60
+                            sm:text-sm
+                        "
+                    >
+                        Secure
+                    </p>
+
+                </div>
+
+
+                <!-- POWERFUL -->
+
+                <div
+                    class="
+                        rounded-2xl
+                        border
+                        border-white/10
+                        bg-white/[0.05]
+                        px-3
+                        py-5
+                    "
+                >
+
+                    <div
+                        class="
+                            flex
+                            justify-center
+                            text-2xl
+                            text-white
+                        "
+                    >
+                        ✓
+                    </div>
+
+                    <p
+                        class="
+                            mt-2
+                            text-xs
+                            font-medium
+                            text-white/60
+                            sm:text-sm
+                        "
+                    >
+                        Powerful
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         RIGHT LOGIN AREA
+    ========================================================= -->
+
+    <main
+        class="
+            login-area
+            flex
+            min-h-screen
+            w-full
+            items-center
+            justify-center
+            bg-white
+            px-4
+            py-8
+            sm:px-6
+            sm:py-10
+            lg:w-[52%]
+            xl:w-1/2
+        "
+    >
+
+
+        <div
+            class="
+                login-container
+                w-full
+                max-w-md
+            "
+        >
+
+
+            <!-- =================================================
+                 MOBILE LOGO
+            ================================================= -->
+
+            <div
+                class="
+                    mobile-logo-wrapper
+                    mb-7
+                    flex
+                    justify-center
+                    lg:hidden
+                "
+            >
+
+                <img
+                    src="{% static 'dashboard/images/logo_with_name.png' %}"
+                    alt="Yaarlynx"
+                    class="
+                        mobile-logo
+                        h-auto
+                        w-40
+                        max-w-full
+                        object-contain
+                    "
+                >
+
+            </div>
+
+
+            <!-- =================================================
+                 HEADER
+            ================================================= -->
+
+            <div
+                class="
+                    login-header
+                    mb-7
+                    sm:mb-8
+                "
+            >
+
+                <p
+                    class="
+                        text-xs
+                        font-bold
+                        uppercase
+                        tracking-[0.18em]
+                        text-[#153030]
+                        sm:text-sm
+                    "
+                >
+                    Admin Portal
+                </p>
+
+
+                <h2
+                    class="
+                        login-title
+                        mt-2
+                        text-3xl
+                        font-bold
+                        leading-tight
+                        tracking-tight
+                        text-gray-900
+                    "
+                >
+                    Sign in to your account
+                </h2>
+
+
+                <p
+                    class="
+                        login-description
+                        mt-2
+                        text-sm
+                        leading-6
+                        text-gray-500
+                        sm:text-base
+                    "
+                >
+                    Enter your credentials to continue.
+                </p>
+
+            </div>
+
+
+            <!-- =================================================
+                 ERROR MESSAGE
+            ================================================= -->
+
+            {% if error %}
+
+                <div
+                    class="
+                        mb-5
+                        flex
+                        items-start
+                        gap-3
+                        rounded-xl
+                        border
+                        border-red-200
+                        bg-red-50
+                        px-4
+                        py-3
+                    "
+                >
+
+                    <div
+                        class="
+                            mt-0.5
+                            flex
+                            h-5
+                            w-5
+                            flex-shrink-0
+                            items-center
+                            justify-center
+                            rounded-full
+                            bg-red-100
+                            text-xs
+                            font-bold
+                            text-red-600
+                        "
+                    >
+                        !
+                    </div>
+
+
+                    <p
+                        class="
+                            text-sm
+                            leading-5
+                            text-red-700
+                        "
+                    >
+                        {{ error }}
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- =================================================
+                 DJANGO MESSAGES
+            ================================================= -->
+
+            {% if messages %}
+
+                {% for message in messages %}
+
+                    <div
+                        class="
+                            mb-5
+                            rounded-xl
+                            border
+                            border-green-200
+                            bg-green-50
+                            px-4
+                            py-3
+                            text-sm
+                            text-green-700
+                        "
+                    >
+
+                        {{ message }}
+
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+
+            <!-- =================================================
+                 LOGIN CARD
+            ================================================= -->
+
+            <div class="login-card">
+
+
+                <!-- =================================================
+                     LOGIN FORM
+                ================================================= -->
+
+                <form
+                    id="loginForm"
+                    method="POST"
+                    action="{% url 'login_view' %}"
+                    autocomplete="on"
+                >
+
+                    {% csrf_token %}
+
+
+                    <!-- =============================================
+                         EMAIL
+                    ============================================== -->
+
+                    <div class="login-field">
+
+
+                        <label
+                            for="email"
+                            class="login-label"
+                        >
+                            Email Address
+                        </label>
+
+
+                        <div class="login-input-wrapper">
+
+
+                            <!-- EMAIL ICON -->
+
+                            <svg
+                                class="login-input-icon"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.8"
+                                    d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                />
+
+                            </svg>
+
+
+                            <!-- EMAIL INPUT -->
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                class="login-input"
+                                placeholder="you@example.com"
+                                autocomplete="email"
+                                autocapitalize="none"
+                                spellcheck="false"
+                                required
+                                value="{{ email|default:'' }}"
+                            >
+
+                        </div>
+
+
+                        {% if email_error %}
+
+                            <p
+                                class="
+                                    mt-2
+                                    text-xs
+                                    font-medium
+                                    text-red-600
+                                "
+                            >
+                                {{ email_error }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- =============================================
+                         PASSWORD
+                    ============================================== -->
+
+                    <div class="login-field">
+
+
+                        <label
+                            for="password"
+                            class="login-label"
+                        >
+                            Password
+                        </label>
+
+
+                        <div class="login-input-wrapper">
+
+
+                            <!-- PASSWORD ICON -->
+
+                            <svg
+                                class="login-input-icon"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
+
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.8"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-7a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002 2zm10-9V7a4 4 0 00-8 0v3h8z"
+                                />
+
+                            </svg>
+
+
+                            <!-- PASSWORD INPUT -->
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                class="
+                                    login-input
+                                    login-input-password
+                                "
+                                placeholder="Enter your password"
+                                autocomplete="current-password"
+                                required
+                            >
+
+
+                            <!-- PASSWORD TOGGLE -->
+
+                            <button
+                                type="submit"
+                                id="togglePassword"
+                                class="password-toggle"
+                                aria-label="Show password"
+                                aria-pressed="false"
+                            >
+
+                                <!-- EYE OPEN -->
+
+                                <svg
+                                    id="eyeOpen"
+                                    class="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.8"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    />
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.8"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+
+                                </svg>
+
+
+                                <!-- EYE CLOSED -->
+
+                                <svg
+                                    id="eyeClosed"
+                                    class="hidden h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.8"
+                                        d="M3 3l18 18"
+                                    />
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.8"
+                                        d="M10.584 10.587a2 2 0 002.829 2.829"
+                                    />
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.8"
+                                        d="M9.88 5.09A10.94 10.94 0 0112 5c4.477 0 8.268 2.943 9.542 7a10.97 10.97 0 01-4.132 5.411M6.61 6.61A10.97 10.97 0 002.458 12c1.274 4.057 5.065 7 9.542 7 1.12 0 2.2-.17 3.21-.49"
+                                    />
+
+                                </svg>
+
+                            </button>
+
+                        </div>
+
+
+                        {% if password_error %}
+
+                            <p
+                                class="
+                                    mt-2
+                                    text-xs
+                                    font-medium
+                                    text-red-600
+                                "
+                            >
+                                {{ password_error }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- =============================================
+                         REMEMBER + FORGOT
+                    ============================================== -->
+
+                    <div class="login-options">
+
+
+                        <label
+                            for="remember_me"
+                            class="remember-label"
+                        >
+
+                            <input
+                                type="checkbox"
+                                id="remember_me"
+                                name="remember_me"
+                                value="1"
+                                class="remember-checkbox"
+                            >
+
+                            <span>
+                                Remember me
+                            </span>
+
+                        </label>
+
+
+                        <a
+                            href="#"
+                            class="forgot-link"
+                        >
+                            Forgot password?
+                        </a>
+
+                    </div>
+
+
+                    <!-- =============================================
+                         LOGIN BUTTON
+                    ============================================== -->
+
+                    <button
+                        type="submit"
+                        id="loginButton"
+                        class="login-button"
+                    >
+
+                        <span id="loginText">
+                            Sign In
+                        </span>
+
+
+                        <!-- LOADER -->
+
+                        <svg
+                            id="loginLoader"
+                            class="
+                                hidden
+                                h-5
+                                w-5
+                                animate-spin
+                            "
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            aria-hidden="true"
+                        >
+
+                            <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                            ></circle>
+
+                            <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            ></path>
+
+                        </svg>
+
+                    </button>
+
+
+                </form>
+
+
+                <!-- =================================================
+                     SECURITY
+                ================================================= -->
+
+                <div class="login-security">
+
+                    <svg
+                        class="login-security-icon"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                    >
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.8"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-7a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002 2zm10-9V7a4 4 0 00-8 0v3h8z"
+                        />
+
+                    </svg>
+
+                    <span>
+                        Secure Yaarlynx Admin Portal
+                    </span>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =================================================
+                 COPYRIGHT
+            ================================================= -->
+
+            <p
+                class="
+                    mt-5
+                    text-center
+                    text-xs
+                    text-gray-400
+                "
+            >
+                © {% now "Y" %} Yaarlynx. All rights reserved.
+            </p>
+
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================= -->
+
+<script>
+
+    /* =========================================================
+       PASSWORD SHOW / HIDE
+    ========================================================= */
+
+    const togglePassword =
+        document.getElementById("togglePassword");
+
+    const passwordInput =
+        document.getElementById("password");
+
+    const eyeOpen =
+        document.getElementById("eyeOpen");
+
+    const eyeClosed =
+        document.getElementById("eyeClosed");
+
+
+    if (
+        togglePassword &&
+        passwordInput
+    ) {
+
+        togglePassword.addEventListener(
+            "click",
+            function () {
+
+                const isPassword =
+                    passwordInput.type === "password";
+
+
+                if (isPassword) {
+
+                    passwordInput.type = "text";
+
+                    eyeOpen.classList.add(
+                        "hidden"
+                    );
+
+                    eyeClosed.classList.remove(
+                        "hidden"
+                    );
+
+                    togglePassword.setAttribute(
+                        "aria-label",
+                        "Hide password"
+                    );
+
+                    togglePassword.setAttribute(
+                        "aria-pressed",
+                        "true"
+                    );
+
+                }
+
+                else {
+
+                    passwordInput.type =
+                        "password";
+
+                    eyeOpen.classList.remove(
+                        "hidden"
+                    );
+
+                    eyeClosed.classList.add(
+                        "hidden"
+                    );
+
+                    togglePassword.setAttribute(
+                        "aria-label",
+                        "Show password"
+                    );
+
+                    togglePassword.setAttribute(
+                        "aria-pressed",
+                        "false"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       LOGIN LOADING STATE
+    ========================================================= */
+
+    const loginForm =
+        document.getElementById("loginForm");
+
+    const loginButton =
+        document.getElementById("loginButton");
+
+    const loginText =
+        document.getElementById("loginText");
+
+    const loginLoader =
+        document.getElementById("loginLoader");
+
+
+    if (loginForm) {
+
+        loginForm.addEventListener(
+            "submit",
+            function () {
+
+                if (
+                    loginButton &&
+                    loginText &&
+                    loginLoader
+                ) {
+
+                    loginButton.disabled = true;
+
+                    loginText.textContent =
+                        "Signing in...";
+
+                    loginLoader.classList.remove(
+                        "hidden"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       EMAIL NORMALIZATION
+    ========================================================= */
+
+    const emailInput =
+        document.getElementById("email");
+
+
+    if (emailInput) {
+
+        emailInput.addEventListener(
+            "blur",
+            function () {
+
+                this.value =
+                    this.value
+                        .trim()
+                        .toLowerCase();
+
+            }
+        );
+
+    }
+
+</script>
+
+
+</body>
+
+</html>

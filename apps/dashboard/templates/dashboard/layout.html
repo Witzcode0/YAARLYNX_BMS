@@ -1,0 +1,917 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#153030">
+
+    <meta name="description" content="{% block meta_description %}Yaarlynx Admin Dashboard{% endblock %}">
+
+    <title>
+        {% block title %}Yaarlynx Admin{% endblock %}
+    </title>
+
+
+    <!-- =========================================================
+         TAILWIND CSS
+    ========================================================== -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+
+        tailwind.config = {
+
+            theme: {
+
+                extend: {
+
+                    colors: {
+
+                        primary: "#153030",
+
+                        brand: {
+
+                            50: "#f1f5f5",
+                            100: "#dce6e6",
+                            200: "#b9cccc",
+                            300: "#91afaf",
+                            400: "#668f8f",
+                            500: "#3f7070",
+                            600: "#2a5555",
+                            700: "#153030",
+                            800: "#112828",
+                            900: "#0c1f1f"
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        };
+
+    </script>
+
+
+    <!-- =========================================================
+         CUSTOM CSS
+    ========================================================== -->
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+        body {
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            margin: 0;
+        }
+
+
+        /* =====================================================
+           SIDEBAR SCROLLBAR
+        ====================================================== */
+
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: #dce6e6;
+            border-radius: 10px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: #b9cccc;
+        }
+
+
+        /* =====================================================
+           CONTENT SCROLLBAR
+        ====================================================== */
+
+        .content-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .content-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content-scroll::-webkit-scrollbar-thumb {
+            background: #dce6e6;
+            border-radius: 10px;
+        }
+
+        .content-scroll::-webkit-scrollbar-thumb:hover {
+            background: #b9cccc;
+        }
+
+
+        /* =====================================================
+           SELECTION
+        ====================================================== */
+
+        ::selection {
+            background: #153030;
+            color: white;
+        }
+
+
+        /* =====================================================
+           MOBILE SIDEBAR
+        ====================================================== */
+
+        body.sidebar-open {
+            overflow: hidden;
+        }
+
+
+        /* =====================================================
+           FOCUS
+        ====================================================== */
+
+        button:focus-visible,
+        a:focus-visible,
+        input:focus-visible {
+            outline: 2px solid #153030;
+            outline-offset: 2px;
+        }
+    </style>
+
+
+    {% block extra_css %}
+    {% endblock %}
+
+</head>
+
+
+<body class="bg-[#F7F9F9] text-[#153030]">
+
+
+    <!-- =========================================================
+         MOBILE SIDEBAR OVERLAY
+    ========================================================== -->
+
+    <div id="sidebar-overlay" class="fixed inset-0 z-40 hidden bg-black/30 backdrop-blur-[1px] lg:hidden"></div>
+
+
+    <!-- =========================================================
+         MAIN DASHBOARD WRAPPER
+    ========================================================== -->
+
+    <div class="flex min-h-screen">
+
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+
+        <aside id="sidebar"
+            class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0">
+
+
+            <!-- =================================================
+                 SIDEBAR LOGO
+            ================================================== -->
+
+            <div class="flex h-20 shrink-0 items-center border-b border-gray-100 px-5">
+
+                <a href="/" class="flex min-w-0 items-center gap-3">
+
+                    <!-- Logo -->
+
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center">
+
+                        <img src="{% static 'dashboard/images/logo.png' %}" alt="Yaarlynx Logo"
+                            class="h-11 w-11 object-contain">
+
+                    </div>
+
+
+                    <!-- Brand -->
+
+                    <div class="min-w-0">
+
+                        <div class="text-lg font-bold leading-none tracking-tight text-[#153030]">
+                            YAARLYNX
+                        </div>
+
+                        <div class="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-gray-400">
+                            Admin Panel
+                        </div>
+
+                    </div>
+
+                </a>
+
+            </div>
+
+
+            <!-- =================================================
+                 SIDEBAR NAVIGATION
+            ================================================== -->
+
+            <nav class="sidebar-scroll flex-1 overflow-y-auto px-3 py-5">
+
+
+                <!-- =================================================
+                     MAIN SECTION
+                ================================================== -->
+
+                <div>
+
+    <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+        Main
+    </p>
+
+    <!-- Dashboard -->
+
+    <a
+        href="{% url 'dashboard_view' %}"
+        class="{% if request.resolver_match.url_name == 'dashboard_view' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+    >
+
+        <svg
+            class="h-5 w-5 shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.8"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z"
+            />
+        </svg>
+
+        <span class="truncate">
+            Dashboard
+        </span>
+
+    </a>
+
+
+    <!-- Parties -->
+
+    <a
+        href="{% url 'party_list' %}"
+        class="{% if request.resolver_match.url_name == 'party_list' or request.resolver_match.url_name == 'party_detail' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+    >
+
+        <svg
+            class="h-5 w-5 shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.8"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m6-10a4 4 0 100-8 4 4 0 000 8zm10 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+            />
+        </svg>
+
+        <span class="truncate">
+            Parties
+        </span>
+
+    </a>
+
+
+    <!-- Payments -->
+
+    <a
+        href="{% url 'payment_list' %}"
+        class="{% if request.resolver_match.url_name == 'payment_list' or request.resolver_match.url_name == 'payment_detail' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+    >
+
+        <svg
+            class="h-5 w-5 shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.8"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 10h18M5 6h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2zm3 8h3"
+            />
+        </svg>
+
+        <span class="truncate">
+            Payments
+        </span>
+
+    </a>
+
+</div>
+
+                <!-- =================================================
+                     DIVIDER
+                ================================================== -->
+
+                <div class="my-5 border-t border-gray-100"></div>
+
+
+                <!-- =================================================
+                     MANAGEMENT
+                ================================================== -->
+
+                <div>
+
+                    <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+                        Management
+                    </p>
+
+
+                    <!-- Orders -->
+
+
+                    <a href="#"
+                        class="mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-[#F1F5F5] hover:text-[#153030]">
+
+                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M6 2h12l2 5H4l2-5Zm-2 5h16v13H4V7Zm4 4h8" />
+                        </svg>
+
+                        <span class="flex-1">
+                            Orders
+                        </span>
+
+                        <span class="rounded-full bg-[#DCE6E6] px-2 py-0.5 text-[10px] font-bold text-[#153030]">
+                            12
+                        </span>
+
+                    </a>
+
+
+
+                    <!-- Products -->
+
+                    <!--
+                    <a
+                        href="#"
+                        class="mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-[#F1F5F5] hover:text-[#153030]"
+                    >
+
+                        <svg
+                            class="h-5 w-5 shrink-0"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="m20 7-8-4-8 4m16 0-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                            />
+                        </svg>
+
+                        <span>
+                            Products
+                        </span>
+
+                    </a>
+                    -->
+
+
+                    <!-- Categories -->
+
+                    <!--
+                    <a
+                        href="#"
+                        class="mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-[#F1F5F5] hover:text-[#153030]"
+                    >
+
+                        <svg
+                            class="h-5 w-5 shrink-0"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M4 5a2 2 0 0 1 2-2h4l2 3h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5Z"
+                            />
+                        </svg>
+
+                        <span>
+                            Categories
+                        </span>
+
+                    </a>
+                    -->
+
+
+                    <!-- Customers -->
+
+                    <!--
+                    <a
+                        href="#"
+                        class="mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-[#F1F5F5] hover:text-[#153030]"
+                    >
+
+                        <svg
+                            class="h-5 w-5 shrink-0"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10 10v-2a4 4 0 0 0-3-3.87m-1-12a4 4 0 0 1 0 7.75"
+                            />
+                        </svg>
+
+                        <span>
+                            Customers
+                        </span>
+
+                    </a>
+                    -->
+
+                </div>
+
+
+                <!-- =================================================
+                     SECOND DIVIDER
+                ================================================== -->
+
+                <div class="my-5 border-t border-gray-100"></div>
+
+
+                <!-- =================================================
+                     SYSTEM
+                ================================================== -->
+
+                <div>
+
+                    <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+                        System
+                    </p>
+
+
+                    <!-- Settings -->
+
+
+                    <a href="#"
+                        class="mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-[#F1F5F5] hover:text-[#153030]">
+
+                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.5 1.5-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V20h-2.12v-.4a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-1.5-1.5.06-.06A1.7 1.7 0 0 0 9.14 15a1.7 1.7 0 0 0-1.56-1.03H7v-2.12h.58A1.7 1.7 0 0 0 9.14 10a1.7 1.7 0 0 0-.34-1.88l-.06-.06 1.5-1.5.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.03-1.56V5h2.12v.4a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 1.5 1.5-.06.06A1.7 1.7 0 0 0 19.4 10a1.7 1.7 0 0 0 1.56 1.03H21v2.12h-.04A1.7 1.7 0 0 0 19.4 15Z" />
+                        </svg>
+
+                        <span>
+                            Settings
+                        </span>
+
+                    </a>
+
+
+                </div>
+
+            </nav>
+
+
+            <!-- =================================================
+                 SIDEBAR USER
+            ================================================== -->
+
+            <div class="shrink-0 border-t border-gray-100 p-4">
+
+                <div class="flex min-w-0 items-center gap-3 rounded-xl bg-[#F7F9F9] p-3">
+
+                    <!-- Profile Image -->
+
+                    <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#153030]">
+
+                        <img src="/media/{{ request.session.yaarlynx_user_profile_link }}"
+                            alt="{{ request.session.yaarlynx_user_firstname }}" class="h-full w-full object-cover">
+
+                    </div>
+
+
+                    <!-- User Information -->
+
+                    <div class="min-w-0 flex-1">
+
+                        <a href="{% url 'profile_view' %}"
+                            class="block truncate text-sm font-semibold text-[#153030] hover:underline">
+                            {{ request.session.yaarlynx_user_firstname }}
+                            {{ request.session.yaarlynx_user_lastname }}
+                        </a>
+
+                        <p class="mt-0.5 truncate text-xs text-gray-400">
+                            {{ request.session.yaarlynx_user_email }}
+                        </p>
+
+                    </div>
+
+
+                    <!-- Logout -->
+
+                    <a href="{% url 'logout_view' %}"
+                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-white hover:text-[#153030]"
+                        title="Logout">
+
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-5-5 5-4m0 0-5-4m5 4H3" />
+
+                        </svg>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =====================================================
+             RIGHT SIDE
+        ====================================================== -->
+
+        <div class="flex min-w-0 flex-1 flex-col">
+
+
+            <!-- =================================================
+                 TOPBAR
+            ================================================== -->
+
+            <header
+                class="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white/95 px-4 backdrop-blur sm:h-20 sm:px-6 lg:px-8">
+
+
+                <!-- =================================================
+                     TOPBAR LEFT
+                ================================================== -->
+
+                <div class="flex min-w-0 items-center gap-2.5 sm:gap-3">
+
+
+                    <!-- Mobile Sidebar Button -->
+
+                    <button id="sidebar-open" type="button"
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-600 transition hover:bg-[#F1F5F5] hover:text-[#153030] lg:hidden"
+                        aria-label="Open menu">
+
+                        <svg class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="1.8">
+
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+
+                        </svg>
+
+                    </button>
+
+
+                    <!-- Page Title -->
+
+                    <div class="min-w-0">
+
+                        <p class="text-[10px] font-medium text-gray-400 sm:text-xs">
+                            Admin Panel
+                        </p>
+
+                        <h1 class="truncate text-base font-bold text-[#153030] sm:text-lg">
+                            {% block page_heading %}
+                            Dashboard
+                            {% endblock %}
+                        </h1>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     TOPBAR RIGHT
+                ================================================== -->
+
+                <div class="flex shrink-0 items-center gap-1.5 sm:gap-3 lg:gap-4">
+
+
+                    <!-- Search -->
+
+                    <div class="relative hidden md:block">
+
+                        <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m21 21-4.35-4.35m1.35-5.4a6.75 6.75 0 1 1-13.5 0 6.75 6.75 0 0 1 13.5 0Z" />
+
+                        </svg>
+
+                        <input type="text" placeholder="Search..."
+                            class="h-10 w-48 rounded-xl border border-gray-200 bg-[#F7F9F9] pl-9 pr-3 text-sm text-[#153030] outline-none transition placeholder:text-gray-400 focus:border-[#153030] focus:bg-white focus:ring-1 focus:ring-[#153030] lg:w-56">
+
+                    </div>
+
+
+                    <!-- Notification -->
+
+                    <button type="button"
+                        class="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-500 transition hover:bg-[#F1F5F5] hover:text-[#153030]"
+                        aria-label="Notifications">
+
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0a3 3 0 0 1-6 0" />
+
+                        </svg>
+
+                        <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
+
+                    </button>
+
+
+                    <!-- User -->
+
+                    <div class="flex items-center gap-2">
+
+                        <!-- User Image -->
+
+                        <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#153030] sm:h-10 sm:w-10">
+
+                            <img src="/media/{{ request.session.yaarlynx_user_profile_link }}"
+                                alt="{{ request.session.yaarlynx_user_firstname }}" class="h-full w-full object-cover">
+
+                        </div>
+
+
+                        <!-- User Details -->
+
+                        <div class="hidden min-w-0 sm:block">
+
+                            <a href="{% url 'profile_view' %}"
+                                class="block max-w-36 truncate text-sm font-semibold text-[#153030]">
+                                {{ request.session.yaarlynx_user_firstname }}
+                                {{ request.session.yaarlynx_user_lastname }}
+                            </a>
+
+                            <p class="mt-0.5 truncate text-[10px] text-gray-400">
+                                {{ request.session.yaarlynx_user_role }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!-- =================================================
+                 PAGE CONTENT
+            ================================================== -->
+
+            <main class="content-scroll flex-1 overflow-y-auto">
+
+                {% block content %}
+                {% endblock %}
+
+            </main>
+
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         SIDEBAR JAVASCRIPT
+    ========================================================== -->
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+
+            const sidebar =
+                document.getElementById("sidebar");
+
+            const overlay =
+                document.getElementById("sidebar-overlay");
+
+            const openButton =
+                document.getElementById("sidebar-open");
+
+
+            /* =================================================
+               OPEN SIDEBAR
+            ================================================== */
+
+            function openSidebar() {
+
+                if (!sidebar || !overlay) {
+                    return;
+                }
+
+                sidebar.classList.remove("-translate-x-full");
+
+                overlay.classList.remove("hidden");
+
+                document.body.classList.add("sidebar-open");
+
+            }
+
+
+            /* =================================================
+               CLOSE SIDEBAR
+            ================================================== */
+
+            function closeSidebar() {
+
+                if (!sidebar || !overlay) {
+                    return;
+                }
+
+                sidebar.classList.add("-translate-x-full");
+
+                overlay.classList.add("hidden");
+
+                document.body.classList.remove("sidebar-open");
+
+            }
+
+
+            /* =================================================
+               OPEN BUTTON
+            ================================================== */
+
+            if (openButton) {
+
+                openButton.addEventListener(
+                    "click",
+                    openSidebar
+                );
+
+            }
+
+
+            /* =================================================
+               OVERLAY CLICK
+            ================================================== */
+
+            if (overlay) {
+
+                overlay.addEventListener(
+                    "click",
+                    closeSidebar
+                );
+
+            }
+
+
+            /* =================================================
+               CLOSE SIDEBAR AFTER LINK CLICK
+            ================================================== */
+
+            if (sidebar) {
+
+                const sidebarLinks =
+                    sidebar.querySelectorAll("a");
+
+                sidebarLinks.forEach(function (link) {
+
+                    link.addEventListener(
+                        "click",
+                        function () {
+
+                            if (window.innerWidth < 1024) {
+                                closeSidebar();
+                            }
+
+                        }
+                    );
+
+                });
+
+            }
+
+
+            /* =================================================
+               ESC KEY
+            ================================================== */
+
+            document.addEventListener(
+                "keydown",
+                function (event) {
+
+                    if (
+                        event.key === "Escape" &&
+                        window.innerWidth < 1024
+                    ) {
+
+                        closeSidebar();
+
+                    }
+
+                }
+            );
+
+
+            /* =================================================
+               RESET ON DESKTOP
+            ================================================== */
+
+            window.addEventListener(
+                "resize",
+                function () {
+
+                    if (window.innerWidth >= 1024) {
+
+                        if (sidebar) {
+                            sidebar.classList.remove(
+                                "-translate-x-full"
+                            );
+                        }
+
+                        if (overlay) {
+                            overlay.classList.add("hidden");
+                        }
+
+                        document.body.classList.remove(
+                            "sidebar-open"
+                        );
+
+                    } else {
+
+                        if (
+                            sidebar &&
+                            !sidebar.classList.contains(
+                                "-translate-x-full"
+                            )
+                        ) {
+
+                            return;
+
+                        }
+
+                        if (sidebar) {
+                            sidebar.classList.add(
+                                "-translate-x-full"
+                            );
+                        }
+
+                    }
+
+                }
+            );
+
+        });
+
+    </script>
+
+
+    {% block extra_js %}
+    {% endblock %}
+
+
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}
+    Dashboard | Yaarlynx
+{% endblock %}
+
+{% block page_heading %}
+    Dashboard
+{% endblock %}
+
+{% block meta_description %}
+    Yaarlynx Management Dashboard
+{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+
+        <div>
+
+            <h2 class="text-xl font-bold text-[#153030]">
+                Good day, {{ user.first_name }} 👋
+            </h2>
+
+            <p class="mt-1 text-sm text-gray-500">
+                Here's your Yaarlynx business overview.
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <div class="py-6">
+
+        <p class="text-center text-xs text-gray-400">
+            © {% now "Y" %} Yaarlynx. All rights reserved.
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,996 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}Parties | Yaarlynx{% endblock %}
+
+{% block page_heading %}
+    Parties
+{% endblock %}
+
+{% block meta_description %}
+    Manage suppliers, manufacturers, wholesalers and distributors
+{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto w-full max-w-[1600px] space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+
+
+    <!-- ========================================================= -->
+    <!-- PAGE HEADER -->
+    <!-- ========================================================= -->
+
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+        <div class="min-w-0">
+
+            <div class="flex items-center gap-2">
+
+                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#153030]/10">
+
+                    <svg
+                        class="h-5 w-5 text-[#153030]"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"
+                        />
+
+                        <circle
+                            cx="9"
+                            cy="7"
+                            r="4"
+                        />
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M22 21v-2a4 4 0 00-3-3.87"
+                        />
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M16 3.13a4 4 0 010 7.75"
+                        />
+
+                    </svg>
+
+                </div>
+
+                <h1 class="text-2xl font-bold tracking-tight text-[#153030]">
+                    Parties
+                </h1>
+
+            </div>
+
+            <p class="mt-1 text-sm text-gray-500">
+                Manage suppliers, manufacturers, wholesalers and distributors.
+            </p>
+
+        </div>
+
+
+        <!-- ADD PARTY -->
+
+        <a
+            href=""
+            class="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#153030] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f2424] focus:outline-none focus:ring-2 focus:ring-[#153030]/20"
+        >
+
+            <svg
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 4v16m8-8H4"
+                />
+            </svg>
+
+            Add Party
+
+        </a>
+
+    </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- STATISTICS -->
+    <!-- ========================================================= -->
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+
+        <!-- TOTAL -->
+
+        <div class="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Total Parties
+                    </p>
+
+                    <p class="mt-2 text-2xl font-bold text-[#153030]">
+                        {{ total_parties }}
+                    </p>
+
+                </div>
+
+
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#153030]/10 transition group-hover:bg-[#153030]">
+
+                    <svg
+                        class="h-5 w-5 text-[#153030] group-hover:text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M17 20h5v-2a4 4 0 00-4-4h-1m-3 6H5v-2a4 4 0 014-4h4a4 4 0 014 4v2zm-2-9a4 4 0 11-8 0 4 4 0 018 0zm6-1a3 3 0 11-6 0"
+                        />
+                    </svg>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ACTIVE -->
+
+        <div class="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Active Parties
+                    </p>
+
+                    <p class="mt-2 text-2xl font-bold text-green-600">
+                        {{ active_parties }}
+                    </p>
+
+                </div>
+
+
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 transition group-hover:bg-green-600">
+
+                    <svg
+                        class="h-5 w-5 text-green-600 group-hover:text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M5 13l4 4L19 7"
+                        />
+                    </svg>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- INACTIVE -->
+
+        <div class="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Inactive Parties
+                    </p>
+
+                    <p class="mt-2 text-2xl font-bold text-red-500">
+                        {{ inactive_parties }}
+                    </p>
+
+                </div>
+
+
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 transition group-hover:bg-red-500">
+
+                    <svg
+                        class="h-5 w-5 text-red-500 group-hover:text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                        />
+                    </svg>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- SEARCH & FILTER CARD -->
+    <!-- ========================================================= -->
+
+    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm">
+
+        <form
+            id="partyFilterForm"
+            method="GET"
+            action="{% url 'party_list' %}"
+        >
+
+            <div class="p-5">
+
+
+                <!-- SEARCH -->
+
+                <div class="relative">
+
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+
+                        <svg
+                            class="h-5 w-5 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="m21 21-4.35-4.35m2.1-5.4a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"
+                            />
+                        </svg>
+
+                    </div>
+
+
+                    <input
+                        type="text"
+                        name="search"
+                        id="partySearch"
+                        value="{{ search }}"
+                        autocomplete="off"
+                        placeholder="Search party name, contact, phone, GST, city, bank, account, IFSC, UPI..."
+                        class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 pl-11 pr-12 text-sm text-[#153030] outline-none transition placeholder:text-gray-400 hover:border-gray-300 focus:border-[#153030] focus:bg-white focus:ring-2 focus:ring-[#153030]/10"
+                    >
+
+
+                    <!-- LOADING -->
+
+                    <div
+                        id="searchLoader"
+                        class="absolute inset-y-0 right-4 hidden items-center"
+                    >
+
+                        <svg
+                            class="h-5 w-5 animate-spin text-[#153030]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="3"
+                            />
+
+                            <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"
+                            />
+                        </svg>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- FILTERS -->
+
+                <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+
+
+                    <!-- PARTY TYPE -->
+
+                    <div>
+
+                        <label
+                            for="partyType"
+                            class="mb-1.5 block text-xs font-semibold text-gray-500"
+                        >
+                            Party Type
+                        </label>
+
+                        <select
+                            name="party_type"
+                            id="partyType"
+                            class="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 text-sm text-[#153030] outline-none transition hover:border-gray-300 focus:border-[#153030] focus:bg-white focus:ring-2 focus:ring-[#153030]/10"
+                        >
+
+                            <option value="">
+                                All Types
+                            </option>
+
+                            {% for value, label in party_types %}
+
+                                <option
+                                    value="{{ value }}"
+                                    {% if party_type == value %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ label }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- STATUS -->
+
+                    <div>
+
+                        <label
+                            for="partyStatus"
+                            class="mb-1.5 block text-xs font-semibold text-gray-500"
+                        >
+                            Status
+                        </label>
+
+                        <select
+                            name="status"
+                            id="partyStatus"
+                            class="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 text-sm text-[#153030] outline-none transition hover:border-gray-300 focus:border-[#153030] focus:bg-white focus:ring-2 focus:ring-[#153030]/10"
+                        >
+
+                            <option value="">
+                                All Status
+                            </option>
+
+                            <option
+                                value="active"
+                                {% if status == "active" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Active
+                            </option>
+
+                            <option
+                                value="inactive"
+                                {% if status == "inactive" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Inactive
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- GST FILTER -->
+
+                    <div>
+
+                        <label
+                            for="gstStatus"
+                            class="mb-1.5 block text-xs font-semibold text-gray-500"
+                        >
+                            GST Details
+                        </label>
+
+                        <select
+                            name="gst"
+                            id="gstStatus"
+                            class="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 text-sm text-[#153030] outline-none transition hover:border-gray-300 focus:border-[#153030] focus:bg-white focus:ring-2 focus:ring-[#153030]/10"
+                        >
+
+                            <option value="">
+                                All GST
+                            </option>
+
+                            <option
+                                value="available"
+                                {% if gst == "available" %}
+                                    selected
+                                {% endif %}
+                            >
+                                GST Available
+                            </option>
+
+                            <option
+                                value="missing"
+                                {% if gst == "missing" %}
+                                    selected
+                                {% endif %}
+                            >
+                                GST Missing
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- BANK FILTER -->
+
+                    <div>
+
+                        <label
+                            for="bankStatus"
+                            class="mb-1.5 block text-xs font-semibold text-gray-500"
+                        >
+                            Bank Details
+                        </label>
+
+                        <select
+                            name="bank"
+                            id="bankStatus"
+                            class="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 text-sm text-[#153030] outline-none transition hover:border-gray-300 focus:border-[#153030] focus:bg-white focus:ring-2 focus:ring-[#153030]/10"
+                        >
+
+                            <option value="">
+                                All Bank Details
+                            </option>
+
+                            <option
+                                value="available"
+                                {% if bank == "available" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Bank Available
+                            </option>
+
+                            <option
+                                value="missing"
+                                {% if bank == "missing" %}
+                                    selected
+                                {% endif %}
+                            >
+                                Bank Missing
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- FILTER FOOTER -->
+
+                <div class="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div class="flex items-center gap-2">
+
+                        <div class="h-2 w-2 rounded-full bg-green-500"></div>
+
+                        <p
+                            id="searchStatus"
+                            class="text-xs text-gray-400"
+                        >
+                            Showing {{ page_obj.paginator.count }} parties
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        id="clearFilters"
+                        class="inline-flex items-center justify-center gap-2 self-start rounded-lg px-3 py-2 text-xs font-semibold text-gray-500 transition hover:bg-gray-100 hover:text-[#153030] sm:self-auto"
+                    >
+
+                        <svg
+                            class="h-3.5 w-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+
+                        Clear Filters
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- PARTY TABLE -->
+    <!-- ========================================================= -->
+
+    <div
+        id="partyTableContainer"
+        class="transition-opacity duration-200"
+    >
+
+        {% include "dashboard/party_table.html" %}
+
+    </div>
+
+</div>
+
+
+
+<!-- ========================================================= -->
+<!-- REAL-TIME SEARCH -->
+<!-- ========================================================= -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("partyFilterForm");
+
+    const searchInput =
+        document.getElementById("partySearch");
+
+    const partyType =
+        document.getElementById("partyType");
+
+    const partyStatus =
+        document.getElementById("partyStatus");
+
+    const gstStatus =
+        document.getElementById("gstStatus");
+
+    const bankStatus =
+        document.getElementById("bankStatus");
+
+    const clearFilters =
+        document.getElementById("clearFilters");
+
+    const tableContainer =
+        document.getElementById("partyTableContainer");
+
+    const searchStatus =
+        document.getElementById("searchStatus");
+
+    const searchLoader =
+        document.getElementById("searchLoader");
+
+
+    let searchTimer = null;
+
+    let currentRequest = null;
+
+
+
+    /* ========================================================= */
+    /* BUILD URL */
+    /* ========================================================= */
+
+    function getUrl() {
+
+        const params =
+            new URLSearchParams();
+
+
+        const search =
+            searchInput.value.trim();
+
+        const type =
+            partyType.value;
+
+        const status =
+            partyStatus.value;
+
+        const gst =
+            gstStatus.value;
+
+        const bank =
+            bankStatus.value;
+
+
+
+        if (search) {
+            params.set(
+                "search",
+                search
+            );
+        }
+
+
+        if (type) {
+            params.set(
+                "party_type",
+                type
+            );
+        }
+
+
+        if (status) {
+            params.set(
+                "status",
+                status
+            );
+        }
+
+
+        if (gst) {
+            params.set(
+                "gst",
+                gst
+            );
+        }
+
+
+        if (bank) {
+            params.set(
+                "bank",
+                bank
+            );
+        }
+
+
+        const query =
+            params.toString();
+
+
+        return query
+            ? form.action + "?" + query
+            : form.action;
+
+    }
+
+
+
+    /* ========================================================= */
+    /* LOAD RESULTS */
+    /* ========================================================= */
+
+    function loadParties(url) {
+
+
+        if (currentRequest) {
+
+            currentRequest.abort();
+
+        }
+
+
+        currentRequest =
+            new AbortController();
+
+
+        tableContainer.classList.add(
+            "opacity-50",
+            "pointer-events-none"
+        );
+
+
+        searchLoader.classList.remove(
+            "hidden"
+        );
+
+        searchLoader.classList.add(
+            "flex"
+        );
+
+
+
+        fetch(
+            url,
+            {
+                method: "GET",
+
+                headers: {
+                    "X-Requested-With":
+                        "XMLHttpRequest"
+                },
+
+                signal:
+                    currentRequest.signal
+            }
+        )
+
+        .then(
+            function (response) {
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Failed to load parties."
+                    );
+
+                }
+
+                return response.text();
+
+            }
+        )
+
+        .then(
+            function (html) {
+
+                tableContainer.innerHTML =
+                    html;
+
+
+                tableContainer.classList.remove(
+                    "opacity-50",
+                    "pointer-events-none"
+                );
+
+
+                searchLoader.classList.add(
+                    "hidden"
+                );
+
+                searchLoader.classList.remove(
+                    "flex"
+                );
+
+
+
+                const countElement =
+                    tableContainer.querySelector(
+                        "[data-result-count]"
+                    );
+
+
+                if (countElement) {
+
+                    searchStatus.textContent =
+                        "Showing " +
+                        countElement.dataset.resultCount +
+                        " parties";
+
+                }
+
+
+
+                history.replaceState(
+                    {},
+                    "",
+                    url
+                );
+
+
+                bindPagination();
+
+            }
+        )
+
+        .catch(
+            function (error) {
+
+                if (
+                    error.name ===
+                    "AbortError"
+                ) {
+
+                    return;
+
+                }
+
+
+                console.error(error);
+
+
+                tableContainer.classList.remove(
+                    "opacity-50",
+                    "pointer-events-none"
+                );
+
+
+                searchLoader.classList.add(
+                    "hidden"
+                );
+
+                searchLoader.classList.remove(
+                    "flex"
+                );
+
+            }
+        );
+
+    }
+
+
+
+    /* ========================================================= */
+    /* PERFORM SEARCH */
+    /* ========================================================= */
+
+    function performSearch() {
+
+        loadParties(
+            getUrl()
+        );
+
+    }
+
+
+
+    /* ========================================================= */
+    /* REAL-TIME SEARCH */
+    /* ========================================================= */
+
+    searchInput.addEventListener(
+        "input",
+        function () {
+
+            clearTimeout(
+                searchTimer
+            );
+
+
+            searchTimer =
+                setTimeout(
+                    function () {
+
+                        performSearch();
+
+                    },
+                    350
+                );
+
+        }
+    );
+
+
+
+    /* ========================================================= */
+    /* FILTERS */
+    /* ========================================================= */
+
+    partyType.addEventListener(
+        "change",
+        performSearch
+    );
+
+
+    partyStatus.addEventListener(
+        "change",
+        performSearch
+    );
+
+
+    gstStatus.addEventListener(
+        "change",
+        performSearch
+    );
+
+
+    bankStatus.addEventListener(
+        "change",
+        performSearch
+    );
+
+
+
+    /* ========================================================= */
+    /* CLEAR FILTERS */
+    /* ========================================================= */
+
+    clearFilters.addEventListener(
+        "click",
+        function () {
+
+            searchInput.value = "";
+
+            partyType.value = "";
+
+            partyStatus.value = "";
+
+            gstStatus.value = "";
+
+            bankStatus.value = "";
+
+
+            performSearch();
+
+        }
+    );
+
+
+
+    /* ========================================================= */
+    /* PAGINATION */
+    /* ========================================================= */
+
+    function bindPagination() {
+
+        const links =
+            tableContainer.querySelectorAll(
+                "[data-party-page]"
+            );
+
+
+        links.forEach(
+            function (link) {
+
+                link.addEventListener(
+                    "click",
+                    function (event) {
+
+                        event.preventDefault();
+
+
+                        loadParties(
+                            link.getAttribute(
+                                "href"
+                            )
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+
+
+    bindPagination();
+
+});
+
+</script>
+
+{% endblock %}
