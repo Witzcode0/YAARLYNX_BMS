@@ -126,3 +126,4 @@ def dashboard_access_required(view_func):
 
 
     return wrapper
+
