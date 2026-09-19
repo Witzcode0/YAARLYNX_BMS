@@ -59,9 +59,27 @@
                     Purchase Order
                 </p>
 
-                <h1 class="truncate text-2xl font-bold tracking-tight text-[#153030] sm:text-3xl">
-                    {{ purchase.purchase_number }}
-                </h1>
+                <div class="flex items-center gap-2">
+
+                    <h1 class="truncate text-2xl font-bold tracking-tight text-[#153030] sm:text-3xl">
+                        {{ purchase.purchase_number }}
+                    </h1>
+
+                    {% if purchase.invoice_document %}
+                        <span title="Supplier bill document available"
+                              class="inline-flex h-6 w-6 shrink-0 items-center justify-center
+                                     rounded-lg bg-blue-50 text-blue-600">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M14 2v6h6"/>
+                            </svg>
+                        </span>
+                    {% endif %}
+
+                </div>
 
                 <p class="mt-1 text-sm text-gray-500">
                     {{ party.name }}
@@ -75,6 +93,31 @@
         <!-- HEADER ACTIONS -->
 
         <div class="flex flex-wrap items-center gap-2">
+
+
+            {% if purchase.invoice_document %}
+
+            <!-- SUPPLIER BILL -->
+
+            <a
+                href="{{ purchase.invoice_document.url }}"
+                target="_blank"
+                rel="noopener"
+                class="inline-flex h-11 items-center justify-center gap-2 rounded-xl
+                       border border-blue-100 bg-blue-50 px-4 text-sm font-semibold
+                       text-blue-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-100"
+            >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M14 2v6h6"/>
+                </svg>
+                View Bill
+            </a>
+
+            {% endif %}
 
 
             <!-- INSTALLMENTS -->
@@ -533,6 +576,229 @@
                 </div>
 
             </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ========================================================= -->
+    <!-- BILL / TAX / DOCUMENT DETAILS -->
+    <!-- ========================================================= -->
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+        <!-- BILL TYPE -->
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+
+            <div class="flex items-center gap-3">
+
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#153030]/10">
+                    <svg class="h-5 w-5 text-[#153030]" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M6 2h9l5 5v15H6V2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M14 2v6h6"/>
+                    </svg>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Bill Type
+                    </p>
+
+                    {% if purchase.bill_type == "GST" %}
+                        <p class="mt-1 text-sm font-bold text-emerald-700">
+                            GST Bill
+                        </p>
+                    {% else %}
+                        <p class="mt-1 text-sm font-bold text-slate-600">
+                            Non-GST Bill
+                        </p>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            {% if purchase.bill_type == "GST" %}
+                <div class="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                    <p class="text-xs font-bold text-emerald-800">GST Applicable</p>
+                    <p class="mt-1 text-[11px] leading-5 text-emerald-700">
+                        CGST / SGST or IGST is applied according to the purchase tax configuration.
+                    </p>
+                </div>
+            {% else %}
+                <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <p class="text-xs font-bold text-slate-700">GST Not Applicable</p>
+                    <p class="mt-1 text-[11px] leading-5 text-slate-500">
+                        No CGST, SGST or IGST is applied to this purchase.
+                    </p>
+                </div>
+            {% endif %}
+
+        </div>
+
+
+        <!-- GST TAX SUMMARY -->
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-1">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        GST Tax Summary
+                    </p>
+                    <p class="mt-1 text-sm font-bold text-[#153030]">
+                        {% if purchase.bill_type == "GST" %}
+                            Tax Applied
+                        {% else %}
+                            No GST
+                        {% endif %}
+                    </p>
+                </div>
+
+                <span class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase
+                             tracking-wider
+                             {% if purchase.bill_type == "GST" %}
+                                 bg-emerald-50 text-emerald-700
+                             {% else %}
+                                 bg-slate-100 text-slate-600
+                             {% endif %}">
+                    {% if purchase.bill_type == "GST" %}GST{% else %}NON-GST{% endif %}
+                </span>
+
+            </div>
+
+            {% if purchase.bill_type == "GST" %}
+
+                <div class="mt-4 grid grid-cols-3 gap-2">
+
+                    <div class="rounded-xl bg-blue-50 p-3 text-center">
+                        <p class="text-[10px] font-bold uppercase text-blue-600">CGST</p>
+                        <p class="mt-1 text-xs font-bold text-blue-800">
+                            {{ purchase.cgst_percent|floatformat:2 }}%
+                        </p>
+                        <p class="mt-1 text-[11px] text-blue-700">
+                            ₹ {{ purchase.cgst_amount|floatformat:2 }}
+                        </p>
+                    </div>
+
+                    <div class="rounded-xl bg-purple-50 p-3 text-center">
+                        <p class="text-[10px] font-bold uppercase text-purple-600">SGST</p>
+                        <p class="mt-1 text-xs font-bold text-purple-800">
+                            {{ purchase.sgst_percent|floatformat:2 }}%
+                        </p>
+                        <p class="mt-1 text-[11px] text-purple-700">
+                            ₹ {{ purchase.sgst_amount|floatformat:2 }}
+                        </p>
+                    </div>
+
+                    <div class="rounded-xl bg-orange-50 p-3 text-center">
+                        <p class="text-[10px] font-bold uppercase text-orange-600">IGST</p>
+                        <p class="mt-1 text-xs font-bold text-orange-800">
+                            {{ purchase.igst_percent|floatformat:2 }}%
+                        </p>
+                        <p class="mt-1 text-[11px] text-orange-700">
+                            ₹ {{ purchase.igst_amount|floatformat:2 }}
+                        </p>
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <div class="mt-4 flex items-center justify-center rounded-xl border border-dashed
+                            border-slate-200 bg-slate-50 px-4 py-6 text-center">
+
+                    <p class="text-xs font-medium text-slate-500">
+                        No GST tax applied
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- SUPPLIER DOCUMENT -->
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+
+            <div class="flex items-center gap-3">
+
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+                    <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M14 2v6h6"/>
+                    </svg>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Supplier Document
+                    </p>
+
+                    <p class="mt-1 text-sm font-bold text-[#153030]">
+                        {% if purchase.invoice_document %}
+                            Document Available
+                        {% else %}
+                            No Document
+                        {% endif %}
+                    </p>
+                </div>
+
+            </div>
+
+            {% if purchase.invoice_document %}
+
+                <a
+                    href="{{ purchase.invoice_document.url }}"
+                    target="_blank"
+                    rel="noopener"
+                    class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl
+                           bg-[#153030] px-4 py-3 text-sm font-semibold text-white shadow-sm
+                           transition hover:bg-[#214747]"
+                >
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M14 2v6h6"/>
+                    </svg>
+
+                    {% if ".pdf" in purchase.invoice_document.name|lower %}
+                        View Supplier PDF
+                    {% else %}
+                        View Supplier Image
+                    {% endif %}
+                </a>
+
+                <p class="mt-2 truncate text-center text-[10px] text-gray-400"
+                   title="{{ purchase.invoice_document.name }}">
+                    {{ purchase.invoice_document.name }}
+                </p>
+
+            {% else %}
+
+                <div class="mt-4 flex items-center justify-center rounded-xl border border-dashed
+                            border-gray-200 bg-gray-50 px-4 py-6">
+
+                    <p class="text-xs text-gray-400">
+                        No supplier bill document uploaded.
+                    </p>
+
+                </div>
+
+            {% endif %}
 
         </div>
 

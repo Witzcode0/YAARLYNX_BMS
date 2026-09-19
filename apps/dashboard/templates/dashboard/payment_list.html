@@ -5,64 +5,50 @@
 {% block page_heading %}Payments{% endblock %}
 
 {% block meta_description %}
-    Payment tracking, collections and outstanding purchase balances.
+Payment tracking, collections and outstanding purchase balances.
 {% endblock %}
-
 
 {% block content %}
 
-<div class="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-6 lg:px-8">
-
+<div class="mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-5 sm:py-5 lg:px-8">
 
     <!-- ========================================================= -->
-    <!-- HEADER -->
+    <!-- PAGE HEADER -->
     <!-- ========================================================= -->
 
-    <div class="mb-5 flex items-center justify-between gap-4">
+    <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
-        <div class="min-w-0">
+        <div class="flex min-w-0 items-center gap-3">
 
-            <div class="flex items-center gap-2.5">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#153030] shadow-sm">
 
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#153030]/10">
+                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="1.8">
+                    <rect x="2.5" y="5" width="19" height="14" rx="2" />
+                    <path d="M2.5 10h19" />
+                    <path stroke-linecap="round" d="M7 15h4" />
+                </svg>
 
-                    <svg
-                        class="h-[18px] w-[18px] text-[#153030]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <rect
-                            x="2.5"
-                            y="5"
-                            width="19"
-                            height="14"
-                            rx="2"
-                        />
+            </div>
 
-                        <path d="M2.5 10h19" />
+            <div class="min-w-0">
 
-                        <path
-                            stroke-linecap="round"
-                            d="M7 15h4"
-                        />
+                <div class="flex items-center gap-2">
 
-                    </svg>
-
-                </div>
-
-                <div>
-
-                    <h1 class="text-xl font-bold tracking-tight text-[#153030] sm:text-2xl">
+                    <h1 class="truncate text-xl font-bold tracking-tight text-[#153030] sm:text-2xl">
                         Payments
                     </h1>
 
-                    <p class="hidden text-xs text-gray-400 sm:block">
-                        Collection & payment overview
-                    </p>
+                    <span
+                        class="hidden rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-600 sm:inline-flex">
+                        Live
+                    </span>
 
                 </div>
+
+                <p class="mt-0.5 text-[11px] text-gray-400 sm:text-xs">
+                    Track collections, outstanding balances & payment activity
+                </p>
 
             </div>
 
@@ -71,251 +57,119 @@
 
         <!-- REFRESH -->
 
-        <button
-            type="button"
-            onclick="window.location.reload()"
-            title="Refresh"
-            class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white"
-        >
+        <div class="flex items-center gap-2">
 
-            <svg
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.8"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M20 11a8 8 0 00-15.5-2M4 5v4h4"
-                />
+            <div
+                class="hidden rounded-lg border border-gray-200 bg-white px-3 py-2 text-[10px] font-medium text-gray-500 shadow-sm sm:block">
 
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M4 13a8 8 0 0015.5 2M20 19v-4h-4"
-                />
+                <span class="text-gray-400">
+                    Updated
+                </span>
 
-            </svg>
+                <span class="ml-1 font-semibold text-gray-700">
+                    Today
+                </span>
 
-        </button>
+            </div>
+
+
+            <button type="button" onclick="window.location.reload()" title="Refresh payments"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:border-[#153030] hover:bg-[#153030] hover:text-white">
+
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 00-15.5-2M4 5v4h4" />
+
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 13a8 8 0 0015.5 2M20 19v-4h-4" />
+
+                </svg>
+
+            </button>
+
+        </div>
 
     </div>
 
-
-
+    <!-- ========================================================= --> <!-- MICRO KPI BAR - ORIGINAL DESIGN -->
     <!-- ========================================================= -->
-    <!-- MICRO KPI BAR -->
-    <!-- ========================================================= -->
-
-    <div class="mb-5 grid grid-cols-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm sm:grid-cols-4">
-
-
+    <div
+        class="mb-5 grid grid-cols-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm sm:grid-cols-4">
         <!-- TOTAL PAYMENTS -->
-
         <div class="border-b border-r border-gray-100 px-4 py-4 sm:border-b-0">
-
             <div class="flex items-center justify-between">
-
                 <div>
-
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                        Payments
-                    </p>
-
-                    <p class="mt-1 text-xl font-bold tracking-tight text-[#153030]">
-                        {{ total_payments|default:0 }}
-                    </p>
-
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400"> Payments </p>
+                    <p class="mt-1 text-xl font-bold tracking-tight text-[#153030]"> {{ total_payments|default:0 }} </p>
                 </div>
-
-                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-[#153030]/5 sm:flex">
-
-                    <svg
-                        class="h-4 w-4 text-[#153030]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <rect
-                            x="4"
-                            y="3"
-                            width="16"
-                            height="18"
-                            rx="2"
-                        />
-
-                        <path
-                            stroke-linecap="round"
-                            d="M8 8h8M8 12h8M8 16h5"
-                        />
-
-                    </svg>
-
-                </div>
-
+                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-[#153030]/5 sm:flex"> <svg
+                        class="h-4 w-4 text-[#153030]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="1.8">
+                        <rect x="4" y="3" width="16" height="18" rx="2" />
+                        <path stroke-linecap="round" d="M8 8h8M8 12h8M8 16h5" />
+                    </svg> </div>
             </div>
-
-        </div>
-
-
-
-        <!-- PAID -->
-
+        </div> <!-- PAID -->
         <div class="border-b border-gray-100 px-4 py-4 sm:border-b-0 sm:border-r">
-
             <div class="flex items-center justify-between">
-
                 <div>
-
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                        Collected
-                    </p>
-
-                    <p class="mt-1 text-xl font-bold tracking-tight text-emerald-600">
-                        ₹{{ total_paid|default:0|floatformat:0 }}
-                    </p>
-
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400"> Collected </p>
+                    <p class="mt-1 text-xl font-bold tracking-tight text-emerald-600"> ₹{{ total_paid|default:0|floatformat:0 }} </p>
                 </div>
-
-                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 sm:flex">
-
-                    <svg
-                        class="h-4 w-4 text-emerald-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M5 12l4 4L19 6"
-                        />
-
-                    </svg>
-
-                </div>
-
+                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 sm:flex"> <svg
+                        class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l4 4L19 6" />
+                    </svg> </div>
             </div>
-
-        </div>
-
-
-
-        <!-- REMAINING -->
-
+        </div> <!-- REMAINING -->
         <div class="border-r border-gray-100 px-4 py-4">
-
             <div class="flex items-center justify-between">
-
                 <div>
-
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                        Remaining
-                    </p>
-
-                    <p class="mt-1 text-xl font-bold tracking-tight text-amber-600">
-                        ₹{{ total_remaining|default:0|floatformat:0 }}
-                    </p>
-
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400"> Remaining </p>
+                    <p class="mt-1 text-xl font-bold tracking-tight text-amber-600"> ₹{{ total_remaining|default:0|floatformat:0 }} </p>
                 </div>
-
-                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-amber-50 sm:flex">
-
-                    <svg
-                        class="h-4 w-4 text-amber-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
+                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-amber-50 sm:flex"> <svg
+                        class="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="1.8">
                         <circle cx="12" cy="12" r="8.5" />
-
-                        <path
-                            stroke-linecap="round"
-                            d="M12 7v5l3 2"
-                        />
-
-                    </svg>
-
-                </div>
-
+                        <path stroke-linecap="round" d="M12 7v5l3 2" />
+                    </svg> </div>
             </div>
-
-        </div>
-
-
-
-        <!-- PURCHASE DUE -->
-
+        </div> <!-- PURCHASE DUE -->
         <div class="px-4 py-4">
-
             <div class="flex items-center justify-between">
-
                 <div>
-
-                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400">
-                        Purchase Due
-                    </p>
-
-                    <p class="mt-1 text-xl font-bold tracking-tight text-rose-600">
-                        ₹{{ purchase_due|default:0|floatformat:0 }}
-                    </p>
-
+                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-400"> Purchase Due </p>
+                    <p class="mt-1 text-xl font-bold tracking-tight text-rose-600"> ₹{{ purchase_due|default:0|floatformat:0 }} </p>
                 </div>
-
-                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-rose-50 sm:flex">
-
-                    <svg
-                        class="h-4 w-4 text-rose-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
+                <div class="hidden h-8 w-8 items-center justify-center rounded-lg bg-rose-50 sm:flex"> <svg
+                        class="h-4 w-4 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="1.8">
                         <circle cx="12" cy="12" r="8.5" />
-
-                        <path
-                            stroke-linecap="round"
-                            d="M12 8v4"
-                        />
-
-                        <circle
-                            cx="12"
-                            cy="16"
-                            r=".5"
-                            fill="currentColor"
-                        />
-
-                    </svg>
-
-                </div>
-
+                        <path stroke-linecap="round" d="M12 8v4" />
+                        <circle cx="12" cy="16" r=".5" fill="currentColor" />
+                    </svg> </div>
             </div>
-
         </div>
-
     </div>
 
 
 
+
+
     <!-- ========================================================= -->
-    <!-- MAIN SMART GRID -->
+    <!-- COLLECTION + PAYMENT METHODS -->
     <!-- ========================================================= -->
 
-    <div class="mb-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
+    <div class="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-3">
 
 
         <!-- ===================================================== -->
-        <!-- COLLECTION CARD -->
+        <!-- COLLECTION OVERVIEW -->
         <!-- ===================================================== -->
 
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm xl:col-span-2">
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5 xl:col-span-2">
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-start justify-between gap-3">
 
                 <div>
 
@@ -323,22 +177,20 @@
                         Collection Overview
                     </h2>
 
-                    <p class="mt-0.5 text-[11px] text-gray-400">
-                        Purchase value vs collected amount
+                    <p class="mt-0.5 text-[10px] text-gray-400 sm:text-[11px]">
+                        Purchase value compared with collected amount
                     </p>
 
                 </div>
 
 
-                <!-- COLLECTION RATE -->
+                <div class="shrink-0 rounded-lg bg-[#153030]/5 px-2.5 py-1.5 text-right">
 
-                <div class="text-right">
-
-                    <p class="text-[10px] font-medium uppercase tracking-wide text-gray-400">
+                    <p class="text-[8px] font-bold uppercase tracking-wide text-gray-400">
                         Collection Rate
                     </p>
 
-                    <p class="mt-0.5 text-lg font-bold text-[#153030]">
+                    <p class="text-base font-bold text-[#153030]">
                         {{ payment_percentage|default:0|floatformat:1 }}%
                     </p>
 
@@ -348,43 +200,43 @@
 
 
 
-            <!-- NUMBERS -->
+            <!-- SUMMARY -->
 
-            <div class="mt-5 grid grid-cols-3 divide-x divide-gray-100">
+            <div class="mt-5 grid grid-cols-3 gap-2 sm:gap-4">
 
-                <div class="pr-3">
+                <div class="rounded-lg bg-gray-50 p-3">
 
-                    <p class="text-[10px] uppercase tracking-wide text-gray-400">
+                    <p class="text-[9px] font-bold uppercase tracking-wide text-gray-400">
                         Purchase
                     </p>
 
-                    <p class="mt-1 text-base font-bold text-gray-900">
+                    <p class="mt-1 text-sm font-bold text-gray-900 sm:text-base">
                         ₹{{ total_purchase|default:0|floatformat:0 }}
                     </p>
 
                 </div>
 
 
-                <div class="px-3">
+                <div class="rounded-lg bg-emerald-50 p-3">
 
-                    <p class="text-[10px] uppercase tracking-wide text-gray-400">
+                    <p class="text-[9px] font-bold uppercase tracking-wide text-emerald-500">
                         Collected
                     </p>
 
-                    <p class="mt-1 text-base font-bold text-emerald-600">
+                    <p class="mt-1 text-sm font-bold text-emerald-600 sm:text-base">
                         ₹{{ purchase_paid|default:0|floatformat:0 }}
                     </p>
 
                 </div>
 
 
-                <div class="pl-3">
+                <div class="rounded-lg bg-rose-50 p-3">
 
-                    <p class="text-[10px] uppercase tracking-wide text-gray-400">
-                        Outstanding
+                    <p class="text-[9px] font-bold uppercase tracking-wide text-rose-500">
+                        Due
                     </p>
 
-                    <p class="mt-1 text-base font-bold text-rose-600">
+                    <p class="mt-1 text-sm font-bold text-rose-600 sm:text-base">
                         ₹{{ purchase_due|default:0|floatformat:0 }}
                     </p>
 
@@ -394,27 +246,35 @@
 
 
 
-            <!-- SMART PROGRESS -->
+            <!-- PROGRESS -->
 
             <div class="mt-5">
 
-                <div class="h-2 overflow-hidden rounded-full bg-gray-100">
+                <div class="mb-2 flex items-center justify-between">
 
-                    <div
-                        class="h-full rounded-full bg-[#153030] transition-all duration-700"
-                        style="width: {{ payment_percentage|default:0 }}%;"
-                    ></div>
+                    <span class="text-[9px] font-semibold text-gray-400">
+                        Collection progress
+                    </span>
+
+                    <span class="text-[10px] font-bold text-[#153030]">
+                        {{ payment_percentage|default:0|floatformat:1 }}%
+                    </span>
 
                 </div>
 
-                <div class="mt-2 flex justify-between text-[10px] text-gray-400">
+
+                <div class="h-2.5 overflow-hidden rounded-full bg-gray-100">
+
+                    <div class="h-full rounded-full bg-[#153030] transition-all duration-700"
+                        style="width: {{ payment_percentage|default:0 }}%;"></div>
+
+                </div>
+
+
+                <div class="mt-2 flex items-center justify-between text-[9px] text-gray-400">
 
                     <span>
                         Collected
-                    </span>
-
-                    <span>
-                        {{ payment_percentage|default:0|floatformat:1 }}%
                     </span>
 
                     <span>
@@ -433,39 +293,31 @@
         <!-- PAYMENT METHODS -->
         <!-- ===================================================== -->
 
-        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+
+
+            <!-- HEADER -->
 
             <div class="flex items-center justify-between">
 
-                <div>
+                <div class="min-w-0">
 
                     <h2 class="text-sm font-bold text-[#153030]">
                         Payment Methods
                     </h2>
 
-                    <p class="mt-0.5 text-[11px] text-gray-400">
-                        Collection by method
+                    <p class="mt-0.5 text-[10px] text-gray-400">
+                        Collection distribution
                     </p>
 
                 </div>
 
 
-                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#153030]/5">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#153030]/5">
 
-                    <svg
-                        class="h-4 w-4 text-[#153030]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <rect
-                            x="2.5"
-                            y="5"
-                            width="19"
-                            height="14"
-                            rx="2"
-                        />
+                    <svg class="h-4 w-4 text-[#153030]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="1.8">
+                        <rect x="2.5" y="5" width="19" height="14" rx="2" />
 
                         <path d="M2.5 10h19" />
 
@@ -477,25 +329,33 @@
 
 
 
-            <div class="mt-4 space-y-3">
+            <!-- ================================================= -->
+            <!-- SCROLLABLE METHOD LIST -->
+            <!-- ================================================= -->
 
-                {% for method in payment_methods %}
+            <div class="payment-method-scroll mt-5 max-h-[235px] overflow-y-auto overflow-x-hidden pr-2">
 
-                    <div>
+                <div class="space-y-4">
+
+                    {% for method in payment_methods %}
+
+                    <div class="group">
 
                         <div class="mb-1.5 flex items-center justify-between gap-2">
 
                             <div class="flex min-w-0 items-center gap-2">
 
-                                <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[#153030]"></span>
+                                <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[#527b7b]"></span>
 
-                                <span class="truncate text-xs font-semibold text-gray-700">
+                                <span class="truncate text-[11px] font-semibold text-gray-700"
+                                    title="{{ method.payment_method__name|default:'Not Specified' }}">
                                     {{ method.payment_method__name|default:"Not Specified" }}
                                 </span>
 
                             </div>
 
-                            <span class="shrink-0 text-xs font-bold text-gray-800">
+
+                            <span class="shrink-0 text-[11px] font-bold text-gray-800">
                                 ₹{{ method.total_amount|floatformat:0 }}
                             </span>
 
@@ -506,10 +366,8 @@
 
                             {% if total_paid %}
 
-                                <div
-                                    class="h-full rounded-full bg-[#527b7b]"
-                                    style="width: {% widthratio method.total_amount total_paid 100 %}%;"
-                                ></div>
+                            <div class="h-full rounded-full bg-[#527b7b] transition-all duration-500 group-hover:bg-[#153030]"
+                                style="width: {% widthratio method.total_amount total_paid 100 %}%;"></div>
 
                             {% endif %}
 
@@ -517,19 +375,62 @@
 
                     </div>
 
-                {% empty %}
+                    {% empty %}
 
-                    <div class="flex min-h-[130px] items-center justify-center rounded-lg border border-dashed border-gray-200">
+                    <div
+                        class="flex min-h-[140px] items-center justify-center rounded-lg border border-dashed border-gray-200">
 
-                        <p class="text-xs text-gray-400">
-                            No payment data available
-                        </p>
+                        <div class="text-center">
+
+                            <div class="mx-auto flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50">
+
+                                <svg class="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="1.8">
+                                    <rect x="2.5" y="5" width="19" height="14" rx="2" />
+
+                                    <path d="M2.5 10h19" />
+
+                                </svg>
+
+                            </div>
+
+                            <p class="mt-2 text-[10px] font-semibold text-gray-500">
+                                No payment data
+                            </p>
+
+                            <p class="mt-0.5 text-[9px] text-gray-400">
+                                Payment methods will appear here.
+                            </p>
+
+                        </div>
 
                     </div>
 
-                {% endfor %}
+                    {% endfor %}
+
+                </div>
 
             </div>
+
+
+            <!-- SCROLL INDICATOR -->
+
+            {% if payment_methods|length > 5 %}
+
+            <div class="mt-3 flex items-center justify-center gap-1.5 border-t border-gray-100 pt-2.5">
+
+                <svg class="h-3 w-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-5-5l5 5 5-5" />
+                </svg>
+
+                <span class="text-[9px] font-medium text-gray-400">
+                    Scroll to view more
+                </span>
+
+            </div>
+
+            {% endif %}
 
         </div>
 
@@ -544,24 +445,35 @@
     <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
 
 
-        <!-- TABLE HEADER -->
+        <!-- HEADER -->
 
-        <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3.5 sm:px-5">
+        <div
+            class="flex flex-col gap-3 border-b border-gray-100 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
 
             <div>
 
-                <h2 class="text-sm font-bold text-[#153030]">
-                    Recent Payments
-                </h2>
+                <div class="flex items-center gap-2">
 
-                <p class="mt-0.5 text-[11px] text-gray-400">
-                    Latest payment transactions
+                    <h2 class="text-sm font-bold text-[#153030]">
+                        Recent Payments
+                    </h2>
+
+                    <span
+                        class="rounded-full bg-emerald-50 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-emerald-600">
+                        Collections
+                    </span>
+
+                </div>
+
+                <p class="mt-0.5 text-[10px] text-gray-400">
+                    Latest payment transactions and installment activity
                 </p>
 
             </div>
 
 
-            <span class="rounded-full bg-[#153030]/5 px-2.5 py-1 text-[10px] font-bold text-[#153030]">
+            <span
+                class="w-fit rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-1.5 text-[9px] font-bold text-gray-500">
                 Latest 10
             </span>
 
@@ -570,42 +482,49 @@
 
 
         <!-- ===================================================== -->
-        <!-- DESKTOP -->
+        <!-- DESKTOP TABLE -->
         <!-- ===================================================== -->
 
         <div class="hidden overflow-x-auto md:block">
 
-            <table class="min-w-full">
+            <table class="min-w-[950px] w-full">
 
                 <thead>
 
                     <tr class="border-b border-gray-100 bg-gray-50/70">
 
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                        <th
+                            class="whitespace-nowrap px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
                             Payment
                         </th>
 
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                        <th
+                            class="whitespace-nowrap px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
                             Party
                         </th>
 
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                        <th
+                            class="whitespace-nowrap px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
                             Purchase
                         </th>
 
-                        <th class="px-4 py-2.5 text-right text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                        <th
+                            class="whitespace-nowrap px-4 py-2.5 text-right text-[10px] font-bold uppercase tracking-wide text-gray-400">
                             Amount
                         </th>
 
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                        <th
+                            class="whitespace-nowrap px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
                             Date
                         </th>
 
-                        <th class="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                        <th
+                            class="whitespace-nowrap px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400">
                             Method
                         </th>
 
-                        <th class="px-4 py-2.5 text-right text-[10px] font-bold uppercase tracking-wide text-gray-400">
+                        <th
+                            class="whitespace-nowrap px-4 py-2.5 text-right text-[10px] font-bold uppercase tracking-wide text-gray-400">
                             Action
                         </th>
 
@@ -618,253 +537,195 @@
 
                     {% for payment in recent_payments %}
 
-                        <tr class="group transition hover:bg-[#153030]/[0.025]">
+                    <tr class="group transition hover:bg-[#153030]/[0.025]">
 
 
-                            <!-- PAYMENT -->
+                        <!-- PAYMENT -->
 
-                            <td class="px-4 py-3">
+                        <td class="whitespace-nowrap px-4 py-3">
 
-                                <div class="flex items-center gap-2.5">
+                            <div class="flex items-center gap-2.5">
 
-                                    <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
 
-                                        <svg
-                                            class="h-3.5 w-3.5 text-emerald-600"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M5 12l4 4L19 6"
-                                            />
-
-                                        </svg>
-
-                                    </div>
-
-                                    <div>
-
-                                        <p class="text-xs font-bold text-gray-800">
-                                            #{{ payment.installment_number }}
-                                        </p>
-
-                                        <p class="text-[9px] text-gray-400">
-                                            ID {{ payment.pk }}
-                                        </p>
-
-                                    </div>
+                                    <svg class="h-3.5 w-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l4 4L19 6" />
+                                    </svg>
 
                                 </div>
 
-                            </td>
+                                <div>
+
+                                    <p class="text-xs font-bold text-gray-800">
+                                        #{{ payment.installment_number }}
+                                    </p>
+
+                                    <p class="text-[9px] text-gray-400">
+                                        ID {{ payment.pk }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </td>
 
 
 
-                            <!-- PARTY -->
+                        <!-- PARTY -->
 
-                            <td class="px-4 py-3">
+                        <td class="max-w-[180px] px-4 py-3">
 
-                                <p class="max-w-[160px] truncate text-xs font-semibold text-gray-700">
-                                    {{ payment.purchase.party }}
-                                </p>
+                            <p class="truncate text-xs font-semibold text-gray-700">
+                                {{ payment.purchase.party }}
+                            </p>
 
-                            </td>
+                        </td>
 
 
 
-                            <!-- PURCHASE -->
+                        <!-- PURCHASE -->
 
-                            <td class="px-4 py-3">
+                        <td class="whitespace-nowrap px-4 py-3">
 
-                                <a
-                                    href="{% url 'party_purchase_detail' payment.purchase.pk %}"
-                                    class="text-xs font-bold text-[#153030] hover:underline"
-                                >
-                                    {{ payment.purchase.purchase_number }}
+                            <a href="{% url 'party_purchase_detail' payment.purchase.pk %}"
+                                class="text-xs font-bold text-[#153030] hover:underline">
+                                {{ payment.purchase.purchase_number }}
+                            </a>
+
+                        </td>
+
+
+
+                        <!-- AMOUNT -->
+
+                        <td class="whitespace-nowrap px-4 py-3 text-right">
+
+                            <p class="text-xs font-bold text-emerald-600">
+                                ₹{{ payment.paid_amount|floatformat:2 }}
+                            </p>
+
+                            <p class="text-[9px] text-gray-400">
+                                of ₹{{ payment.installment_amount|floatformat:0 }}
+                            </p>
+
+                        </td>
+
+
+
+                        <!-- DATE -->
+
+                        <td class="whitespace-nowrap px-4 py-3">
+
+                            {% if payment.payment_date %}
+
+                            <span class="text-xs font-medium text-gray-600">
+                                {{ payment.payment_date|date:"d M Y" }}
+                            </span>
+
+                            {% else %}
+
+                            <span class="text-[10px] text-gray-400">
+                                Not added
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+
+                        <!-- METHOD -->
+
+                        <td class="whitespace-nowrap px-4 py-3">
+
+                            <span
+                                class="inline-flex rounded-md bg-gray-100 px-2 py-1 text-[10px] font-semibold text-gray-600">
+
+                                {{ payment.payment_method.name|default:"Not Specified" }}
+
+                            </span>
+
+                        </td>
+
+
+
+                        <!-- ACTION -->
+
+                        <td class="whitespace-nowrap px-4 py-3">
+
+                            <div class="flex justify-end gap-1.5">
+
+                                <a href="{% url 'party_purchase_detail' payment.purchase.pk %}" title="View Purchase"
+                                    class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-400 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white">
+
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" />
+
+                                        <circle cx="12" cy="12" r="2.5" />
+
+                                    </svg>
+
                                 </a>
 
-                            </td>
 
+                                <a href="{% url 'purchase_installments' payment.purchase.pk %}"
+                                    title="View Installments"
+                                    class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-400 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white">
 
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                        stroke-width="1.8">
+                                        <rect x="4" y="4" width="16" height="16" rx="2" />
 
-                            <!-- AMOUNT -->
+                                        <path stroke-linecap="round" d="M8 9h8M8 13h8M8 17h5" />
 
-                            <td class="px-4 py-3 text-right">
+                                    </svg>
 
-                                <p class="text-xs font-bold text-emerald-600">
-                                    ₹{{ payment.paid_amount|floatformat:2 }}
-                                </p>
+                                </a>
 
-                                <p class="text-[9px] text-gray-400">
-                                    of ₹{{ payment.installment_amount|floatformat:0 }}
-                                </p>
+                            </div>
 
-                            </td>
+                        </td>
 
-
-
-                            <!-- DATE -->
-
-                            <td class="px-4 py-3">
-
-                                {% if payment.payment_date %}
-
-                                    <span class="text-xs font-medium text-gray-600">
-                                        {{ payment.payment_date|date:"d M Y" }}
-                                    </span>
-
-                                {% else %}
-
-                                    <span class="text-[10px] text-gray-400">
-                                        Not added
-                                    </span>
-
-                                {% endif %}
-
-                            </td>
-
-
-
-                            <!-- METHOD -->
-
-                            <td class="px-4 py-3">
-
-                                <span class="inline-flex rounded-md bg-gray-100 px-2 py-1 text-[10px] font-semibold text-gray-600">
-
-                                    {{ payment.payment_method.name|default:"Not Specified" }}
-
-                                </span>
-
-                            </td>
-
-
-
-                            <!-- ACTION -->
-
-                            <td class="px-4 py-3">
-
-                                <div class="flex justify-end gap-1.5">
-
-
-                                    <!-- VIEW -->
-
-                                    <a
-                                        href="{% url 'party_purchase_detail' payment.purchase.pk %}"
-                                        title="View Purchase"
-                                        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-400 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white"
-                                    >
-
-                                        <svg
-                                            class="h-3.5 w-3.5"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"
-                                            />
-
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="2.5"
-                                            />
-
-                                        </svg>
-
-                                    </a>
-
-
-                                    <!-- INSTALLMENTS -->
-
-                                    <a
-                                        href="{% url 'purchase_installments' payment.purchase.pk %}"
-                                        title="View Installments"
-                                        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-400 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white"
-                                    >
-
-                                        <svg
-                                            class="h-3.5 w-3.5"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                        >
-                                            <rect
-                                                x="4"
-                                                y="4"
-                                                width="16"
-                                                height="16"
-                                                rx="2"
-                                            />
-
-                                            <path
-                                                stroke-linecap="round"
-                                                d="M8 9h8M8 13h8M8 17h5"
-                                            />
-
-                                        </svg>
-
-                                    </a>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
+                    </tr>
 
 
                     {% empty %}
 
-                        <tr>
+                    <tr>
 
-                            <td colspan="7" class="px-5 py-14 text-center">
+                        <td colspan="7" class="px-5 py-14 text-center">
 
-                                <div class="mx-auto flex max-w-xs flex-col items-center">
+                            <div class="mx-auto flex max-w-xs flex-col items-center">
 
-                                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50">
+                                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50">
 
-                                        <svg
-                                            class="h-5 w-5 text-gray-300"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                        >
-                                            <rect
-                                                x="2.5"
-                                                y="5"
-                                                width="19"
-                                                height="14"
-                                                rx="2"
-                                            />
+                                    <svg class="h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="1.8">
+                                        <rect x="2.5" y="5" width="19" height="14" rx="2" />
 
-                                            <path d="M2.5 10h19" />
+                                        <path d="M2.5 10h19" />
 
-                                        </svg>
-
-                                    </div>
-
-                                    <p class="mt-3 text-xs font-semibold text-gray-600">
-                                        No recent payments
-                                    </p>
-
-                                    <p class="mt-1 text-[10px] text-gray-400">
-                                        Payment transactions will appear here.
-                                    </p>
+                                    </svg>
 
                                 </div>
 
-                            </td>
+                                <p class="mt-3 text-xs font-semibold text-gray-600">
+                                    No recent payments
+                                </p>
 
-                        </tr>
+                                <p class="mt-1 text-[10px] text-gray-400">
+                                    Payment transactions will appear here.
+                                </p>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
 
                     {% endfor %}
 
@@ -877,199 +738,168 @@
 
 
         <!-- ===================================================== -->
-        <!-- MOBILE -->
+        <!-- MOBILE PAYMENT CARDS -->
         <!-- ===================================================== -->
 
         <div class="divide-y divide-gray-100 md:hidden">
 
             {% for payment in recent_payments %}
 
-                <div class="p-4">
+            <div class="p-4">
 
 
-                    <!-- TOP -->
+                <!-- TOP -->
 
-                    <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center justify-between gap-3">
 
-                        <div class="flex min-w-0 items-center gap-2.5">
+                    <div class="flex min-w-0 items-center gap-2.5">
 
-                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
 
-                                <svg
-                                    class="h-4 w-4 text-emerald-600"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M5 12l4 4L19 6"
-                                    />
-
-                                </svg>
-
-                            </div>
-
-                            <div class="min-w-0">
-
-                                <p class="text-xs font-bold text-gray-800">
-                                    Installment #{{ payment.installment_number }}
-                                </p>
-
-                                <a
-                                    href="{% url 'party_purchase_detail' payment.purchase.pk %}"
-                                    class="block truncate text-[10px] font-semibold text-[#527b7b]"
-                                >
-                                    {{ payment.purchase.purchase_number }}
-                                </a>
-
-                            </div>
+                            <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l4 4L19 6" />
+                            </svg>
 
                         </div>
 
+                        <div class="min-w-0">
 
-                        <div class="text-right">
-
-                            <p class="text-sm font-bold text-emerald-600">
-                                ₹{{ payment.paid_amount|floatformat:2 }}
+                            <p class="text-xs font-bold text-gray-800">
+                                Installment #{{ payment.installment_number }}
                             </p>
 
-                            <p class="text-[9px] text-gray-400">
-                                Paid
-                            </p>
+                            <a href="{% url 'party_purchase_detail' payment.purchase.pk %}"
+                                class="block truncate text-[10px] font-semibold text-[#527b7b]">
+                                {{ payment.purchase.purchase_number }}
+                            </a>
 
                         </div>
 
                     </div>
 
 
+                    <div class="text-right">
 
-                    <!-- DETAILS -->
+                        <p class="text-sm font-bold text-emerald-600">
+                            ₹{{ payment.paid_amount|floatformat:2 }}
+                        </p>
 
-                    <div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg bg-gray-50 px-3 py-2.5">
+                        <p class="text-[9px] text-gray-400">
+                            Paid
+                        </p>
 
-                        <div>
+                    </div>
 
-                            <p class="text-[9px] uppercase tracking-wide text-gray-400">
-                                Party
-                            </p>
-
-                            <p class="mt-0.5 truncate text-[10px] font-semibold text-gray-700">
-                                {{ payment.purchase.party }}
-                            </p>
-
-                        </div>
+                </div>
 
 
-                        <div>
 
-                            <p class="text-[9px] uppercase tracking-wide text-gray-400">
-                                Date
-                            </p>
+                <!-- DETAILS -->
 
-                            <p class="mt-0.5 text-[10px] font-semibold text-gray-700">
+                <div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg bg-gray-50 px-3 py-2.5">
 
-                                {% if payment.payment_date %}
-                                    {{ payment.payment_date|date:"d M Y" }}
-                                {% else %}
-                                    —
-                                {% endif %}
+                    <div>
 
-                            </p>
+                        <p class="text-[9px] uppercase tracking-wide text-gray-400">
+                            Party
+                        </p>
 
-                        </div>
-
-
-                        <div>
-
-                            <p class="text-[9px] uppercase tracking-wide text-gray-400">
-                                Method
-                            </p>
-
-                            <p class="mt-0.5 truncate text-[10px] font-semibold text-gray-700">
-                                {{ payment.payment_method.name|default:"Not Specified" }}
-                            </p>
-
-                        </div>
-
-
-                        <div>
-
-                            <p class="text-[9px] uppercase tracking-wide text-gray-400">
-                                Remaining
-                            </p>
-
-                            <p class="mt-0.5 text-[10px] font-bold text-amber-600">
-                                ₹{{ payment.remaining_amount|floatformat:2 }}
-                            </p>
-
-                        </div>
+                        <p class="mt-0.5 truncate text-[10px] font-semibold text-gray-700">
+                            {{ payment.purchase.party }}
+                        </p>
 
                     </div>
 
 
+                    <div>
 
-                    <!-- ACTIONS -->
+                        <p class="text-[9px] uppercase tracking-wide text-gray-400">
+                            Date
+                        </p>
 
-                    <div class="mt-3 flex justify-end gap-1.5">
+                        <p class="mt-0.5 text-[10px] font-semibold text-gray-700">
 
-                        <a
-                            href="{% url 'party_purchase_detail' payment.purchase.pk %}"
-                            title="View Purchase"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:bg-[#153030] hover:text-white"
-                        >
+                            {% if payment.payment_date %}
+                            {{ payment.payment_date|date:"d M Y" }}
+                            {% else %}
+                            —
+                            {% endif %}
 
-                            <svg
-                                class="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"
-                                />
+                        </p>
 
-                                <circle
-                                    cx="12"
-                                    cy="12"
-                                    r="2.5"
-                                />
+                    </div>
+
+
+                    <div>
+
+                        <p class="text-[9px] uppercase tracking-wide text-gray-400">
+                            Method
+                        </p>
+
+                        <p class="mt-0.5 truncate text-[10px] font-semibold text-gray-700">
+                            {{ payment.payment_method.name|default:"Not Specified" }}
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <p class="text-[9px] uppercase tracking-wide text-gray-400">
+                            Remaining
+                        </p>
+
+                        <p class="mt-0.5 text-[10px] font-bold text-amber-600">
+                            ₹{{ payment.remaining_amount|floatformat:2 }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- ACTIONS -->
+
+                <div class="mt-3 flex items-center justify-between">
+
+                    <p class="text-[9px] text-gray-400">
+
+                        Payment ID:
+
+                        <span class="font-semibold text-gray-500">
+                            {{ payment.pk }}
+                        </span>
+
+                    </p>
+
+
+                    <div class="flex gap-1.5">
+
+                        <a href="{% url 'party_purchase_detail' payment.purchase.pk %}" title="View Purchase"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white">
+
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" />
+
+                                <circle cx="12" cy="12" r="2.5" />
 
                             </svg>
 
                         </a>
 
 
-                        <a
-                            href="{% url 'purchase_installments' payment.purchase.pk %}"
-                            title="View Installments"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#153030] text-white transition hover:bg-[#0f2424]"
-                        >
+                        <a href="{% url 'purchase_installments' payment.purchase.pk %}" title="View Installments"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#153030] text-white transition hover:bg-[#0f2424]">
 
-                            <svg
-                                class="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <rect
-                                    x="4"
-                                    y="4"
-                                    width="16"
-                                    height="16"
-                                    rx="2"
-                                />
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                stroke-width="1.8">
+                                <rect x="4" y="4" width="16" height="16" rx="2" />
 
-                                <path
-                                    stroke-linecap="round"
-                                    d="M8 9h8M8 13h8M8 17h5"
-                                />
+                                <path stroke-linecap="round" d="M8 9h8M8 13h8M8 17h5" />
 
                             </svg>
 
@@ -1078,21 +908,23 @@
                     </div>
 
                 </div>
+
+            </div>
 
 
             {% empty %}
 
-                <div class="px-5 py-12 text-center">
+            <div class="px-5 py-12 text-center">
 
-                    <p class="text-xs font-semibold text-gray-600">
-                        No recent payments
-                    </p>
+                <p class="text-xs font-semibold text-gray-600">
+                    No recent payments
+                </p>
 
-                    <p class="mt-1 text-[10px] text-gray-400">
-                        Payment transactions will appear here.
-                    </p>
+                <p class="mt-1 text-[10px] text-gray-400">
+                    Payment transactions will appear here.
+                </p>
 
-                </div>
+            </div>
 
             {% endfor %}
 
@@ -1103,10 +935,11 @@
 
 
     <!-- ========================================================= -->
-    <!-- SMALL FOOTER -->
+    <!-- FOOTER -->
     <!-- ========================================================= -->
 
-    <div class="mt-4 flex items-center justify-between text-[9px] uppercase tracking-wide text-gray-300">
+    <div
+        class="mt-4 flex flex-col gap-1 text-[8px] font-medium uppercase tracking-[0.12em] text-gray-300 sm:flex-row sm:items-center sm:justify-between">
 
         <span>
             Payment Management
@@ -1118,7 +951,37 @@
 
     </div>
 
-
 </div>
+
+<!-- ============================================================= -->
+
+<!-- CUSTOM SCROLLBAR -->
+
+<!-- ============================================================= -->
+
+<style>
+    .payment-method-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #d1d5db transparent;
+        overscroll-behavior: contain;
+    }
+
+    .payment-method-scroll::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .payment-method-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .payment-method-scroll::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 9999px;
+    }
+
+    .payment-method-scroll::-webkit-scrollbar-thumb:hover {
+        background: #527b7b;
+    }
+</style>
 
 {% endblock %}

@@ -2,772 +2,1209 @@
 
 {% block title %}Party Orders | Yaarlynx{% endblock %}
 
-{% block page_heading %}
-    Party Orders
-{% endblock %}
+{% block page_heading %}Party Orders{% endblock %}
 
 {% block content %}
 
-<div class="mx-auto w-full max-w-[1600px] space-y-6 px-4 py-6 sm:px-6 lg:px-8">
 
-    <!-- ========================================================= -->
-    <!-- HEADER -->
-    <!-- ========================================================= -->
+<style>
+/* ================================================================
+   Yaarlynx Party Orders — isolated page styles
+   Everything is scoped to .yl-party-orders so dashboard/layout.html
+   cannot override the card/grid system.
+   ================================================================ */
 
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+.yl-party-orders {
+    --yl-brand: #153030;
+    --yl-brand-2: #214646;
+    --yl-bg: #f6f8f8;
+    --yl-card: #ffffff;
+    --yl-line: #e7ecec;
+    --yl-text: #153030;
+    --yl-muted: #718080;
+    --yl-shadow: 0 8px 28px rgba(21, 48, 48, .055);
+    --yl-shadow-hover: 0 16px 40px rgba(21, 48, 48, .10);
+    width: 100%;
+    min-width: 0;
+    color: var(--yl-text);
+}
 
-        <div class="flex items-center gap-4">
+.yl-party-orders,
+.yl-party-orders * {
+    box-sizing: border-box;
+}
 
-            <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#153030]/10">
+.yl-party-orders .yl-container {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px 16px 32px;
+}
 
-                <svg
-                    class="h-7 w-7 text-[#153030]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"
-                    />
+.yl-party-orders .yl-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px;
+    margin-bottom: 20px;
+    border: 1px solid var(--yl-line);
+    border-radius: 20px;
+    background: rgba(255,255,255,.96);
+    box-shadow: var(--yl-shadow);
+}
 
-                    <circle
-                        cx="9"
-                        cy="7"
-                        r="4"
-                    />
+.yl-party-orders .yl-header-main {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
 
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M22 21v-2a4 4 0 00-3-3.87"
-                    />
+.yl-party-orders .yl-avatar {
+    flex: 0 0 auto;
+    width: 50px;
+    height: 50px;
+    display: grid;
+    place-items: center;
+    border-radius: 15px;
+    color: var(--yl-brand);
+    background: #edf2f2;
+}
 
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M16 3.13a4 4 0 010 7.75"
-                    />
+.yl-party-orders .yl-title-wrap {
+    min-width: 0;
+}
+
+.yl-party-orders .yl-title {
+    margin: 0;
+    color: var(--yl-text);
+    font-size: clamp(20px, 2.2vw, 29px);
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -.025em;
+    overflow-wrap: anywhere;
+}
+
+.yl-party-orders .yl-subtitle {
+    margin: 5px 0 0;
+    color: var(--yl-muted);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.yl-party-orders .yl-back {
+    flex: 0 0 auto;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 15px;
+    border: 1px solid #dfe5e5;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--yl-brand);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: .2s ease;
+}
+
+.yl-party-orders .yl-back:hover {
+    color: #fff;
+    background: var(--yl-brand);
+    border-color: var(--yl-brand);
+}
+
+/* Summary */
+.yl-party-orders .yl-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 26px;
+}
+
+.yl-party-orders .yl-summary-card {
+    min-width: 0;
+    position: relative;
+    overflow: hidden;
+    padding: 17px;
+    border: 1px solid var(--yl-line);
+    border-radius: 18px;
+    background: var(--yl-card);
+    box-shadow: var(--yl-shadow);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.yl-party-orders .yl-summary-card::after {
+    content: "";
+    position: absolute;
+    right: -24px;
+    bottom: -28px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--yl-brand-soft, rgba(21,48,48,.05));
+    pointer-events: none;
+}
+
+.yl-party-orders .yl-summary-card:hover {
+    transform: translateY(-2px);
+    border-color: #d9e1e1;
+    box-shadow: var(--yl-shadow-hover);
+}
+
+.yl-party-orders .yl-summary-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.yl-party-orders .yl-summary-label {
+    margin: 0;
+    color: #899696;
+    font-size: 10px;
+    line-height: 1.35;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+}
+
+.yl-party-orders .yl-summary-value {
+    margin: 7px 0 0;
+    color: var(--yl-brand);
+    font-size: clamp(20px, 2vw, 27px);
+    line-height: 1.15;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.yl-party-orders .yl-summary-note {
+    margin: 5px 0 0;
+    color: #9aa5a5;
+    font-size: 11px;
+}
+
+.yl-party-orders .yl-summary-icon {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+}
+
+/* Section heading */
+.yl-party-orders .yl-section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.yl-party-orders .yl-section-title {
+    margin: 0;
+    color: var(--yl-brand);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.yl-party-orders .yl-section-note {
+    margin: 4px 0 0;
+    color: var(--yl-muted);
+    font-size: 12px;
+}
+
+/* Order grid — explicit CSS, independent of Tailwind */
+.yl-party-orders .yl-orders-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    width: 100%;
+}
+
+/* Order card */
+.yl-party-orders .yl-order-card {
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--yl-line);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: var(--yl-shadow);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.yl-party-orders .yl-order-card:hover {
+    transform: translateY(-2px);
+    border-color: #d8e0e0;
+    box-shadow: var(--yl-shadow-hover);
+}
+
+.yl-party-orders .yl-order-head {
+    min-width: 0;
+    padding: 16px;
+    border-bottom: 1px solid #eef1f1;
+}
+
+.yl-party-orders .yl-order-head-row {
+    min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.yl-party-orders .yl-order-identity {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.yl-party-orders .yl-order-icon {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    background: #edf2f2;
+    color: var(--yl-brand);
+}
+
+.yl-party-orders .yl-order-label {
+    margin: 0 0 3px;
+    color: #96a0a0;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.yl-party-orders .yl-order-number {
+    margin: 0;
+    color: var(--yl-brand);
+    font-size: 15px;
+    line-height: 1.35;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.yl-party-orders .yl-status {
+    flex: 0 0 auto;
+    max-width: 145px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    line-height: 1.2;
+    font-weight: 800;
+    white-space: normal;
+    text-align: center;
+}
+
+.yl-party-orders .yl-order-body {
+    min-width: 0;
+    padding: 16px;
+}
+
+.yl-party-orders .yl-details {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.yl-party-orders .yl-detail {
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid #eef1f1;
+    border-radius: 12px;
+    background: #fafcfc;
+}
+
+.yl-party-orders .yl-detail-label {
+    margin: 0;
+    color: #96a0a0;
+    font-size: 9px;
+    line-height: 1.3;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+}
+
+.yl-party-orders .yl-detail-value {
+    min-width: 0;
+    margin: 5px 0 0;
+    color: #364848;
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* GST */
+.yl-party-orders .yl-tax {
+    margin-top: 14px;
+    overflow: hidden;
+    border: 1px solid #d8eee2;
+    border-radius: 14px;
+    background: #f5fbf7;
+}
+
+.yl-party-orders .yl-tax-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 13px;
+    border-bottom: 1px solid #dcefe3;
+}
+
+.yl-party-orders .yl-tax-title {
+    margin: 0;
+    color: #17633f;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.yl-party-orders .yl-tax-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.yl-party-orders .yl-tax-item {
+    min-width: 0;
+    padding: 12px 13px;
+}
+
+.yl-party-orders .yl-tax-item + .yl-tax-item {
+    border-left: 1px solid #dcefe3;
+}
+
+.yl-party-orders .yl-tax-label {
+    color: #5e9276;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.yl-party-orders .yl-tax-rate {
+    margin-top: 3px;
+    color: #164c35;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.yl-party-orders .yl-tax-amount {
+    margin-top: 1px;
+    color: #4c8067;
+    font-size: 10px;
+}
+
+.yl-party-orders .yl-nongst {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    border: 1px solid #e5e9e9;
+    border-radius: 14px;
+    background: #f8fafa;
+}
+
+.yl-party-orders .yl-nongst-text {
+    min-width: 0;
+}
+
+.yl-party-orders .yl-nongst-title {
+    margin: 0;
+    color: #4b5959;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.yl-party-orders .yl-nongst-note {
+    margin: 2px 0 0;
+    color: #899494;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+/* Finance */
+.yl-party-orders .yl-finance {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 14px;
+    overflow: hidden;
+    border: 1px solid #e9eeee;
+    border-radius: 14px;
+    background: #fafbfb;
+}
+
+.yl-party-orders .yl-finance-item {
+    min-width: 0;
+    padding: 12px 13px;
+}
+
+.yl-party-orders .yl-finance-item + .yl-finance-item {
+    border-left: 1px solid #e9eeee;
+}
+
+.yl-party-orders .yl-finance-label {
+    color: #8b9696;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.yl-party-orders .yl-finance-value {
+    margin-top: 4px;
+    font-size: 14px;
+    line-height: 1.3;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+/* Progress */
+.yl-party-orders .yl-progress {
+    margin-top: 13px;
+}
+
+.yl-party-orders .yl-progress-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.yl-party-orders .yl-progress-label,
+.yl-party-orders .yl-progress-percent {
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.yl-party-orders .yl-progress-label {
+    color: #99a3a3;
+}
+
+.yl-party-orders .yl-progress-percent {
+    color: var(--yl-brand);
+}
+
+.yl-party-orders .yl-progress-track {
+    width: 100%;
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #edf1f1;
+}
+
+.yl-party-orders .yl-progress-bar {
+    height: 100%;
+    min-width: 0;
+    max-width: 100%;
+    border-radius: inherit;
+    background: var(--yl-brand);
+}
+
+/* Footer */
+.yl-party-orders .yl-order-footer {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+    padding-top: 13px;
+    border-top: 1px solid #eef1f1;
+}
+
+.yl-party-orders .yl-doc {
+    min-width: 0;
+    max-width: 60%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.yl-party-orders .yl-doc-link {
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 100%;
+    padding: 7px 10px;
+    border: 1px solid #dfe5e5;
+    border-radius: 9px;
+    color: var(--yl-brand);
+    background: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.yl-party-orders .yl-doc-link span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.yl-party-orders .yl-doc-empty {
+    padding: 7px 10px;
+    border-radius: 9px;
+    background: #f5f7f7;
+    color: #a0aaaa;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.yl-party-orders .yl-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.yl-party-orders .yl-action {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #e0e6e6;
+    border-radius: 10px;
+    background: #fff;
+    color: #667474;
+    text-decoration: none;
+    transition: .2s ease;
+}
+
+.yl-party-orders .yl-action:hover {
+    color: #fff;
+    background: var(--yl-brand);
+    border-color: var(--yl-brand);
+}
+
+.yl-party-orders .yl-order-count {
+    color: #9aa4a4;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* Empty */
+.yl-party-orders .yl-empty {
+    grid-column: 1 / -1;
+    padding: 54px 20px;
+    border: 1px dashed #dce2e2;
+    border-radius: 20px;
+    background: #fff;
+    text-align: center;
+}
+
+.yl-party-orders .yl-empty-icon {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    background: #f0f3f3;
+    color: #94a0a0;
+}
+
+.yl-party-orders .yl-empty-title {
+    margin: 14px 0 0;
+    color: var(--yl-brand);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.yl-party-orders .yl-empty-note {
+    max-width: 430px;
+    margin: 6px auto 0;
+    color: #879292;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* Tablet */
+@media (max-width: 1100px) {
+    .yl-party-orders .yl-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .yl-party-orders .yl-orders-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .yl-party-orders .yl-order-card {
+        max-width: none;
+    }
+}
+
+/* Small tablet / mobile */
+@media (max-width: 700px) {
+    .yl-party-orders .yl-container {
+        padding: 14px 12px 24px;
+    }
+
+    .yl-party-orders .yl-header {
+        align-items: stretch;
+        flex-direction: column;
+        padding: 14px;
+        border-radius: 17px;
+    }
+
+    .yl-party-orders .yl-back {
+        width: 100%;
+    }
+
+    .yl-party-orders .yl-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .yl-party-orders .yl-summary-card {
+        padding: 13px;
+        border-radius: 15px;
+    }
+
+    .yl-party-orders .yl-summary-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+    }
+
+    .yl-party-orders .yl-details {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .yl-party-orders .yl-order-head,
+    .yl-party-orders .yl-order-body {
+        padding: 14px;
+    }
+
+    .yl-party-orders .yl-order-head-row {
+        gap: 8px;
+    }
+
+    .yl-party-orders .yl-status {
+        max-width: 112px;
+    }
+}
+
+/* Phones */
+@media (max-width: 480px) {
+    .yl-party-orders .yl-summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .yl-party-orders .yl-summary-value {
+        font-size: 18px;
+    }
+
+    .yl-party-orders .yl-summary-note {
+        font-size: 10px;
+    }
+
+    .yl-party-orders .yl-order-identity {
+        align-items: flex-start;
+    }
+
+    .yl-party-orders .yl-order-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+    }
+
+    .yl-party-orders .yl-order-number {
+        font-size: 13px;
+    }
+
+    .yl-party-orders .yl-details,
+    .yl-party-orders .yl-tax-grid,
+    .yl-party-orders .yl-finance {
+        grid-template-columns: 1fr;
+    }
+
+    .yl-party-orders .yl-tax-item + .yl-tax-item,
+    .yl-party-orders .yl-finance-item + .yl-finance-item {
+        border-left: 0;
+        border-top: 1px solid #dcefe3;
+    }
+
+    .yl-party-orders .yl-finance-item + .yl-finance-item {
+        border-top-color: #e9eeee;
+    }
+
+    .yl-party-orders .yl-order-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .yl-party-orders .yl-doc {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .yl-party-orders .yl-doc-link,
+    .yl-party-orders .yl-doc-empty {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .yl-party-orders .yl-actions {
+        width: 100%;
+    }
+
+    .yl-party-orders .yl-action {
+        flex: 1;
+        width: auto;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 350px) {
+    .yl-party-orders .yl-container {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .yl-party-orders .yl-summary-grid {
+        gap: 7px;
+    }
+
+    .yl-party-orders .yl-summary-card {
+        padding: 10px;
+    }
+
+    .yl-party-orders .yl-summary-label {
+        font-size: 8px;
+    }
+
+    .yl-party-orders .yl-summary-value {
+        font-size: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .yl-party-orders *,
+    .yl-party-orders *::before,
+    .yl-party-orders *::after {
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+</style>
+
+
+<div class="yl-party-orders">
+    <div class="yl-container">
+
+        <!-- HEADER -->
+        <header class="yl-header">
+            <div class="yl-header-main">
+                <div class="yl-avatar" aria-hidden="true">
+                    <svg width="23" height="23" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M22 21v-2a4 4 0 00-3-3.87"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 3.13a4 4 0 010 7.75"/>
+                    </svg>
+                </div>
+
+                <div class="yl-title-wrap">
+                    <h1 class="yl-title">{{ party.name }}</h1>
+                    <p class="yl-subtitle">Purchase orders and payment history</p>
+                </div>
+            </div>
+
+            <a href="{% url 'party_list' %}" class="yl-back">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7 7-7"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18"/>
                 </svg>
+                Back to Parties
+            </a>
+        </header>
 
+        <!-- SUMMARY -->
+        <section class="yl-summary-grid">
+
+            <div class="yl-summary-card">
+                <div class="yl-summary-top">
+                    <div>
+                        <p class="yl-summary-label">Total Purchase Orders</p>
+                        <p class="yl-summary-value">{{ total_orders }}</p>
+                        <p class="yl-summary-note">Total orders</p>
+                    </div>
+                    <div class="yl-summary-icon" style="background:#edf2f2;color:#153030;">
+                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 7l1 13h12l1-13"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V5a4 4 0 018 0v2"/>
+                        </svg>
+                    </div>
+                </div>
             </div>
 
-            <div class="min-w-0">
+            <div class="yl-summary-card">
+                <div class="yl-summary-top">
+                    <div>
+                        <p class="yl-summary-label">Total Purchase</p>
+                        <p class="yl-summary-value">₹ {{ total_purchase|floatformat:2 }}</p>
+                        <p class="yl-summary-note">Total order value</p>
+                    </div>
+                    <div class="yl-summary-icon" style="background:#eff6ff;color:#2563eb;">
+                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v10M9 10h4a2 2 0 010 4H9"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
 
-                <h1 class="truncate text-2xl font-bold tracking-tight text-[#153030] sm:text-3xl">
-                    {{ party.name }}
-                </h1>
+            <div class="yl-summary-card">
+                <div class="yl-summary-top">
+                    <div>
+                        <p class="yl-summary-label">Total Paid</p>
+                        <p class="yl-summary-value" style="color:#15803d;">₹ {{ total_paid|floatformat:2 }}</p>
+                        <p class="yl-summary-note">Total paid amount</p>
+                    </div>
+                    <div class="yl-summary-icon" style="background:#f0fdf4;color:#16a34a;">
+                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
 
-                <p class="mt-1 text-sm text-gray-500">
-                    Purchase orders and payment history
+            <div class="yl-summary-card">
+                <div class="yl-summary-top">
+                    <div>
+                        <p class="yl-summary-label">Total Due</p>
+                        <p class="yl-summary-value" style="color:#dc2626;">₹ {{ total_due|floatformat:2 }}</p>
+                        <p class="yl-summary-note">Outstanding amount</p>
+                    </div>
+                    <div class="yl-summary-icon" style="background:#fef2f2;color:#ef4444;">
+                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.3 3.8L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SECTION -->
+        <div class="yl-section-head">
+            <div>
+                <h2 class="yl-section-title">Purchase Orders</h2>
+                <p class="yl-section-note">
+                    {{ total_orders }} purchase order{{ total_orders|pluralize }} found
                 </p>
-
             </div>
-
         </div>
 
-
-        <!-- BACK -->
-
-        <a
-            href="{% url 'party_list' %}"
-            class="inline-flex h-11 items-center justify-center gap-2 rounded-xl
-                   border border-gray-200 bg-white px-5 text-sm font-semibold
-                   text-[#153030] shadow-sm transition
-                   hover:border-[#153030]/30 hover:bg-gray-50"
-        >
-
-            <svg
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.8"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M10 19l-7-7 7-7"
-                />
-
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M3 12h18"
-                />
-            </svg>
-
-            Back to Parties
-
-        </a>
-
-    </div>
-
-
-
-    <!-- ========================================================= -->
-    <!-- SUMMARY CARDS -->
-    <!-- ========================================================= -->
-
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-
-        <!-- TOTAL ORDERS -->
-
-        <div class="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-
-            <div class="flex items-start justify-between">
-
-                <div>
-
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                        Total Purchase Orders
-                    </p>
-
-                    <p class="mt-2 text-3xl font-bold text-[#153030]">
-                        {{ total_orders }}
-                    </p>
-
-                    <p class="mt-1 text-xs text-gray-400">
-                        Total orders
-                    </p>
-
-                </div>
-
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#153030]/10">
-
-                    <svg
-                        class="h-5 w-5 text-[#153030]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M3 7h18"
-                        />
-
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M5 7l1 13h12l1-13"
-                        />
-
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M8 7V5a4 4 0 018 0v2"
-                        />
-
-                    </svg>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- TOTAL PURCHASE -->
-
-        <div class="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-
-            <div class="flex items-start justify-between">
-
-                <div>
-
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                        Total Purchase
-                    </p>
-
-                    <p class="mt-2 text-2xl font-bold text-[#153030]">
-                        ₹ {{ total_purchase|floatformat:2 }}
-                    </p>
-
-                    <p class="mt-1 text-xs text-gray-400">
-                        Total order value
-                    </p>
-
-                </div>
-
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50">
-
-                    <svg
-                        class="h-5 w-5 text-blue-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <circle
-                            cx="12"
-                            cy="12"
-                            r="9"
-                        />
-
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 7v10M9 10h4a2 2 0 010 4H9"
-                        />
-
-                    </svg>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- TOTAL PAID -->
-
-        <div class="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-
-            <div class="flex items-start justify-between">
-
-                <div>
-
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                        Total Paid
-                    </p>
-
-                    <p class="mt-2 text-2xl font-bold text-green-600">
-                        ₹ {{ total_paid|floatformat:2 }}
-                    </p>
-
-                    <p class="mt-1 text-xs text-gray-400">
-                        Total paid amount
-                    </p>
-
-                </div>
-
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50">
-
-                    <svg
-                        class="h-5 w-5 text-green-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M5 13l4 4L19 7"
-                        />
-                    </svg>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- TOTAL DUE -->
-
-        <div class="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-
-            <div class="flex items-start justify-between">
-
-                <div>
-
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                        Total Due
-                    </p>
-
-                    <p class="mt-2 text-2xl font-bold text-red-500">
-                        ₹ {{ total_due|floatformat:2 }}
-                    </p>
-
-                    <p class="mt-1 text-xs text-gray-400">
-                        Outstanding amount
-                    </p>
-
-                </div>
-
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50">
-
-                    <svg
-                        class="h-5 w-5 text-red-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 9v4"
-                        />
-
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 17h.01"
-                        />
-
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M10.3 3.8L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"
-                        />
-
-                    </svg>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ========================================================= -->
-    <!-- ORDER SECTION HEADER -->
-    <!-- ========================================================= -->
-
-    <div class="flex items-end justify-between">
-
-        <div>
-
-            <h2 class="text-lg font-bold text-[#153030]">
-                Purchase Orders
-            </h2>
-
-            <p class="mt-1 text-sm text-gray-500">
-                {{ total_orders }} purchase order{{ total_orders|pluralize }} found
-            </p>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ========================================================= -->
-    <!-- ORDER CARDS -->
-    <!-- ========================================================= -->
-
-    <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
-
-        {% for order in orders %}
-
-        <div class="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-gray-200 hover:shadow-lg">
-
-
-            <!-- ================================================= -->
-            <!-- CARD HEADER -->
-            <!-- ================================================= -->
-
-            <div class="border-b border-gray-100 p-5">
-
-                <div class="flex items-start justify-between gap-4">
-
-                    <div class="flex min-w-0 items-center gap-3">
-
-                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#153030]/10">
-
-                            <svg
-                                class="h-5 w-5 text-[#153030]"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M6 2h9l5 5v15H6V2z"
-                                />
-
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M14 2v6h6"
-                                />
-
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M9 13h6M9 17h4"
-                                />
-
-                            </svg>
-
+        <!-- ORDERS -->
+        <section class="yl-orders-grid">
+
+            {% for order in orders %}
+
+            <article class="yl-order-card">
+
+                <!-- CARD HEADER -->
+                <div class="yl-order-head">
+                    <div class="yl-order-head-row">
+
+                        <div class="yl-order-identity">
+                            <div class="yl-order-icon">
+                                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 2h9l5 5v15H6V2z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6M9 17h4"/>
+                                </svg>
+                            </div>
+
+                            <div style="min-width:0;">
+                                <p class="yl-order-label">Purchase Order</p>
+                                <h3 class="yl-order-number">
+                                    {{ order.purchase_number }}
+                                </h3>
+                            </div>
                         </div>
 
-                        <div class="min-w-0">
-
-                            <p class="text-xs font-medium text-gray-400">
-                                Purchase Order
-                            </p>
-
-                            <h3 class="truncate text-base font-bold text-[#153030]">
-                                {{ order.purchase_number }}
-                            </h3>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- ORDER STATUS -->
-
-                    {% if order.status == "DRAFT" %}
-
-                        <span class="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
-                            Draft
-                        </span>
-
-                    {% elif order.status == "CONFIRMED" %}
-
-                        <span class="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-                            Confirmed
-                        </span>
-
-                    {% elif order.status == "RECEIVED" %}
-
-                        <span class="shrink-0 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-600">
-                            Received
-                        </span>
-
-                    {% elif order.status == "PARTIAL" %}
-
-                        <span class="shrink-0 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-600">
-                            Partially Received
-                        </span>
-
-                    {% elif order.status == "CANCELLED" %}
-
-                        <span class="shrink-0 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-500">
-                            Cancelled
-                        </span>
-
-                    {% endif %}
-
-                </div>
-
-            </div>
-
-
-
-            <!-- ================================================= -->
-            <!-- CARD BODY -->
-            <!-- ================================================= -->
-
-            <div class="p-5">
-
-                <!-- DETAILS -->
-
-                <div class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
-
-
-                    <div>
-
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                            Purchase Date
-                        </p>
-
-                        <p class="mt-1 text-sm font-semibold text-gray-700">
-                            {{ order.purchase_date|date:"d M Y" }}
-                        </p>
-
-                    </div>
-
-
-                    <div>
-
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                            Invoice
-                        </p>
-
-                        <p class="mt-1 truncate text-sm font-semibold text-gray-700">
-                            {{ order.invoice_number|default:"—" }}
-                        </p>
-
-                    </div>
-
-
-                    <div>
-
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                            Payment
-                        </p>
-
-                        {% if order.payment_status == "PAID" %}
-
-                            <span class="mt-1 inline-flex rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-600">
-                                Paid
-                            </span>
-
-                        {% elif order.payment_status == "PARTIAL" %}
-
-                            <span class="mt-1 inline-flex rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-600">
-                                Partial
-                            </span>
-
-                        {% else %}
-
-                            <span class="mt-1 inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-500">
-                                Unpaid
-                            </span>
-
+                        {% if order.status == "DRAFT" %}
+                            <span class="yl-status" style="background:#f3f4f6;color:#4b5563;">Draft</span>
+                        {% elif order.status == "CONFIRMED" %}
+                            <span class="yl-status" style="background:#eff6ff;color:#2563eb;">Confirmed</span>
+                        {% elif order.status == "RECEIVED" %}
+                            <span class="yl-status" style="background:#f0fdf4;color:#15803d;">Received</span>
+                        {% elif order.status == "PARTIAL" %}
+                            <span class="yl-status" style="background:#fffbeb;color:#b45309;">Partially Received</span>
+                        {% elif order.status == "CANCELLED" %}
+                            <span class="yl-status" style="background:#fef2f2;color:#dc2626;">Cancelled</span>
                         {% endif %}
 
                     </div>
+                </div>
 
+                <!-- BODY -->
+                <div class="yl-order-body">
 
-                    <div>
+                    <!-- DETAILS -->
+                    <div class="yl-details">
 
-                        <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                            Invoice Date
-                        </p>
+                        <div class="yl-detail">
+                            <p class="yl-detail-label">Purchase Date</p>
+                            <p class="yl-detail-value">{{ order.purchase_date|date:"d M Y" }}</p>
+                        </div>
 
-                        <p class="mt-1 text-sm font-semibold text-gray-700">
+                        <div class="yl-detail">
+                            <p class="yl-detail-label">Invoice</p>
+                            <p class="yl-detail-value">{{ order.invoice_number|default:"—" }}</p>
+                        </div>
 
-                            {% if order.invoice_date %}
-                                {{ order.invoice_date|date:"d M Y" }}
+                        <div class="yl-detail">
+                            <p class="yl-detail-label">Payment</p>
+                            <p class="yl-detail-value">
+                                {% if order.payment_status == "PAID" %}
+                                    <span style="color:#15803d;">● Paid</span>
+                                {% elif order.payment_status == "PARTIAL" %}
+                                    <span style="color:#b45309;">● Partial</span>
+                                {% else %}
+                                    <span style="color:#dc2626;">● Unpaid</span>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="yl-detail">
+                            <p class="yl-detail-label">Invoice Date</p>
+                            <p class="yl-detail-value">
+                                {% if order.invoice_date %}
+                                    {{ order.invoice_date|date:"d M Y" }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="yl-detail">
+                            <p class="yl-detail-label">Bill Type</p>
+                            <p class="yl-detail-value">
+                                {% if order.bill_type == "GST" %}
+                                    <span style="color:#15803d;">● GST Bill</span>
+                                {% else %}
+                                    <span style="color:#64748b;">● Non-GST Bill</span>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="yl-detail">
+                            <p class="yl-detail-label">Supplier Document</p>
+                            <p class="yl-detail-value">
+                                {% if order.invoice_document %}
+                                    Available
+                                {% else %}
+                                    Not uploaded
+                                {% endif %}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- TAX -->
+                    {% if order.bill_type == "GST" %}
+
+                    <div class="yl-tax">
+                        <div class="yl-tax-head">
+                            <p class="yl-tax-title">GST / Tax Summary</p>
+                            <span style="padding:4px 7px;border-radius:999px;background:#fff;color:#17633f;font-size:8px;font-weight:800;">GST</span>
+                        </div>
+
+                        <div class="yl-tax-grid">
+                            <div class="yl-tax-item">
+                                <div class="yl-tax-label">CGST</div>
+                                <div class="yl-tax-rate">{{ order.cgst_percent|floatformat:2 }}%</div>
+                                <div class="yl-tax-amount">₹ {{ order.cgst_amount|floatformat:2 }}</div>
+                            </div>
+
+                            <div class="yl-tax-item">
+                                <div class="yl-tax-label">SGST</div>
+                                <div class="yl-tax-rate">{{ order.sgst_percent|floatformat:2 }}%</div>
+                                <div class="yl-tax-amount">₹ {{ order.sgst_amount|floatformat:2 }}</div>
+                            </div>
+
+                            <div class="yl-tax-item">
+                                <div class="yl-tax-label">IGST</div>
+                                <div class="yl-tax-rate">{{ order.igst_percent|floatformat:2 }}%</div>
+                                <div class="yl-tax-amount">₹ {{ order.igst_amount|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+
+                    <div class="yl-nongst">
+                        <div style="flex:0 0 auto;width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:#e9eeee;color:#657272;">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l2.5 2.5"/>
+                            </svg>
+                        </div>
+                        <div class="yl-nongst-text">
+                            <p class="yl-nongst-title">Non-GST Purchase</p>
+                            <p class="yl-nongst-note">No GST / CGST / SGST / IGST applied.</p>
+                        </div>
+                    </div>
+
+                    {% endif %}
+
+                    <!-- FINANCIAL -->
+                    <div class="yl-finance">
+
+                        <div class="yl-finance-item">
+                            <div class="yl-finance-label">Grand Total</div>
+                            <div class="yl-finance-value" style="color:#153030;">
+                                ₹ {{ order.grand_total|floatformat:2 }}
+                            </div>
+                        </div>
+
+                        <div class="yl-finance-item">
+                            <div class="yl-finance-label">Paid Amount</div>
+                            <div class="yl-finance-value" style="color:#15803d;">
+                                ₹ {{ order.paid_amount|floatformat:2 }}
+                            </div>
+                        </div>
+
+                        <div class="yl-finance-item">
+                            <div class="yl-finance-label">Due Amount</div>
+                            <div class="yl-finance-value" style="color:#dc2626;">
+                                ₹ {{ order.due_amount|floatformat:2 }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- PAYMENT PROGRESS -->
+                    <div class="yl-progress">
+                        <div class="yl-progress-head">
+                            <span class="yl-progress-label">Payment Progress</span>
+                            <span class="yl-progress-percent">
+                                {% if order.grand_total %}
+                                    {% widthratio order.paid_amount order.grand_total 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="yl-progress-track">
+                            <div class="yl-progress-bar"
+                                 style="width:{% if order.grand_total %}{% widthratio order.paid_amount order.grand_total 100 %}{% else %}0{% endif %}%;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="yl-order-footer">
+
+                        <div class="yl-doc">
+                            {% if order.invoice_document %}
+
+                                <a href="{{ order.invoice_document.url }}"
+                                   target="_blank"
+                                   rel="noopener"
+                                   class="yl-doc-link"
+                                   title="Open supplier document">
+
+                                    {% if ".pdf" in order.invoice_document.name|lower %}
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6"/>
+                                        </svg>
+                                        <span>View PDF</span>
+                                    {% else %}
+                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 15l-5-5L5 21"/>
+                                        </svg>
+                                        <span>View Document</span>
+                                    {% endif %}
+
+                                </a>
+
                             {% else %}
-                                —
+                                <span class="yl-doc-empty">No document</span>
                             {% endif %}
+                        </div>
 
-                        </p>
+                        <div class="yl-actions">
 
+                            <span class="yl-order-count">#{{ forloop.counter }}</span>
+
+                            <a href="{% url 'party_purchase_detail' order.pk %}"
+                               class="yl-action"
+                               title="View Order"
+                               aria-label="View Order">
+
+                                <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.75-6 9.75-6 9.75 6 9.75 6-3.75 6-9.75 6-9.75-6-9.75-6z"/>
+                                    <circle cx="12" cy="12" r="2.5"/>
+                                </svg>
+                            </a>
+
+                            <a href="{% url 'purchase_installments' order.pk %}"
+                               class="yl-action"
+                               title="View Installments"
+                               aria-label="View Installments">
+
+                                <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5A2.5 2.5 0 015.5 5h13A2.5 2.5 0 0121 7.5v10A2.5 2.5 0 0118.5 20h-13A2.5 2.5 0 013 17.5v-10z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8h15.5A2.5 2.5 0 0121 10.5v1.5h-4a2 2 0 010-4h4"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 12h.01"/>
+                                </svg>
+                            </a>
+
+                        </div>
                     </div>
 
                 </div>
+            </article>
 
+            {% empty %}
 
-
-                <!-- ================================================= -->
-                <!-- FINANCIAL SUMMARY -->
-                <!-- ================================================= -->
-
-                <div class="mt-6 grid grid-cols-1 divide-y divide-gray-100
-                            overflow-hidden rounded-xl border border-gray-100
-                            bg-gray-50 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-
-                    <div class="p-4">
-
-                        <p class="text-xs font-medium text-gray-400">
-                            Grand Total
-                        </p>
-
-                        <p class="mt-1 text-lg font-bold text-[#153030]">
-                            ₹ {{ order.grand_total|floatformat:2 }}
-                        </p>
-
-                    </div>
-
-
-                    <div class="p-4">
-
-                        <p class="text-xs font-medium text-gray-400">
-                            Paid Amount
-                        </p>
-
-                        <p class="mt-1 text-lg font-bold text-green-600">
-                            ₹ {{ order.paid_amount|floatformat:2 }}
-                        </p>
-
-                    </div>
-
-
-                    <div class="p-4">
-
-                        <p class="text-xs font-medium text-gray-400">
-                            Due Amount
-                        </p>
-
-                        <p class="mt-1 text-lg font-bold text-red-500">
-                            ₹ {{ order.due_amount|floatformat:2 }}
-                        </p>
-
-                    </div>
-
+            <div class="yl-empty">
+                <div class="yl-empty-icon">
+                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 7l1 13h12l1-13"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V5a4 4 0 018 0v2"/>
+                    </svg>
                 </div>
 
+                <h3 class="yl-empty-title">No Purchase Orders</h3>
 
-
-                <!-- ================================================= -->
-                <!-- ACTION FOOTER -->
-                <!-- ================================================= -->
-
-                <div class="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
-
-                    <div>
-
-                        <p class="text-xs text-gray-400">
-                            Order {{ forloop.counter }}
-                        </p>
-
-                    </div>
-
-
-                    <div class="flex items-center gap-2">
-
-
-                        <!-- VIEW ORDER -->
-
-                        <a
-                            href="{% url 'party_purchase_detail' order.pk %}"
-                            title="View Order"
-                            aria-label="View Order"
-                            class="group/action inline-flex h-10 w-10 items-center justify-center
-                                   rounded-xl border border-gray-200 bg-white
-                                   text-gray-500 shadow-sm transition
-                                   hover:border-[#153030] hover:bg-[#153030]
-                                   hover:text-white"
-                        >
-
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-
-                                <!-- Eye -->
-
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M2.25 12s3.75-6 9.75-6 9.75 6 9.75 6-3.75 6-9.75 6-9.75-6-9.75-6z"
-                                />
-
-                                <circle
-                                    cx="12"
-                                    cy="12"
-                                    r="2.5"
-                                />
-
-                            </svg>
-
-                        </a>
-
-
-
-                        <!-- INSTALLMENTS -->
-
-                        <a
-                            href="{% url 'purchase_installments' order.pk %}"
-                            title="View Installments"
-                            aria-label="View Installments"
-                            class="inline-flex h-10 w-10 items-center justify-center
-                                   rounded-xl border border-gray-200 bg-white
-                                   text-gray-500 shadow-sm transition
-                                   hover:border-amber-500 hover:bg-amber-500
-                                   hover:text-white"
-                        >
-
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-
-                                <!-- Wallet / Payment -->
-
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M3 7.5A2.5 2.5 0 015.5 5h13A2.5 2.5 0 0121 7.5v10A2.5 2.5 0 0118.5 20h-13A2.5 2.5 0 013 17.5v-10z"
-                                />
-
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M3 8h15.5A2.5 2.5 0 0121 10.5v1.5h-4a2 2 0 010-4h4"
-                                />
-
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M17 12h.01"
-                                />
-
-                            </svg>
-
-                        </a>
-
-                    </div>
-
-                </div>
-
+                <p class="yl-empty-note">
+                    There are no purchase orders available for this party yet.
+                </p>
             </div>
 
-        </div>
+            {% endfor %}
 
-
-        {% empty %}
-
-
-        <!-- ================================================= -->
-        <!-- EMPTY STATE -->
-        <!-- ================================================= -->
-
-        <div class="xl:col-span-2 rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center">
-
-            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
-
-                <svg
-                    class="h-8 w-8 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                >
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M3 7h18"
-                    />
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M5 7l1 13h12l1-13"
-                    />
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M8 7V5a4 4 0 018 0v2"
-                    />
-
-                </svg>
-
-            </div>
-
-            <h3 class="mt-5 text-lg font-bold text-[#153030]">
-                No Purchase Orders
-            </h3>
-
-            <p class="mx-auto mt-2 max-w-md text-sm text-gray-500">
-                There are no purchase orders available for this party yet.
-            </p>
-
-        </div>
-
-        {% endfor %}
+        </section>
 
     </div>
-
 </div>
 
 {% endblock %}

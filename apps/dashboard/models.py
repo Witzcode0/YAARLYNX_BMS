@@ -221,9 +221,9 @@ class PaymentMethod(BaseModel):
 
 class PartyPurchase(BaseModel):
 
-    # ---------------------------------------------------------
+    # =========================================================
     # PURCHASE STATUS
-    # ---------------------------------------------------------
+    # =========================================================
 
     class Status(models.TextChoices):
 
@@ -238,9 +238,9 @@ class PartyPurchase(BaseModel):
         CANCELLED = "CANCELLED", "Cancelled"
 
 
-    # ---------------------------------------------------------
+    # =========================================================
     # PAYMENT STATUS
-    # ---------------------------------------------------------
+    # =========================================================
 
     class PaymentStatus(models.TextChoices):
 
@@ -249,6 +249,17 @@ class PartyPurchase(BaseModel):
         PARTIAL = "PARTIAL", "Partially Paid"
 
         PAID = "PAID", "Paid"
+
+
+    # =========================================================
+    # BILL TYPE
+    # =========================================================
+
+    class BillType(models.TextChoices):
+
+        GST = "GST", "GST Bill"
+
+        NON_GST = "NON_GST", "Non-GST Bill"
 
 
     # =========================================================
@@ -263,11 +274,13 @@ class PartyPurchase(BaseModel):
         editable=False,
     )
 
+
     party = models.ForeignKey(
         "Party",
         on_delete=models.PROTECT,
         related_name="purchases",
     )
+
 
     purchase_date = models.DateField()
 
@@ -281,9 +294,42 @@ class PartyPurchase(BaseModel):
         blank=True,
     )
 
+
     invoice_date = models.DateField(
         null=True,
         blank=True,
+    )
+
+
+    # =========================================================
+    # BILL TYPE
+    # =========================================================
+
+    bill_type = models.CharField(
+        max_length=10,
+        choices=BillType.choices,
+        default=BillType.GST,
+        db_index=True,
+        help_text="Select whether this is a GST or Non-GST bill.",
+    )
+
+
+    # =========================================================
+    # BILL DOCUMENT
+    # =========================================================
+    # Supports:
+    # PDF
+    # JPG
+    # JPEG
+    # PNG
+    # WEBP
+    # =========================================================
+
+    invoice_document = models.FileField(
+        upload_to="party_bills/%Y/%m/",
+        blank=True,
+        null=True,
+        help_text="Upload supplier GST/Non-GST bill image or PDF.",
     )
 
 
@@ -298,6 +344,7 @@ class PartyPurchase(BaseModel):
         db_index=True,
     )
 
+
     payment_status = models.CharField(
         max_length=20,
         choices=PaymentStatus.choices,
@@ -311,7 +358,6 @@ class PartyPurchase(BaseModel):
     # BASIC AMOUNT
     # =========================================================
 
-    # Product/service total before discount
     subtotal = models.DecimalField(
         max_digits=15,
         decimal_places=2,
@@ -329,6 +375,7 @@ class PartyPurchase(BaseModel):
         default=Decimal("0.00"),
         help_text="Enter discount percentage.",
     )
+
 
     discount_amount = models.DecimalField(
         max_digits=15,
@@ -361,6 +408,7 @@ class PartyPurchase(BaseModel):
         help_text="Enter CGST percentage.",
     )
 
+
     cgst_amount = models.DecimalField(
         max_digits=15,
         decimal_places=2,
@@ -380,6 +428,7 @@ class PartyPurchase(BaseModel):
         help_text="Enter SGST percentage.",
     )
 
+
     sgst_amount = models.DecimalField(
         max_digits=15,
         decimal_places=2,
@@ -398,6 +447,7 @@ class PartyPurchase(BaseModel):
         default=Decimal("0.00"),
         help_text="Enter IGST percentage.",
     )
+
 
     igst_amount = models.DecimalField(
         max_digits=15,
@@ -453,6 +503,7 @@ class PartyPurchase(BaseModel):
         default=Decimal("0.00"),
         editable=False,
     )
+
 
     due_amount = models.DecimalField(
         max_digits=15,
@@ -518,6 +569,7 @@ class PartyPurchase(BaseModel):
     def decimal(value):
 
         if value is None:
+
             return Decimal("0.00")
 
         return Decimal(value)
@@ -593,6 +645,7 @@ class PartyPurchase(BaseModel):
                     f"{name} percentage cannot be negative."
                 )
 
+
             if value > Decimal("100.00"):
 
                 raise ValidationError(
@@ -608,11 +661,47 @@ class PartyPurchase(BaseModel):
 
 
         # -----------------------------------------------------
+        # NON-GST BILL
+        # -----------------------------------------------------
+
+        if self.bill_type == self.BillType.NON_GST:
+
+            cgst_percent = Decimal("0.00")
+
+            sgst_percent = Decimal("0.00")
+
+            igst_percent = Decimal("0.00")
+
+
+        # -----------------------------------------------------
+        # GST BILL
+        # -----------------------------------------------------
+
+        elif self.bill_type == self.BillType.GST:
+
+            # IGST cannot be combined with CGST / SGST
+
+            if (
+                cgst_percent > Decimal("0.00")
+                or sgst_percent > Decimal("0.00")
+            ):
+
+                if igst_percent > Decimal("0.00"):
+
+                    raise ValidationError(
+                        "Use either CGST/SGST or IGST. "
+                        "Do not use IGST together with CGST/SGST."
+                    )
+
+
+        # -----------------------------------------------------
         # DISCOUNT AMOUNT
         # -----------------------------------------------------
 
         discount_amount = (
-            subtotal * discount_percent / Decimal("100")
+            subtotal
+            * discount_percent
+            / Decimal("100")
         )
 
         discount_amount = discount_amount.quantize(
@@ -628,6 +717,7 @@ class PartyPurchase(BaseModel):
         taxable_amount = (
             subtotal - discount_amount
         )
+
 
         if taxable_amount < Decimal("0.00"):
 
@@ -689,33 +779,6 @@ class PartyPurchase(BaseModel):
 
 
         # -----------------------------------------------------
-        # GST VALIDATION
-        # -----------------------------------------------------
-        # Normally:
-        #
-        # Intra-state:
-        # CGST + SGST
-        #
-        # Inter-state:
-        # IGST
-        #
-        # Do not allow all three together.
-        # -----------------------------------------------------
-
-        if (
-            cgst_percent > Decimal("0.00")
-            or sgst_percent > Decimal("0.00")
-        ):
-
-            if igst_percent > Decimal("0.00"):
-
-                raise ValidationError(
-                    "Use either CGST/SGST or IGST. "
-                    "Do not use IGST together with CGST/SGST."
-                )
-
-
-        # -----------------------------------------------------
         # TOTAL BEFORE ROUND OFF
         # -----------------------------------------------------
 
@@ -737,21 +800,17 @@ class PartyPurchase(BaseModel):
         # -----------------------------------------------------
         # ROUND OFF
         # -----------------------------------------------------
-        # Example:
-        #
-        # 10720.40 -> 10720.00
-        # 10720.60 -> 10721.00
-        #
-        # -----------------------------------------------------
 
         rounded_total = total_before_round.quantize(
             Decimal("1"),
             rounding=ROUND_HALF_UP,
         )
 
+
         round_off = (
             rounded_total - total_before_round
         )
+
 
         round_off = round_off.quantize(
             Decimal("0.01"),
@@ -766,6 +825,7 @@ class PartyPurchase(BaseModel):
         grand_total = (
             total_before_round + round_off
         )
+
 
         grand_total = grand_total.quantize(
             Decimal("0.01"),
@@ -947,9 +1007,7 @@ class PartyPurchase(BaseModel):
 
         self.update_payment_summary()
 
-# =========================================================
-# PURCHASE PAYMENT INSTALLMENT
-# =========================================================
+
 # =========================================================
 # PURCHASE PAYMENT INSTALLMENT
 # =========================================================
