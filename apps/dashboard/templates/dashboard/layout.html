@@ -222,7 +222,7 @@
                         </div>
 
                         <div class="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-gray-400">
-                            {{ request.session.yaarlynx_user_role|upper }} Panel 
+                            {{ request.session.yaarlynx_user_role|upper }} Panel
                         </div>
 
                     </div>
@@ -265,8 +265,25 @@
                         </span>
 
                     </a>
-                    <!-- Parties -->
 
+                    <!-- Quick Links -->
+                    <a href="{% url 'quick_links' %}"
+                        class="{% if request.resolver_match.url_name == 'quick_links' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150">
+
+                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+
+                        <span class="truncate">
+                            Quick Links
+                        </span>
+                    </a>
+
+                    {% if request.session.yaarlynx_user_role_code == "ADMIN" or request.session.yaarlynx_user_role_code == "SUPER_ADMIN" %}
+
+                    <!-- Parties -->
                     <a href="{% url 'party_list' %}"
                         class="{% if request.resolver_match.url_name == 'party_list' or request.resolver_match.url_name == 'party_detail' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150">
 
@@ -279,12 +296,10 @@
                         <span class="truncate">
                             Parties
                         </span>
-
                     </a>
 
 
                     <!-- Payments -->
-
                     <a href="{% url 'payment_list' %}"
                         class="{% if request.resolver_match.url_name == 'payment_list' or request.resolver_match.url_name == 'payment_detail' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150">
 
@@ -297,12 +312,15 @@
                         <span class="truncate">
                             Payments
                         </span>
-
                     </a>
+
+                    {% endif %}
 
                 </div>
 
-              
+                
+
+
             </nav>
 
 
@@ -466,35 +484,50 @@
 
                     <!-- User -->
 
-                    <div class="flex items-center gap-2">
+<div class="flex items-center gap-2">
 
-                        <!-- User Image -->
+    <!-- Profile Link -->
+    <a
+        href="{% url 'profile_view' %}"
+        class="flex items-center gap-2"
+        title="View Profile"
+    >
 
-                        <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#153030] sm:h-10 sm:w-10">
+        <!-- User Image -->
 
-                            <img src="/media/{{ request.session.yaarlynx_user_profile_link }}"
-                                alt="{{ request.session.yaarlynx_user_firstname }}" class="h-full w-full object-cover">
+        <div
+            class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#153030] sm:h-10 sm:w-10"
+        >
 
-                        </div>
+            <img
+                src="/media/{{ request.session.yaarlynx_user_profile_link }}"
+                alt="{{ request.session.yaarlynx_user_firstname }}"
+                class="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
+            >
+
+        </div>
 
 
-                        <!-- User Details -->
+        <!-- User Details -->
 
-                        <div class="hidden min-w-0 sm:block">
+        <div class="hidden min-w-0 sm:block">
 
-                            <a href="{% url 'profile_view' %}"
-                                class="block max-w-36 truncate text-sm font-semibold text-[#153030]">
-                                {{ request.session.yaarlynx_user_firstname }}
-                                {{ request.session.yaarlynx_user_lastname }}
-                            </a>
+            <span
+                class="block max-w-36 truncate text-sm font-semibold text-[#153030]"
+            >
+                {{ request.session.yaarlynx_user_firstname }}
+                {{ request.session.yaarlynx_user_lastname }}
+            </span>
 
-                            <p class="mt-0.5 truncate text-[10px] text-gray-400">
-                                {{ request.session.yaarlynx_user_role|upper }}
-                            </p>
+            <p class="mt-0.5 truncate text-[10px] text-gray-400">
+                {{ request.session.yaarlynx_user_role|upper }}
+            </p>
 
-                        </div>
+        </div>
 
-                    </div>
+    </a>
+
+</div>
 
                 </div>
 

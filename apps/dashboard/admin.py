@@ -7,6 +7,7 @@ from .models import (
     PaymentMethod,
     PartyPurchase,
     PurchasePaymentInstallment,
+    QuickLinkCategory, QuickLink
 )
 from pathlib import Path as FilePath
 from django import forms
@@ -1971,4 +1972,367 @@ class PurchasePaymentInstallmentAdmin(admin.ModelAdmin):
 
     actions = (
         "mark_cancelled",
+    )
+
+
+# ============================================================
+# Quick Link Category Admin
+# ============================================================
+
+@admin.register(QuickLinkCategory)
+class QuickLinkCategoryAdmin(admin.ModelAdmin):
+
+    # --------------------------------------------------------
+    # List Display
+    # --------------------------------------------------------
+
+    list_display = (
+        "name",
+        "description_preview",
+        "quick_links_count",
+        "display_order",
+        "status",
+        "created_at",
+        "updated_at",
+    )
+
+    # --------------------------------------------------------
+    # List Configuration
+    # --------------------------------------------------------
+
+    list_display_links = (
+        "name",
+    )
+
+    list_filter = (
+        "is_active",
+    )
+
+    search_fields = (
+        "name",
+        "description",
+    )
+
+    ordering = (
+        "display_order",
+        "name",
+    )
+
+    list_per_page = 25
+
+    # --------------------------------------------------------
+    # Form Configuration
+    # --------------------------------------------------------
+
+    fieldsets = (
+
+        (
+            "Category Information",
+            {
+                "fields": (
+                    "name",
+                    "description",
+                ),
+            },
+        ),
+
+        (
+            "Display Settings",
+            {
+                "fields": (
+                    "display_order",
+                    "is_active",
+                ),
+                "description": (
+                    "Control the category visibility and its position "
+                    "on the Quick Links page."
+                ),
+            },
+        ),
+
+        (
+            "Audit Information",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                ),
+                "classes": (
+                    "collapse",
+                ),
+            },
+        ),
+
+    )
+
+    # --------------------------------------------------------
+    # Readonly Fields
+    # --------------------------------------------------------
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
+
+    # --------------------------------------------------------
+    # Queryset
+    # --------------------------------------------------------
+
+    def get_queryset(self, request):
+
+        queryset = super().get_queryset(request)
+
+        return queryset.annotate(
+            _quick_links_count=Count(
+                "quick_links",
+                distinct=True,
+            )
+        )
+
+    # --------------------------------------------------------
+    # Custom Columns
+    # --------------------------------------------------------
+
+    @admin.display(
+        description="Description",
+        ordering="description",
+    )
+    def description_preview(self, obj):
+
+        if not obj.description:
+            return "-"
+
+        if len(obj.description) > 60:
+            return f"{obj.description[:60]}..."
+
+        return obj.description
+
+    @admin.display(
+        description="Tools",
+        ordering="_quick_links_count",
+    )
+    def quick_links_count(self, obj):
+
+        return obj._quick_links_count
+
+    @admin.display(
+        description="Status",
+        boolean=True,
+        ordering="is_active",
+    )
+    def status(self, obj):
+
+        return obj.is_active
+
+    # --------------------------------------------------------
+    # Admin Actions
+    # --------------------------------------------------------
+
+    @admin.action(
+        description="Activate selected categories"
+    )
+    def activate_categories(self, request, queryset):
+
+        updated = queryset.update(
+            is_active=True
+        )
+
+        self.message_user(
+            request,
+            f"{updated} category(s) activated successfully."
+        )
+
+    @admin.action(
+        description="Deactivate selected categories"
+    )
+    def deactivate_categories(self, request, queryset):
+
+        updated = queryset.update(
+            is_active=False
+        )
+
+        self.message_user(
+            request,
+            f"{updated} category(s) deactivated successfully."
+        )
+
+    actions = (
+        "activate_categories",
+        "deactivate_categories",
+    )
+
+
+# ============================================================
+# Quick Link Admin
+# ============================================================
+
+@admin.register(QuickLink)
+class QuickLinkAdmin(admin.ModelAdmin):
+
+    # --------------------------------------------------------
+    # List Display
+    # --------------------------------------------------------
+
+    list_display = (
+        "name",
+        "category",
+        "url_name",
+        "display_order",
+        "status",
+        "created_at",
+        "updated_at",
+    )
+
+    # --------------------------------------------------------
+    # List Configuration
+    # --------------------------------------------------------
+
+    list_display_links = (
+        "name",
+    )
+
+    list_filter = (
+        "is_active",
+        "category",
+    )
+
+    search_fields = (
+        "name",
+        "description",
+        "url_name",
+        "category__name",
+    )
+
+    ordering = (
+        "category__display_order",
+        "display_order",
+        "name",
+    )
+
+    list_per_page = 25
+
+    # --------------------------------------------------------
+    # Form Configuration
+    # --------------------------------------------------------
+
+    fieldsets = (
+
+        (
+            "Quick Link Information",
+            {
+                "fields": (
+                    "name",
+                    "description",
+                    "category",
+                ),
+            },
+        ),
+
+        (
+            "Navigation",
+            {
+                "fields": (
+                    "url_name",
+                ),
+                "description": (
+                    "Enter the Django URL name. "
+                    "Example: payment_list"
+                ),
+            },
+        ),
+
+        (
+            "Display Settings",
+            {
+                "fields": (
+                    "display_order",
+                    "is_active",
+                ),
+                "description": (
+                    "Control the visibility and ordering "
+                    "of this Quick Link."
+                ),
+            },
+        ),
+
+        (
+            "Audit Information",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                ),
+                "classes": (
+                    "collapse",
+                ),
+            },
+        ),
+
+    )
+
+    # --------------------------------------------------------
+    # Readonly Fields
+    # --------------------------------------------------------
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
+
+    # --------------------------------------------------------
+    # Foreign Key Autocomplete
+    # --------------------------------------------------------
+
+    autocomplete_fields = (
+        "category",
+    )
+
+    # --------------------------------------------------------
+    # Custom Columns
+    # --------------------------------------------------------
+
+    @admin.display(
+        description="Status",
+        boolean=True,
+        ordering="is_active",
+    )
+    def status(self, obj):
+
+        return obj.is_active
+
+    # --------------------------------------------------------
+    # Admin Actions
+    # --------------------------------------------------------
+
+    @admin.action(
+        description="Activate selected quick links"
+    )
+    def activate_quick_links(self, request, queryset):
+
+        updated = queryset.update(
+            is_active=True
+        )
+
+        self.message_user(
+            request,
+            f"{updated} quick link(s) activated successfully."
+        )
+
+    @admin.action(
+        description="Deactivate selected quick links"
+    )
+    def deactivate_quick_links(self, request, queryset):
+
+        updated = queryset.update(
+            is_active=False
+        )
+
+        self.message_user(
+            request,
+            f"{updated} quick link(s) deactivated successfully."
+        )
+
+    actions = (
+        "activate_quick_links",
+        "deactivate_quick_links",
     )

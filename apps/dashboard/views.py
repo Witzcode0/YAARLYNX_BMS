@@ -3,12 +3,13 @@ from django.shortcuts import redirect, render
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
+from django.db.models import Prefetch
 from decimal import Decimal
 
 from django.db.models import Sum, Count
 
 from apps.accounts.models import UserAccount
-from apps.dashboard.models import Party, PartyPaymentQR, PartyPurchase, PurchasePaymentInstallment
+from apps.dashboard.models import Party, PartyPaymentQR, PartyPurchase, PurchasePaymentInstallment, QuickLink, QuickLinkCategory
 
 from apps.dashboard.session import (
     get_logged_in_user,
@@ -790,5 +791,41 @@ def profile_view(request):
         "dashboard/profile.html",
         {
             "user": user,
+        }
+    )
+
+def quick_links(request):
+
+    active_quick_links = (
+        QuickLink.objects
+        .filter(is_active=True)
+        .order_by("display_order", "name")
+    )
+
+    categories = (
+        QuickLinkCategory.objects
+        .filter(is_active=True)
+        .prefetch_related(
+            Prefetch(
+                "quick_links",
+                queryset=active_quick_links,
+                to_attr="active_quick_links"
+            )
+        )
+        .order_by("display_order", "name")
+    )
+
+    # Remove categories that have no active quick links
+    categories = [
+        category
+        for category in categories
+        if category.active_quick_links
+    ]
+
+    return render(
+        request,
+        "dashboard/quick_links.html",
+        {
+            "categories": categories,
         }
     )

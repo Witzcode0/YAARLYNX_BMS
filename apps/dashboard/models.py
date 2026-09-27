@@ -1324,3 +1324,80 @@ class PurchasePaymentInstallment(BaseModel):
 
 
         return result
+
+
+
+class QuickLinkCategory(BaseModel):
+
+    name = models.CharField(
+        max_length=100,
+        unique=True
+    )
+
+    description = models.CharField(
+        max_length=255,
+        blank=True
+    )
+
+    display_order = models.PositiveIntegerField(
+        default=0
+    )
+
+    is_active = models.BooleanField(
+        default=True
+    )
+
+    class Meta:
+        db_table = "quick_link_categories"
+        ordering = ["display_order", "name"]
+        verbose_name = "Quick Link Category"
+        verbose_name_plural = "Quick Link Categories"
+
+    def __str__(self):
+        return self.name
+
+
+class QuickLink(BaseModel):
+
+    category = models.ForeignKey(
+        QuickLinkCategory,
+        on_delete=models.PROTECT,
+        related_name="quick_links"
+    )
+
+    name = models.CharField(
+        max_length=100
+    )
+
+    description = models.CharField(
+        max_length=255,
+        blank=True
+    )
+
+    url_name = models.CharField(
+        max_length=100
+    )
+
+    is_active = models.BooleanField(
+        default=True
+    )
+
+    display_order = models.PositiveIntegerField(
+        default=0
+    )
+
+    class Meta:
+        db_table = "quick_links"
+        ordering = ["category__display_order", "display_order", "name"]
+        verbose_name = "Quick Link"
+        verbose_name_plural = "Quick Links"
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["category", "name"],
+                name="unique_quick_link_name_per_category"
+            )
+        ]
+
+    def __str__(self):
+        return self.name

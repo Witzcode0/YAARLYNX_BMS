@@ -3,6 +3,7 @@ from apps.accounts.models import UserAccount
 
 USER_SESSION_KEY = "yaarlynx_user_id"
 USER_ROLE = "yaarlynx_user_role"
+USER_ROLE_CODE = "yaarlynx_user_role_code"
 USER_FIRSTNAME = "yaarlynx_user_firstname"
 USER_LASTNAME = "yaarlynx_user_lastname"
 USER_EMAIL = "yaarlynx_user_email"
@@ -20,6 +21,7 @@ def login_user(request, user):
     # Store only custom user's UUID
     request.session[USER_SESSION_KEY] = str(user.id)
     request.session[USER_ROLE] = str(user.role)
+    request.session[USER_ROLE_CODE] = str(user.role.code)
     request.session[USER_FIRSTNAME] = str(user.first_name)
     request.session[USER_LASTNAME] = str(user.last_name)
     request.session[USER_EMAIL] = str(user.email)
