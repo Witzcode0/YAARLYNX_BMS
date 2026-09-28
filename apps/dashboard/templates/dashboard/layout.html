@@ -527,6 +527,46 @@
 
                     </a>
 
+                    <!-- PDF Overlay -->
+
+                    <a
+                        href="{% url 'pdf_overlay' %}"
+                        class="{% if request.resolver_match.url_name == 'pdf_overlay' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+                    >
+
+                        <svg
+                            class="h-5 w-5 shrink-0"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
+                            />
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M14 2v6h6"
+                            />
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M8 13h8M8 17h6"
+                            />
+
+                        </svg>
+
+                        <span class="truncate">
+                            PDF Overlay
+                        </span>
+
+                    </a>
 
                     {% endif %}
 
