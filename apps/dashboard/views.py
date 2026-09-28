@@ -1,15 +1,16 @@
 from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.shortcuts import get_object_or_404, render
 from django.db.models import Prefetch
 from decimal import Decimal
+from django.http import JsonResponse
+from django.utils import timezone
 
 from django.db.models import Sum, Count
 
 from apps.accounts.models import UserAccount
-from apps.dashboard.models import Party, PartyPaymentQR, PartyPurchase, PurchasePaymentInstallment, QuickLink, QuickLinkCategory
+from apps.dashboard.models import Party, PartyPaymentQR, PartyPurchase, PurchasePaymentInstallment, QuickLink, QuickLinkCategory, Notification, NotificationRecipient
 
 from apps.dashboard.session import (
     get_logged_in_user,
@@ -21,6 +22,12 @@ from apps.dashboard.decorators import (
     login_required,
     dashboard_access_required,
 )
+
+from django.shortcuts import render
+from django.http import FileResponse
+
+from apps.pdf_overlay.models import OverlayImage
+from apps.pdf_overlay.services.pdf_processor import apply_overlay
 
 
 # ==========================================================
@@ -827,5 +834,442 @@ def quick_links(request):
         "dashboard/quick_links.html",
         {
             "categories": categories,
+        }
+    )
+
+def notification_list(request):
+    """
+    Display notifications available for the logged-in user.
+    """
+
+    user_id = request.session.get("yaarlynx_user_id")
+
+    if not user_id:
+        return redirect("login")
+
+    user = get_object_or_404(
+        UserAccount,
+        id=user_id
+    )
+
+    recipients = (
+        NotificationRecipient.objects
+        .filter(
+            user=user,
+            notification__is_active=True,
+            notification__publish_at__lte=timezone.now(),
+        )
+        .select_related("notification")
+        .order_by(
+            "-notification__is_pinned",
+            "-notification__publish_at",
+            "-created_at",
+        )
+    )
+
+    # Remove expired notifications
+    recipients = [
+        recipient
+        for recipient in recipients
+        if recipient.notification.is_published
+    ]
+
+    total_notifications = len(recipients)
+
+    unread_count = sum(
+        1
+        for recipient in recipients
+        if not recipient.is_read
+    )
+
+    context = {
+        "recipients": recipients,
+        "total_notifications": total_notifications,
+        "unread_count": unread_count,
+    }
+
+    return render(
+        request,
+        "dashboard/notifications.html",
+        context
+    )
+
+def notification_detail(request, notification_id):
+    """
+    Display notification details and mark notification as read.
+    """
+
+    user_id = request.session.get("yaarlynx_user_id")
+
+    if not user_id:
+        return redirect("login")
+
+    user = get_object_or_404(
+        UserAccount,
+        id=user_id
+    )
+
+    recipient = get_object_or_404(
+        NotificationRecipient.objects.select_related(
+            "notification"
+        ),
+        notification__notification_id=notification_id,
+        user=user,
+        notification__is_active=True,
+    )
+
+    notification = recipient.notification
+
+    # Check publication status
+    if not notification.is_published:
+
+        return redirect("notification_list")
+
+    # Mark as read
+    recipient.mark_as_read()
+
+    context = {
+        "notification": notification,
+        "recipient": recipient,
+    }
+
+    return render(
+        request,
+        "dashboard/notification_detail.html",
+        context
+    )
+
+def mark_notification_read(request, notification_id):
+    """
+    Mark a notification as read.
+    """
+
+    if request.method != "POST":
+
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Invalid request method."
+            },
+            status=400
+        )
+
+    user_id = request.session.get(
+        "yaarlynx_user_id"
+    )
+
+    if not user_id:
+
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Authentication required."
+            },
+            status=401
+        )
+
+    recipient = get_object_or_404(
+        NotificationRecipient,
+        notification__notification_id=notification_id,
+        user_id=user_id,
+    )
+
+    recipient.mark_as_read()
+
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "Notification marked as read."
+        }
+    )
+
+def mark_all_notifications_read(request):
+    """
+    Mark all notifications of the logged-in user as read.
+    """
+
+    if request.method != "POST":
+
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Invalid request method."
+            },
+            status=400
+        )
+
+    user_id = request.session.get(
+        "yaarlynx_user_id"
+    )
+
+    if not user_id:
+
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Authentication required."
+            },
+            status=401
+        )
+
+    recipients = NotificationRecipient.objects.filter(
+        user_id=user_id,
+        is_read=False,
+        notification__is_active=True,
+    )
+
+    updated_count = recipients.update(
+        is_read=True,
+        read_at=timezone.now(),
+    )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "All notifications marked as read.",
+            "updated_count": updated_count,
+        }
+    )
+
+def mark_notification_unread(request, notification_id):
+    """
+    Mark a notification as unread.
+    """
+
+    if request.method != "POST":
+
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Invalid request method."
+            },
+            status=400
+        )
+
+    user_id = request.session.get(
+        "yaarlynx_user_id"
+    )
+
+    if not user_id:
+
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Authentication required."
+            },
+            status=401
+        )
+
+    recipient = get_object_or_404(
+        NotificationRecipient,
+        notification__notification_id=notification_id,
+        user_id=user_id,
+    )
+
+    recipient.mark_as_unread()
+
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "Notification marked as unread."
+        }
+    )
+
+
+
+
+def pdf_overlay_view(request):
+
+    # ========================================================
+    # GET ALL OVERLAY IMAGES
+    # ========================================================
+
+    overlay_images = OverlayImage.objects.all()
+
+
+    # ========================================================
+    # GET DEFAULT OVERLAY
+    # ========================================================
+
+    default_overlay = OverlayImage.objects.filter(
+        is_default=True
+    ).first()
+
+
+    # ========================================================
+    # POST
+    # ========================================================
+
+    if request.method == "POST":
+
+        # ----------------------------------------------------
+        # GET UPLOADED PDF
+        # ----------------------------------------------------
+
+        pdf_file = request.FILES.get(
+            "pdf_file"
+        )
+
+
+        # ----------------------------------------------------
+        # Validate PDF
+        # ----------------------------------------------------
+
+        if not pdf_file:
+
+            return render(
+                request,
+                "dashboard/overlay.html",
+                {
+                    "overlay_images": overlay_images,
+                    "default_overlay": default_overlay,
+                    "error": "Please upload a PDF file.",
+                }
+            )
+
+
+        # ----------------------------------------------------
+        # Check extension
+        # ----------------------------------------------------
+
+        if not pdf_file.name.lower().endswith(
+            ".pdf"
+        ):
+
+            return render(
+                request,
+                "dashboard/overlay.html",
+                {
+                    "overlay_images": overlay_images,
+                    "default_overlay": default_overlay,
+                    "error": "Only PDF files are allowed.",
+                }
+            )
+
+
+        # ====================================================
+        # GET SELECTED OVERLAY
+        # ====================================================
+
+        overlay_id = request.POST.get(
+            "overlay_image"
+        )
+
+
+        if not overlay_id:
+
+            return render(
+                request,
+                "dashboard/overlay.html",
+                {
+                    "overlay_images": overlay_images,
+                    "default_overlay": default_overlay,
+                    "error": "Please select an overlay image.",
+                }
+            )
+
+
+        # ====================================================
+        # GET OVERLAY OBJECT
+        # ====================================================
+
+        try:
+
+            overlay = OverlayImage.objects.get(
+                pk=overlay_id
+            )
+
+        except OverlayImage.DoesNotExist:
+
+            return render(
+                request,
+                "dashboard/overlay.html",
+                {
+                    "overlay_images": overlay_images,
+                    "default_overlay": default_overlay,
+                    "error": "Selected overlay image was not found.",
+                }
+            )
+
+
+        # ====================================================
+        # GET POSITION
+        # ====================================================
+
+        position = request.POST.get(
+            "position",
+            "bottom_center"
+        )
+
+
+        # ====================================================
+        # ALLOWED POSITIONS
+        # ====================================================
+
+        allowed_positions = {
+            "bottom_left",
+            "bottom_center",
+            "bottom_right",
+            "top_left",
+            "top_center",
+            "top_right",
+            "center",
+        }
+
+
+        if position not in allowed_positions:
+
+            position = "bottom_center"
+
+
+        # ====================================================
+        # PROCESS PDF
+        # ====================================================
+
+        try:
+
+            result = apply_overlay(
+                pdf_file=pdf_file,
+                image_path=overlay.image.path,
+                position=position,
+            )
+
+        except Exception as error:
+
+            return render(
+                request,
+                "dashboard/overlay.html",
+                {
+                    "overlay_images": overlay_images,
+                    "default_overlay": default_overlay,
+                    "error": (
+                        f"Unable to process PDF: {error}"
+                    ),
+                }
+            )
+
+
+        # ====================================================
+        # DOWNLOAD
+        # ====================================================
+
+        return FileResponse(
+            result,
+            as_attachment=True,
+            filename="pdf_overlay_result.pdf",
+            content_type="application/pdf",
+        )
+
+
+    # ========================================================
+    # GET REQUEST
+    # ========================================================
+
+    return render(
+        request,
+    "dashboard/overlay.html",
+        {
+            "overlay_images": overlay_images,
+            "default_overlay": default_overlay,
         }
     )

@@ -1,14 +1,15 @@
 from decimal import Decimal
 from django.contrib import admin, messages
-from django.utils.html import format_html
+from django.utils.html import format_html, mark_safe
 from .models import (
     Party,
     PartyPaymentQR,
     PaymentMethod,
     PartyPurchase,
     PurchasePaymentInstallment,
-    QuickLinkCategory, QuickLink
+    QuickLinkCategory, QuickLink, Notification, NotificationRecipient
 )
+from django.utils import timezone
 from pathlib import Path as FilePath
 from django import forms
 from django.core.exceptions import ValidationError
@@ -2336,3 +2337,1358 @@ class QuickLinkAdmin(admin.ModelAdmin):
         "activate_quick_links",
         "deactivate_quick_links",
     )
+
+
+# ============================================================
+# NOTIFICATION RECIPIENT INLINE
+# ============================================================
+
+class NotificationRecipientInline(admin.TabularInline):
+
+    model = NotificationRecipient
+
+    extra = 0
+
+    autocomplete_fields = [
+        "user",
+    ]
+
+    fields = [
+        "user",
+        "is_read",
+        "read_at",
+        "created_at",
+        "updated_at",
+    ]
+
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+    ]
+
+    show_change_link = True
+
+    ordering = [
+        "is_read",
+        "user__first_name",
+        "user__last_name",
+    ]
+
+
+# ============================================================
+# NOTIFICATION ADMIN
+# ============================================================
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+
+    # ========================================================
+    # LIST DISPLAY
+    # ========================================================
+
+    list_display = [
+        "notification_preview",
+        "notification_type_badge",
+        "priority_badge",
+        "status_badge",
+        "pinned_badge",
+        "publish_at",
+        "expires_at",
+        "recipient_count",
+        "unread_count",
+        "created_at",
+    ]
+
+    # ========================================================
+    # SEARCH
+    # ========================================================
+
+    search_fields = [
+        "title",
+        "message",
+        "notification_id",
+        "action_text",
+        "action_url",
+    ]
+
+    # ========================================================
+    # FILTERS
+    # ========================================================
+
+    list_filter = [
+        "notification_type",
+        "priority",
+        "is_active",
+        "is_pinned",
+        "publish_at",
+        "expires_at",
+        "created_at",
+    ]
+
+    # ========================================================
+    # DATE HIERARCHY
+    # ========================================================
+
+    date_hierarchy = "publish_at"
+
+    # ========================================================
+    # ORDERING
+    # ========================================================
+
+    ordering = [
+        "-is_pinned",
+        "-publish_at",
+        "-created_at",
+    ]
+
+    # ========================================================
+    # PAGINATION
+    # ========================================================
+
+    list_per_page = 25
+
+    # ========================================================
+    # INLINE
+    # ========================================================
+
+    inlines = [
+        NotificationRecipientInline,
+    ]
+
+    # ========================================================
+    # READONLY FIELDS
+    # ========================================================
+
+    readonly_fields = [
+        "notification_id",
+        "created_at",
+        "updated_at",
+        "notification_image_preview",
+        "notification_status",
+        "recipient_statistics",
+    ]
+
+    # ========================================================
+    # FIELDSETS
+    # ========================================================
+
+    fieldsets = (
+
+        # ----------------------------------------------------
+        # Notification Information
+        # ----------------------------------------------------
+
+        (
+            "Notification Information",
+            {
+                "fields": (
+                    "notification_id",
+                    "title",
+                    "message",
+                    "notification_type",
+                    "priority",
+                    "icon",
+                ),
+            },
+        ),
+
+        # ----------------------------------------------------
+        # Image
+        # ----------------------------------------------------
+
+        (
+            "Notification Image",
+            {
+                "fields": (
+                    "image",
+                    "notification_image_preview",
+                ),
+                "classes": (
+                    "collapse",
+                ),
+            },
+        ),
+
+        # ----------------------------------------------------
+        # Action
+        # ----------------------------------------------------
+
+        (
+            "Action",
+            {
+                "fields": (
+                    "action_text",
+                    "action_url",
+                ),
+                "classes": (
+                    "collapse",
+                ),
+                "description": (
+                    "Optional action button displayed with this notification."
+                ),
+            },
+        ),
+
+        # ----------------------------------------------------
+        # Publishing
+        # ----------------------------------------------------
+
+        (
+            "Publishing",
+            {
+                "fields": (
+                    "is_active",
+                    "is_pinned",
+                    "publish_at",
+                    "expires_at",
+                ),
+            },
+        ),
+
+        # ----------------------------------------------------
+        # Statistics
+        # ----------------------------------------------------
+
+        (
+            "Statistics",
+            {
+                "fields": (
+                    "notification_status",
+                    "recipient_statistics",
+                ),
+            },
+        ),
+
+        # ----------------------------------------------------
+        # System Information
+        # ----------------------------------------------------
+
+        (
+            "System Information",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                ),
+                "classes": (
+                    "collapse",
+                ),
+            },
+        ),
+    )
+
+    # ========================================================
+    # QUERYSET
+    # ========================================================
+
+    def get_queryset(self, request):
+
+        queryset = super().get_queryset(request)
+
+        return queryset.prefetch_related(
+            "recipients",
+        )
+
+    # ========================================================
+    # NOTIFICATION PREVIEW
+    # ========================================================
+
+    @admin.display(
+        description="Notification",
+        ordering="title",
+    )
+    def notification_preview(self, obj):
+
+        icon = obj.icon or "ri-notification-3-line"
+
+        return format_html(
+            """
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+                min-width:230px;
+            ">
+
+                <div style="
+                    width:40px;
+                    height:40px;
+                    flex-shrink:0;
+                    border-radius:10px;
+                    background:#f1f5f5;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    color:#153030;
+                    font-size:18px;
+                ">
+                    <i class="{}"></i>
+                </div>
+
+                <div style="
+                    min-width:0;
+                ">
+
+                    <div style="
+                        font-weight:600;
+                        color:#153030;
+                        white-space:nowrap;
+                        overflow:hidden;
+                        text-overflow:ellipsis;
+                        max-width:180px;
+                    ">
+                        {}
+                    </div>
+
+                    <div style="
+                        color:#6b7280;
+                        font-size:11px;
+                        margin-top:3px;
+                    ">
+                        {}
+                    </div>
+
+                </div>
+
+            </div>
+            """,
+            icon,
+            obj.title,
+            obj.notification_id,
+        )
+
+    # ========================================================
+    # TYPE BADGE
+    # ========================================================
+
+    @admin.display(
+        description="Type",
+        ordering="notification_type",
+    )
+    def notification_type_badge(self, obj):
+
+        badge_colors = {
+            "GENERAL": ("#f3f4f6", "#374151"),
+            "SYSTEM": ("#e0f2fe", "#0369a1"),
+            "FESTIVAL": ("#fef3c7", "#92400e"),
+            "FEATURE": ("#ede9fe", "#6d28d9"),
+            "ANNOUNCEMENT": ("#dbeafe", "#1d4ed8"),
+            "PRODUCT": ("#dcfce7", "#166534"),
+            "ORDER": ("#e0e7ff", "#3730a3"),
+            "PAYMENT": ("#cffafe", "#155e75"),
+            "WARNING": ("#fee2e2", "#b91c1c"),
+            "SUCCESS": ("#dcfce7", "#166534"),
+        }
+
+        background, color = badge_colors.get(
+            obj.notification_type,
+            ("#f3f4f6", "#374151"),
+        )
+
+        label = obj.get_notification_type_display()
+
+        return format_html(
+            """
+            <span style="
+                display:inline-flex;
+                align-items:center;
+                padding:5px 9px;
+                border-radius:999px;
+                background:{};
+                color:{};
+                font-size:11px;
+                font-weight:600;
+                white-space:nowrap;
+            ">
+                {}
+            </span>
+            """,
+            background,
+            color,
+            label,
+        )
+
+    # ========================================================
+    # PRIORITY BADGE
+    # ========================================================
+
+    @admin.display(
+        description="Priority",
+        ordering="priority",
+    )
+    def priority_badge(self, obj):
+
+        priority_colors = {
+            "LOW": ("#f3f4f6", "#4b5563"),
+            "NORMAL": ("#dbeafe", "#1d4ed8"),
+            "HIGH": ("#fef3c7", "#92400e"),
+            "URGENT": ("#fee2e2", "#b91c1c"),
+        }
+
+        background, color = priority_colors.get(
+            obj.priority,
+            ("#f3f4f6", "#374151"),
+        )
+
+        return format_html(
+            """
+            <span style="
+                display:inline-flex;
+                align-items:center;
+                padding:5px 9px;
+                border-radius:999px;
+                background:{};
+                color:{};
+                font-size:11px;
+                font-weight:700;
+                white-space:nowrap;
+            ">
+                {}
+            </span>
+            """,
+            background,
+            color,
+            obj.get_priority_display(),
+        )
+
+    # ========================================================
+    # STATUS BADGE
+    # ========================================================
+
+    @admin.display(
+        description="Status",
+    )
+    def status_badge(self, obj):
+
+        now = timezone.now()
+
+        # Inactive
+        if not obj.is_active:
+
+            return mark_safe(
+                """
+                <span style="
+                    display:inline-flex;
+                    align-items:center;
+                    padding:5px 9px;
+                    border-radius:999px;
+                    background:#f3f4f6;
+                    color:#6b7280;
+                    font-size:11px;
+                    font-weight:600;
+                ">
+                    Inactive
+                </span>
+                """
+            )
+
+        # Scheduled
+        if obj.publish_at > now:
+
+            return mark_safe(
+                """
+                <span style="
+                    display:inline-flex;
+                    align-items:center;
+                    padding:5px 9px;
+                    border-radius:999px;
+                    background:#fef3c7;
+                    color:#92400e;
+                    font-size:11px;
+                    font-weight:600;
+                ">
+                    Scheduled
+                </span>
+                """
+            )
+
+        # Expired
+        if obj.expires_at and obj.expires_at < now:
+
+            return mark_safe(
+                """
+                <span style="
+                    display:inline-flex;
+                    align-items:center;
+                    padding:5px 9px;
+                    border-radius:999px;
+                    background:#fee2e2;
+                    color:#b91c1c;
+                    font-size:11px;
+                    font-weight:600;
+                ">
+                    Expired
+                </span>
+                """
+            )
+
+        # Published
+        return mark_safe(
+            """
+            <span style="
+                display:inline-flex;
+                align-items:center;
+                padding:5px 9px;
+                border-radius:999px;
+                background:#dcfce7;
+                color:#166534;
+                font-size:11px;
+                font-weight:600;
+            ">
+                Published
+            </span>
+            """
+        )
+
+    # ========================================================
+    # PINNED BADGE
+    # ========================================================
+
+    @admin.display(
+        description="Pinned",
+        boolean=False,
+    )
+    def pinned_badge(self, obj):
+
+        if obj.is_pinned:
+
+            return mark_safe(
+                """
+                <span style="
+                    display:inline-flex;
+                    align-items:center;
+                    gap:4px;
+                    color:#b45309;
+                    font-weight:600;
+                    font-size:12px;
+                ">
+                    <i class="ri-pushpin-fill"></i>
+                    Pinned
+                </span>
+                """
+            )
+
+        return mark_safe(
+            """
+            <span style="
+                color:#9ca3af;
+                font-size:12px;
+            ">
+                —
+            </span>
+            """
+        )
+
+    # ========================================================
+    # RECIPIENT COUNT
+    # ========================================================
+
+    @admin.display(
+        description="Recipients",
+    )
+    def recipient_count(self, obj):
+
+        count = obj.recipients.count()
+
+        return format_html(
+            """
+            <span style="
+                display:inline-flex;
+                align-items:center;
+                gap:4px;
+                color:#374151;
+                font-weight:600;
+            ">
+                <i class="ri-group-line"></i>
+                {}
+            </span>
+            """,
+            count,
+        )
+
+    # ========================================================
+    # UNREAD COUNT
+    # ========================================================
+
+    @admin.display(
+        description="Unread",
+    )
+    def unread_count(self, obj):
+
+        count = obj.recipients.filter(
+            is_read=False,
+        ).count()
+
+        if count > 0:
+
+            return format_html(
+                """
+                <span style="
+                    display:inline-flex;
+                    align-items:center;
+                    gap:4px;
+                    color:#dc2626;
+                    font-weight:700;
+                ">
+                    <i class="ri-mail-unread-line"></i>
+                    {}
+                </span>
+                """,
+                count,
+            )
+
+        return mark_safe(
+            """
+            <span style="
+                display:inline-flex;
+                align-items:center;
+                gap:4px;
+                color:#16a34a;
+                font-weight:600;
+            ">
+                <i class="ri-check-double-line"></i>
+                0
+            </span>
+            """
+        )
+
+    # ========================================================
+    # IMAGE PREVIEW
+    # ========================================================
+
+    @admin.display(
+        description="Image Preview",
+    )
+    def notification_image_preview(self, obj):
+
+        if not obj or not obj.image:
+
+            return mark_safe(
+                """
+                <div style="
+                    padding:20px;
+                    border:1px dashed #d1d5db;
+                    border-radius:12px;
+                    color:#9ca3af;
+                    text-align:center;
+                    max-width:300px;
+                    background:#f9fafb;
+                ">
+
+                    <div style="
+                        font-size:24px;
+                        margin-bottom:6px;
+                    ">
+                        🖼️
+                    </div>
+
+                    <div style="
+                        font-size:13px;
+                    ">
+                        No image uploaded
+                    </div>
+
+                </div>
+                """
+            )
+
+        return format_html(
+            """
+            <div style="
+                margin-top:8px;
+            ">
+
+                <img
+                    src="{}"
+                    alt="Notification image"
+                    style="
+                        max-width:350px;
+                        max-height:220px;
+                        object-fit:contain;
+                        border-radius:12px;
+                        border:1px solid #e5e7eb;
+                        padding:6px;
+                        background:#fff;
+                    "
+                >
+
+            </div>
+            """,
+            obj.image.url,
+        )
+
+    # ========================================================
+    # DETAIL STATUS
+    # ========================================================
+
+    @admin.display(
+        description="Current Status",
+    )
+    def notification_status(self, obj):
+
+        if not obj or not obj.pk:
+
+            return mark_safe(
+                """
+                <span style="
+                    color:#9ca3af;
+                    font-size:13px;
+                ">
+                    Save notification to view status.
+                </span>
+                """
+            )
+
+        now = timezone.now()
+
+        if not obj.is_active:
+
+            status = "Inactive"
+            background = "#f3f4f6"
+            color = "#6b7280"
+
+        elif obj.publish_at > now:
+
+            status = "Scheduled"
+            background = "#fef3c7"
+            color = "#92400e"
+
+        elif obj.expires_at and obj.expires_at < now:
+
+            status = "Expired"
+            background = "#fee2e2"
+            color = "#b91c1c"
+
+        else:
+
+            status = "Published"
+            background = "#dcfce7"
+            color = "#166534"
+
+        return format_html(
+            """
+            <span style="
+                display:inline-flex;
+                align-items:center;
+                padding:6px 12px;
+                border-radius:999px;
+                background:{};
+                color:{};
+                font-size:12px;
+                font-weight:600;
+            ">
+                {}
+            </span>
+            """,
+            background,
+            color,
+            status,
+        )
+
+    # ========================================================
+    # RECIPIENT STATISTICS
+    # ========================================================
+
+    @admin.display(
+        description="Recipient Statistics",
+    )
+    def recipient_statistics(self, obj):
+
+        if not obj or not obj.pk:
+
+            return mark_safe(
+                """
+                <div style="
+                    padding:12px 14px;
+                    border-radius:10px;
+                    background:#f9fafb;
+                    border:1px solid #e5e7eb;
+                    color:#6b7280;
+                    font-size:13px;
+                    max-width:500px;
+                ">
+                    Recipient statistics will be available after
+                    saving the notification and assigning recipients.
+                </div>
+                """
+            )
+
+        total = obj.recipients.count()
+
+        read = obj.recipients.filter(
+            is_read=True,
+        ).count()
+
+        unread = obj.recipients.filter(
+            is_read=False,
+        ).count()
+
+        percentage = 0
+
+        if total:
+            percentage = round(
+                (read / total) * 100,
+                1,
+            )
+
+        return format_html(
+            """
+            <div style="
+                display:flex;
+                gap:10px;
+                flex-wrap:wrap;
+                margin-top:5px;
+            ">
+
+                <div style="
+                    padding:10px 14px;
+                    border-radius:10px;
+                    background:#f3f4f6;
+                ">
+                    <div style="
+                        font-size:11px;
+                        color:#6b7280;
+                    ">
+                        Total
+                    </div>
+
+                    <strong style="
+                        color:#153030;
+                        font-size:18px;
+                    ">
+                        {}
+                    </strong>
+                </div>
+
+
+                <div style="
+                    padding:10px 14px;
+                    border-radius:10px;
+                    background:#dcfce7;
+                ">
+                    <div style="
+                        font-size:11px;
+                        color:#166534;
+                    ">
+                        Read
+                    </div>
+
+                    <strong style="
+                        color:#166534;
+                        font-size:18px;
+                    ">
+                        {}
+                    </strong>
+                </div>
+
+
+                <div style="
+                    padding:10px 14px;
+                    border-radius:10px;
+                    background:#fee2e2;
+                ">
+                    <div style="
+                        font-size:11px;
+                        color:#b91c1c;
+                    ">
+                        Unread
+                    </div>
+
+                    <strong style="
+                        color:#b91c1c;
+                        font-size:18px;
+                    ">
+                        {}
+                    </strong>
+                </div>
+
+
+                <div style="
+                    padding:10px 14px;
+                    border-radius:10px;
+                    background:#e0e7ff;
+                ">
+                    <div style="
+                        font-size:11px;
+                        color:#3730a3;
+                    ">
+                        Read Rate
+                    </div>
+
+                    <strong style="
+                        color:#3730a3;
+                        font-size:18px;
+                    ">
+                        {}%
+                    </strong>
+                </div>
+
+            </div>
+            """,
+            total,
+            read,
+            unread,
+            percentage,
+        )
+
+    # ========================================================
+    # ADMIN ACTIONS
+    # ========================================================
+
+    actions = [
+        "activate_notifications",
+        "deactivate_notifications",
+        "pin_notifications",
+        "unpin_notifications",
+        "mark_recipients_read",
+        "mark_recipients_unread",
+    ]
+
+    # ========================================================
+    # ACTIVATE
+    # ========================================================
+
+    @admin.action(
+        description="Activate selected notifications",
+    )
+    def activate_notifications(self, request, queryset):
+
+        updated = queryset.update(
+            is_active=True,
+        )
+
+        self.message_user(
+            request,
+            f"{updated} notification(s) activated.",
+        )
+
+    # ========================================================
+    # DEACTIVATE
+    # ========================================================
+
+    @admin.action(
+        description="Deactivate selected notifications",
+    )
+    def deactivate_notifications(self, request, queryset):
+
+        updated = queryset.update(
+            is_active=False,
+        )
+
+        self.message_user(
+            request,
+            f"{updated} notification(s) deactivated.",
+        )
+
+    # ========================================================
+    # PIN
+    # ========================================================
+
+    @admin.action(
+        description="Pin selected notifications",
+    )
+    def pin_notifications(self, request, queryset):
+
+        updated = queryset.update(
+            is_pinned=True,
+        )
+
+        self.message_user(
+            request,
+            f"{updated} notification(s) pinned.",
+        )
+
+    # ========================================================
+    # UNPIN
+    # ========================================================
+
+    @admin.action(
+        description="Unpin selected notifications",
+    )
+    def unpin_notifications(self, request, queryset):
+
+        updated = queryset.update(
+            is_pinned=False,
+        )
+
+        self.message_user(
+            request,
+            f"{updated} notification(s) unpinned.",
+        )
+
+    # ========================================================
+    # MARK RECIPIENTS READ
+    # ========================================================
+
+    @admin.action(
+        description="Mark all recipients as read",
+    )
+    def mark_recipients_read(self, request, queryset):
+
+        updated = 0
+
+        for notification in queryset:
+
+            count = notification.recipients.filter(
+                is_read=False,
+            ).update(
+                is_read=True,
+                read_at=timezone.now(),
+            )
+
+            updated += count
+
+        self.message_user(
+            request,
+            f"{updated} recipient notification(s) marked as read.",
+        )
+
+    # ========================================================
+    # MARK RECIPIENTS UNREAD
+    # ========================================================
+
+    @admin.action(
+        description="Mark all recipients as unread",
+    )
+    def mark_recipients_unread(self, request, queryset):
+
+        updated = 0
+
+        for notification in queryset:
+
+            count = notification.recipients.filter(
+                is_read=True,
+            ).update(
+                is_read=False,
+                read_at=None,
+            )
+
+            updated += count
+
+        self.message_user(
+            request,
+            f"{updated} recipient notification(s) marked as unread.",
+        )
+
+
+# ============================================================
+# NOTIFICATION RECIPIENT ADMIN
+# ============================================================
+
+@admin.register(NotificationRecipient)
+class NotificationRecipientAdmin(admin.ModelAdmin):
+
+    # ========================================================
+    # LIST DISPLAY
+    # ========================================================
+
+    list_display = [
+        "user_display",
+        "notification_display",
+        "read_status",
+        "read_at",
+        "created_at",
+        "updated_at",
+    ]
+
+    # ========================================================
+    # SEARCH
+    # ========================================================
+
+    search_fields = [
+        "user__first_name",
+        "user__last_name",
+        "user__email",
+        "notification__title",
+        "notification__notification_id",
+    ]
+
+    # ========================================================
+    # FILTERS
+    # ========================================================
+
+    list_filter = [
+        "is_read",
+        "notification__notification_type",
+        "notification__priority",
+        "notification__is_active",
+        "notification__is_pinned",
+        "created_at",
+        "read_at",
+    ]
+
+    # ========================================================
+    # DATE HIERARCHY
+    # ========================================================
+
+    date_hierarchy = "created_at"
+
+    # ========================================================
+    # ORDERING
+    # ========================================================
+
+    ordering = [
+        "is_read",
+        "-created_at",
+    ]
+
+    # ========================================================
+    # PAGINATION
+    # ========================================================
+
+    list_per_page = 50
+
+    # ========================================================
+    # AUTOCOMPLETE
+    # ========================================================
+
+    autocomplete_fields = [
+        "user",
+        "notification",
+    ]
+
+    # ========================================================
+    # READONLY
+    # ========================================================
+
+    readonly_fields = [
+        "read_at",
+        "created_at",
+        "updated_at",
+    ]
+
+    # ========================================================
+    # FIELDSETS
+    # ========================================================
+
+    fieldsets = (
+
+        (
+            "Recipient",
+            {
+                "fields": (
+                    "notification",
+                    "user",
+                ),
+            },
+        ),
+
+        (
+            "Read Status",
+            {
+                "fields": (
+                    "is_read",
+                    "read_at",
+                ),
+            },
+        ),
+
+        (
+            "System Information",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                ),
+                "classes": (
+                    "collapse",
+                ),
+            },
+        ),
+    )
+
+    # ========================================================
+    # USER DISPLAY
+    # ========================================================
+
+    @admin.display(
+        description="User",
+        ordering="user__first_name",
+    )
+    def user_display(self, obj):
+
+        user = obj.user
+
+        full_name = (
+            f"{user.first_name} {user.last_name}"
+            .strip()
+        )
+
+        if not full_name:
+            full_name = user.email
+
+        return format_html(
+            """
+            <div>
+
+                <div style="
+                    font-weight:600;
+                    color:#153030;
+                ">
+                    {}
+                </div>
+
+                <div style="
+                    font-size:11px;
+                    color:#6b7280;
+                    margin-top:2px;
+                ">
+                    {}
+                </div>
+
+            </div>
+            """,
+            full_name,
+            user.email,
+        )
+
+    # ========================================================
+    # NOTIFICATION DISPLAY
+    # ========================================================
+
+    @admin.display(
+        description="Notification",
+        ordering="notification__title",
+    )
+    def notification_display(self, obj):
+
+        return format_html(
+            """
+            <div style="
+                max-width:300px;
+            ">
+
+                <div style="
+                    font-weight:600;
+                    color:#153030;
+                ">
+                    {}
+                </div>
+
+                <div style="
+                    margin-top:3px;
+                    font-size:11px;
+                    color:#6b7280;
+                ">
+                    {}
+                </div>
+
+            </div>
+            """,
+            obj.notification.title,
+            obj.notification.get_notification_type_display(),
+        )
+
+    # ========================================================
+    # READ STATUS
+    # ========================================================
+
+    @admin.display(
+        description="Read Status",
+        ordering="is_read",
+    )
+    def read_status(self, obj):
+
+        if obj.is_read:
+
+            return mark_safe(
+                """
+                <span style="
+                    display:inline-flex;
+                    align-items:center;
+                    gap:5px;
+                    padding:5px 9px;
+                    border-radius:999px;
+                    background:#dcfce7;
+                    color:#166534;
+                    font-size:11px;
+                    font-weight:600;
+                ">
+                    <i class="ri-check-double-line"></i>
+                    Read
+                </span>
+                """
+            )
+
+        return mark_safe(
+            """
+            <span style="
+                display:inline-flex;
+                align-items:center;
+                gap:5px;
+                padding:5px 9px;
+                border-radius:999px;
+                background:#fee2e2;
+                color:#b91c1c;
+                font-size:11px;
+                font-weight:600;
+            ">
+                <i class="ri-mail-unread-line"></i>
+                Unread
+            </span>
+            """
+        )
+
+    # ========================================================
+    # ADMIN ACTIONS
+    # ========================================================
+
+    actions = [
+        "mark_as_read",
+        "mark_as_unread",
+    ]
+
+    # ========================================================
+    # MARK AS READ
+    # ========================================================
+
+    @admin.action(
+        description="Mark selected as read",
+    )
+    def mark_as_read(self, request, queryset):
+
+        updated = queryset.filter(
+            is_read=False,
+        ).update(
+            is_read=True,
+            read_at=timezone.now(),
+        )
+
+        self.message_user(
+            request,
+            f"{updated} recipient(s) marked as read.",
+        )
+
+    # ========================================================
+    # MARK AS UNREAD
+    # ========================================================
+
+    @admin.action(
+        description="Mark selected as unread",
+    )
+    def mark_as_unread(self, request, queryset):
+
+        updated = queryset.filter(
+            is_read=True,
+        ).update(
+            is_read=False,
+            read_at=None,
+        )
+
+        self.message_user(
+            request,
+            f"{updated} recipient(s) marked as unread.",
+        )
+
+    # ========================================================
+    # QUERYSET OPTIMIZATION
+    # ========================================================
+
+    def get_queryset(self, request):
+
+        queryset = super().get_queryset(request)
+
+        return queryset.select_related(
+            "user",
+            "notification",
+        )

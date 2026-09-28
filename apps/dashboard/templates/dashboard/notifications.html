@@ -1,0 +1,479 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}
+Notifications | Yaarlynx
+{% endblock %}
+
+{% block page_heading %}
+Notifications
+{% endblock %}
+
+{% block meta_description %}
+Yaarlynx Management System Notifications
+{% endblock %}
+
+
+{% block content %}
+
+<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+
+    <!-- ========================================================= -->
+    <!-- HEADER -->
+    <!-- ========================================================= -->
+
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+        <div>
+
+            <div class="flex items-center gap-3">
+
+                <div
+                    class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#153030] text-white shadow-sm"
+                >
+                    <i class="ri-notification-3-line text-xl"></i>
+                </div>
+
+                <div>
+
+                    <h1 class="text-xl font-bold text-[#153030]">
+                        Notifications
+                    </h1>
+
+                    <p class="mt-1 text-sm text-gray-500">
+                        Stay updated with the latest news and updates.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {% if unread_count > 0 %}
+
+        <button
+            type="button"
+            onclick="markAllAsRead()"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#153030] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#204747]"
+        >
+
+            <i class="ri-check-double-line"></i>
+
+            Mark all as read
+
+        </button>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- STAT CARDS -->
+    <!-- ========================================================= -->
+
+    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+
+        <!-- TOTAL -->
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Total Notifications
+                    </p>
+
+                    <p class="mt-2 text-2xl font-bold text-[#153030]">
+                        {{ total_notifications }}
+                    </p>
+
+                </div>
+
+                <div
+                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-600"
+                >
+                    <i class="ri-notification-3-line text-xl"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- UNREAD -->
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Unread
+                    </p>
+
+                    <p
+                        id="unreadCount"
+                        class="mt-2 text-2xl font-bold text-[#153030]"
+                    >
+                        {{ unread_count }}
+                    </p>
+
+                </div>
+
+                <div
+                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600"
+                >
+                    <i class="ri-mail-unread-line text-xl"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- STATUS -->
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+
+            <div class="flex items-center justify-between">
+
+                <div>
+
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                        Status
+                    </p>
+
+                    {% if unread_count > 0 %}
+
+                        <p class="mt-2 text-lg font-bold text-amber-600">
+                            {{ unread_count }} new
+                        </p>
+
+                    {% else %}
+
+                        <p class="mt-2 text-lg font-bold text-emerald-600">
+                            All caught up
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+                <div
+                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"
+                >
+                    <i class="ri-checkbox-circle-line text-xl"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- NOTIFICATION LIST -->
+    <!-- ========================================================= -->
+
+    <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+
+        {% if recipients %}
+
+            <div class="divide-y divide-gray-100">
+
+                {% for recipient in recipients %}
+
+                {% with notification=recipient.notification %}
+
+                <a
+                    href="{% url 'notification_detail' notification.notification_id %}"
+                    class="group block transition hover:bg-[#F8FAFA]"
+                >
+
+                    <div class="flex gap-4 p-5 sm:p-6">
+
+
+                        <!-- ICON -->
+
+                        <div class="relative shrink-0">
+
+                            {% if notification.notification_type == "FESTIVAL" %}
+
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-50 text-pink-600">
+                                    <i class="ri-gift-line text-xl"></i>
+                                </div>
+
+                            {% elif notification.notification_type == "SYSTEM" %}
+
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                                    <i class="ri-settings-3-line text-xl"></i>
+                                </div>
+
+                            {% elif notification.notification_type == "FEATURE" %}
+
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-600">
+                                    <i class="ri-sparkling-2-line text-xl"></i>
+                                </div>
+
+                            {% elif notification.notification_type == "WARNING" %}
+
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                                    <i class="ri-error-warning-line text-xl"></i>
+                                </div>
+
+                            {% elif notification.notification_type == "SUCCESS" %}
+
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                                    <i class="ri-checkbox-circle-line text-xl"></i>
+                                </div>
+
+                            {% else %}
+
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F1F5F5] text-[#153030]">
+                                    <i class="{{ notification.icon }} text-xl"></i>
+                                </div>
+
+                            {% endif %}
+
+
+                            {% if not recipient.is_read %}
+
+                                <span
+                                    class="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-red-500"
+                                ></span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- CONTENT -->
+
+                        <div class="min-w-0 flex-1">
+
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+
+                                <div class="min-w-0">
+
+                                    <div class="flex flex-wrap items-center gap-2">
+
+                                        <h3
+                                            class="{% if recipient.is_read %}font-semibold{% else %}font-bold{% endif %} text-sm text-[#153030]"
+                                        >
+                                            {{ notification.title }}
+                                        </h3>
+
+
+                                        {% if not recipient.is_read %}
+
+                                            <span
+                                                class="rounded-full bg-[#153030] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white"
+                                            >
+                                                New
+                                            </span>
+
+                                        {% endif %}
+
+
+                                        {% if notification.is_pinned %}
+
+                                            <span
+                                                class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700"
+                                            >
+                                                <i class="ri-pushpin-2-line"></i>
+                                                Pinned
+                                            </span>
+
+                                        {% endif %}
+
+                                    </div>
+
+
+                                    <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-400">
+
+                                        <span>
+                                            {{ notification.get_notification_type_display }}
+                                        </span>
+
+                                        <span>•</span>
+
+                                        <span>
+                                            {{ notification.get_priority_display }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <span class="shrink-0 text-xs text-gray-400">
+
+                                    {{ notification.publish_at|date:"d M Y, h:i A" }}
+
+                                </span>
+
+                            </div>
+
+
+                            <p class="mt-3 line-clamp-2 text-sm leading-6 text-gray-500">
+
+                                {{ notification.message }}
+
+                            </p>
+
+
+                            {% if notification.action_text %}
+
+                                <div
+                                    class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#153030]"
+                                >
+
+                                    {{ notification.action_text }}
+
+                                    <i class="ri-arrow-right-line transition group-hover:translate-x-1"></i>
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- ARROW -->
+
+                        <div class="hidden items-center sm:flex">
+
+                            <i
+                                class="ri-arrow-right-s-line text-xl text-gray-300 transition group-hover:translate-x-1 group-hover:text-[#153030]"
+                            ></i>
+
+                        </div>
+
+                    </div>
+
+                </a>
+
+                {% endwith %}
+
+                {% endfor %}
+
+            </div>
+
+
+        {% else %}
+
+
+            <!-- EMPTY STATE -->
+
+            <div class="px-6 py-20 text-center">
+
+                <div
+                    class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#F1F5F5] text-[#153030]"
+                >
+                    <i class="ri-notification-off-line text-3xl"></i>
+                </div>
+
+
+                <h3 class="mt-5 text-base font-bold text-[#153030]">
+                    You're all caught up
+                </h3>
+
+
+                <p class="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">
+                    There are no notifications available for you right now.
+                    New announcements and updates will appear here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ========================================================= -->
+
+<script>
+
+function getCookie(name) {
+
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== '') {
+
+        const cookies = document.cookie.split(';');
+
+        for (let i = 0; i < cookies.length; i++) {
+
+            const cookie = cookies[i].trim();
+
+            if (
+                cookie.substring(
+                    0,
+                    name.length + 1
+                ) === name + '='
+            ) {
+
+                cookieValue = decodeURIComponent(
+                    cookie.substring(
+                        name.length + 1
+                    )
+                );
+
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+
+
+function markAllAsRead() {
+
+    fetch(
+        "{% url 'mark_all_notifications_read' %}",
+        {
+            method: "POST",
+
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Content-Type": "application/json"
+            }
+        }
+    )
+    .then(response => response.json())
+    .then(data => {
+
+        if (data.success) {
+
+            window.location.reload();
+
+        }
+
+    })
+    .catch(error => {
+
+        console.error(
+            "Notification error:",
+            error
+        );
+
+    });
+
+}
+
+</script>
+
+{% endblock %}

@@ -11,12 +11,17 @@
 
     <meta name="theme-color" content="#153030">
 
-    <meta name="description" content="{% block meta_description %}Yaarlynx Admin Dashboard{% endblock %}">
+    <meta name="description"
+        content="{% block meta_description %}Yaarlynx Admin Dashboard{% endblock %}">
 
-    <link rel="icon" type="image/png" href="{% static 'dashboard/images/white_logo.png' %}">
+    <link rel="icon"
+        type="image/png"
+        href="{% static 'dashboard/images/white_logo.png' %}">
 
     <title>
-        {% block title %}Yaarlynx Admin{% endblock %}
+        {% block title %}
+            Yaarlynx Admin
+        {% endblock %}
     </title>
 
 
@@ -65,16 +70,28 @@
 
 
     <!-- =========================================================
+         REMIX ICON
+    ========================================================== -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css"
+        rel="stylesheet"
+    >
+
+
+    <!-- =========================================================
          CUSTOM CSS
     ========================================================== -->
 
     <style>
+
         html {
             scroll-behavior: smooth;
         }
 
 
         body {
+
             font-family:
                 Inter,
                 ui-sans-serif,
@@ -85,6 +102,7 @@
                 sans-serif;
 
             margin: 0;
+
         }
 
 
@@ -101,12 +119,17 @@
         }
 
         .sidebar-scroll::-webkit-scrollbar-thumb {
+
             background: #dce6e6;
+
             border-radius: 10px;
+
         }
 
         .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+
             background: #b9cccc;
+
         }
 
 
@@ -123,12 +146,48 @@
         }
 
         .content-scroll::-webkit-scrollbar-thumb {
+
             background: #dce6e6;
+
             border-radius: 10px;
+
         }
 
         .content-scroll::-webkit-scrollbar-thumb:hover {
+
             background: #b9cccc;
+
+        }
+
+
+        /* =====================================================
+           NOTIFICATION SCROLLBAR
+        ====================================================== */
+
+        .notification-scroll::-webkit-scrollbar {
+
+            width: 4px;
+
+        }
+
+        .notification-scroll::-webkit-scrollbar-track {
+
+            background: transparent;
+
+        }
+
+        .notification-scroll::-webkit-scrollbar-thumb {
+
+            background: #dce6e6;
+
+            border-radius: 10px;
+
+        }
+
+        .notification-scroll::-webkit-scrollbar-thumb:hover {
+
+            background: #b9cccc;
+
         }
 
 
@@ -137,8 +196,11 @@
         ====================================================== */
 
         ::selection {
+
             background: #153030;
+
             color: white;
+
         }
 
 
@@ -147,7 +209,9 @@
         ====================================================== */
 
         body.sidebar-open {
+
             overflow: hidden;
+
         }
 
 
@@ -158,9 +222,84 @@
         button:focus-visible,
         a:focus-visible,
         input:focus-visible {
+
             outline: 2px solid #153030;
+
             outline-offset: 2px;
+
         }
+
+
+        /* =====================================================
+           NOTIFICATION ANIMATION
+        ====================================================== */
+
+        @keyframes notificationDropdown {
+
+            from {
+
+                opacity: 0;
+
+                transform:
+                    translateY(-6px)
+                    scale(0.98);
+
+            }
+
+            to {
+
+                opacity: 1;
+
+                transform:
+                    translateY(0)
+                    scale(1);
+
+            }
+
+        }
+
+
+        .notification-dropdown-animation {
+
+            animation:
+                notificationDropdown
+                0.16s
+                ease-out;
+
+        }
+
+
+        /* =====================================================
+           NOTIFICATION BELL
+        ====================================================== */
+
+        @keyframes notificationPulse {
+
+            0%,
+            100% {
+
+                transform: scale(1);
+
+            }
+
+            50% {
+
+                transform: scale(1.08);
+
+            }
+
+        }
+
+
+        .notification-badge-pulse {
+
+            animation:
+                notificationPulse
+                2s
+                infinite;
+
+        }
+
     </style>
 
 
@@ -177,7 +316,10 @@
          MOBILE SIDEBAR OVERLAY
     ========================================================== -->
 
-    <div id="sidebar-overlay" class="fixed inset-0 z-40 hidden bg-black/30 backdrop-blur-[1px] lg:hidden"></div>
+    <div
+        id="sidebar-overlay"
+        class="fixed inset-0 z-40 hidden bg-black/30 backdrop-blur-[1px] lg:hidden"
+    ></div>
 
 
     <!-- =========================================================
@@ -191,8 +333,10 @@
              SIDEBAR
         ====================================================== -->
 
-        <aside id="sidebar"
-            class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0">
+        <aside
+            id="sidebar"
+            class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0"
+        >
 
 
             <!-- =================================================
@@ -201,14 +345,20 @@
 
             <div class="flex h-20 shrink-0 items-center border-b border-gray-100 px-5">
 
-                <a href="/" class="flex min-w-0 items-center gap-3">
+                <a
+                    href="/"
+                    class="flex min-w-0 items-center gap-3"
+                >
 
                     <!-- Logo -->
 
                     <div class="flex h-11 w-11 shrink-0 items-center justify-center">
 
-                        <img src="{% static 'dashboard/images/logo.png' %}" alt="Yaarlynx Logo"
-                            class="h-11 w-11 object-contain">
+                        <img
+                            src="{% static 'dashboard/images/logo.png' %}"
+                            alt="Yaarlynx Logo"
+                            class="h-11 w-11 object-contain"
+                        >
 
                     </div>
 
@@ -222,7 +372,10 @@
                         </div>
 
                         <div class="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-gray-400">
-                            {{ request.session.yaarlynx_user_role|upper }} Panel
+
+                            {{ request.session.yaarlynx_user_role|upper }}
+                            Panel
+
                         </div>
 
                     </div>
@@ -246,18 +399,33 @@
                 <div>
 
                     <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+
                         Main
+
                     </p>
+
 
                     <!-- Dashboard -->
 
-                    <a href="{% url 'dashboard_view' %}"
-                        class="{% if request.resolver_match.url_name == 'dashboard_view' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150">
+                    <a
+                        href="{% url 'dashboard_view' %}"
+                        class="{% if request.resolver_match.url_name == 'dashboard_view' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+                    >
 
-                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" />
+                        <svg
+                            class="h-5 w-5 shrink-0"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z"
+                            />
+
                         </svg>
 
                         <span class="truncate">
@@ -266,60 +434,139 @@
 
                     </a>
 
-                    <!-- Quick Links -->
-                    <a href="{% url 'quick_links' %}"
-                        class="{% if request.resolver_match.url_name == 'quick_links' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150">
 
-                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <!-- Quick Links -->
+
+                    <a
+                        href="{% url 'quick_links' %}"
+                        class="{% if request.resolver_match.url_name == 'quick_links' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+                    >
+
+                        <svg
+                            class="h-5 w-5 shrink-0"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"
+                            />
+
                         </svg>
 
                         <span class="truncate">
                             Quick Links
                         </span>
+
                     </a>
+
 
                     {% if request.session.yaarlynx_user_role_code == "ADMIN" or request.session.yaarlynx_user_role_code == "SUPER_ADMIN" %}
 
-                    <!-- Parties -->
-                    <a href="{% url 'party_list' %}"
-                        class="{% if request.resolver_match.url_name == 'party_list' or request.resolver_match.url_name == 'party_detail' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150">
 
-                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m6-10a4 4 0 100-8 4 4 0 000 8zm10 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                    <!-- Parties -->
+
+                    <a
+                        href="{% url 'party_list' %}"
+                        class="{% if request.resolver_match.url_name == 'party_list' or request.resolver_match.url_name == 'party_detail' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+                    >
+
+                        <svg
+                            class="h-5 w-5 shrink-0"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m6-10a4 4 0 100-8 4 4 0 000 8zm10 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+                            />
+
                         </svg>
 
                         <span class="truncate">
                             Parties
                         </span>
+
                     </a>
 
 
                     <!-- Payments -->
-                    <a href="{% url 'payment_list' %}"
-                        class="{% if request.resolver_match.url_name == 'payment_list' or request.resolver_match.url_name == 'payment_detail' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150">
 
-                        <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 10h18M5 6h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2zm3 8h3" />
+                    <a
+                        href="{% url 'payment_list' %}"
+                        class="{% if request.resolver_match.url_name == 'payment_list' or request.resolver_match.url_name == 'payment_detail' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+                    >
+
+                        <svg
+                            class="h-5 w-5 shrink-0"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M3 10h18M5 6h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2zm3 8h3"
+                            />
+
                         </svg>
 
                         <span class="truncate">
                             Payments
                         </span>
+
                     </a>
+
 
                     {% endif %}
 
+
+                    <!-- =================================================
+                         NOTIFICATIONS
+                    ================================================== -->
+
+                    <a
+                        href="{% url 'notification_list' %}"
+                        class="{% if request.resolver_match.url_name == 'notification_list' or request.resolver_match.url_name == 'notification_detail' %}bg-[#153030] text-white{% else %}text-gray-600 hover:bg-[#F1F5F5] hover:text-[#153030]{% endif %} mb-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150"
+                    >
+
+                        <i class="ri-notification-3-line text-lg"></i>
+
+                        <span class="truncate">
+                            Notifications
+                        </span>
+
+
+                        {% if unread_notification_count > 0 %}
+
+                            <span
+                                class="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[9px] font-bold text-white"
+                            >
+
+                                {% if unread_notification_count > 99 %}
+                                    99+
+                                {% else %}
+                                    {{ unread_notification_count }}
+                                {% endif %}
+
+                            </span>
+
+                        {% endif %}
+
+                    </a>
+
+
                 </div>
-
-                
-
 
             </nav>
 
@@ -332,12 +579,16 @@
 
                 <div class="flex min-w-0 items-center gap-3 rounded-xl bg-[#F7F9F9] p-3">
 
+
                     <!-- Profile Image -->
 
                     <div class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#153030]">
 
-                        <img src="/media/{{ request.session.yaarlynx_user_profile_link }}"
-                            alt="{{ request.session.yaarlynx_user_firstname }}" class="h-full w-full object-cover">
+                        <img
+                            src="/media/{{ request.session.yaarlynx_user_profile_link }}"
+                            alt="{{ request.session.yaarlynx_user_firstname }}"
+                            class="h-full w-full object-cover"
+                        >
 
                     </div>
 
@@ -346,14 +597,20 @@
 
                     <div class="min-w-0 flex-1">
 
-                        <a href="{% url 'profile_view' %}"
-                            class="block truncate text-sm font-semibold text-[#153030] hover:underline">
+                        <a
+                            href="{% url 'profile_view' %}"
+                            class="block truncate text-sm font-semibold text-[#153030] hover:underline"
+                        >
+
                             {{ request.session.yaarlynx_user_firstname }}
                             {{ request.session.yaarlynx_user_lastname }}
+
                         </a>
 
                         <p class="mt-0.5 truncate text-xs text-gray-400">
+
                             {{ request.session.yaarlynx_user_email }}
+
                         </p>
 
                     </div>
@@ -361,14 +618,25 @@
 
                     <!-- Logout -->
 
-                    <a href="{% url 'logout_view' %}"
+                    <a
+                        href="{% url 'logout_view' %}"
                         class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-white hover:text-[#153030]"
-                        title="Logout">
+                        title="Logout"
+                    >
 
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <svg
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
 
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-5-5 5-4m0 0-5-4m5 4H3" />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-5-5 5-4m0 0-5-4m5 4H3"
+                            />
 
                         </svg>
 
@@ -393,7 +661,8 @@
             ================================================== -->
 
             <header
-                class="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white/95 px-4 backdrop-blur sm:h-20 sm:px-6 lg:px-8">
+                class="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white/95 px-4 backdrop-blur sm:h-20 sm:px-6 lg:px-8"
+            >
 
 
                 <!-- =================================================
@@ -405,14 +674,26 @@
 
                     <!-- Mobile Sidebar Button -->
 
-                    <button id="sidebar-open" type="button"
+                    <button
+                        id="sidebar-open"
+                        type="button"
                         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-600 transition hover:bg-[#F1F5F5] hover:text-[#153030] lg:hidden"
-                        aria-label="Open menu">
+                        aria-label="Open menu"
+                    >
 
-                        <svg class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="1.8">
+                        <svg
+                            class="h-5 w-5 sm:h-6 sm:w-6"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
 
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M4 6h16M4 12h16M4 18h16"
+                            />
 
                         </svg>
 
@@ -424,14 +705,17 @@
                     <div class="min-w-0">
 
                         <p class="text-[10px] font-medium text-gray-400 sm:text-xs">
-                            <!-- {{ request.session.yaarlynx_user_role|upper }} PANEL -->
+
                             YAARLYNX MANAGEMENT SYSTEM
+
                         </p>
 
                         <h1 class="truncate text-base font-bold text-[#153030] sm:text-lg">
+
                             {% block page_heading %}
-                            Dashboard
+                                Dashboard
                             {% endblock %}
+
                         </h1>
 
                     </div>
@@ -450,84 +734,434 @@
 
                     <div class="relative hidden md:block">
 
-                        <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <svg
+                            class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                        >
 
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="m21 21-4.35-4.35m1.35-5.4a6.75 6.75 0 1 1-13.5 0 6.75 6.75 0 0 1 13.5 0Z" />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="m21 21-4.35-4.35m1.35-5.4a6.75 6.75 0 1 1-13.5 0 6.75 6.75 0 0 1 13.5 0Z"
+                            />
 
                         </svg>
 
-                        <input type="text" placeholder="Search..."
-                            class="h-10 w-48 rounded-xl border border-gray-200 bg-[#F7F9F9] pl-9 pr-3 text-sm text-[#153030] outline-none transition placeholder:text-gray-400 focus:border-[#153030] focus:bg-white focus:ring-1 focus:ring-[#153030] lg:w-56">
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            class="h-10 w-48 rounded-xl border border-gray-200 bg-[#F7F9F9] pl-9 pr-3 text-sm text-[#153030] outline-none transition placeholder:text-gray-400 focus:border-[#153030] focus:bg-white focus:ring-1 focus:ring-[#153030] lg:w-56"
+                        >
 
                     </div>
 
 
-                    <!-- Notification -->
+                    <!-- =================================================
+                         NOTIFICATION CENTER
+                    ================================================== -->
 
-                    <button type="button"
-                        class="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-500 transition hover:bg-[#F1F5F5] hover:text-[#153030]"
-                        aria-label="Notifications">
-
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0a3 3 0 0 1-6 0" />
-
-                        </svg>
-
-                        <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
-
-                    </button>
+                    <div
+                        id="notification-wrapper"
+                        class="relative"
+                    >
 
 
-                    <!-- User -->
+                        <!-- Notification Bell -->
 
-<div class="flex items-center gap-2">
+                        <button
+                            id="notification-button"
+                            type="button"
+                            class="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-500 transition hover:bg-[#F1F5F5] hover:text-[#153030]"
+                            aria-label="Notifications"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                        >
 
-    <!-- Profile Link -->
-    <a
-        href="{% url 'profile_view' %}"
-        class="flex items-center gap-2"
-        title="View Profile"
-    >
-
-        <!-- User Image -->
-
-        <div
-            class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#153030] sm:h-10 sm:w-10"
-        >
-
-            <img
-                src="/media/{{ request.session.yaarlynx_user_profile_link }}"
-                alt="{{ request.session.yaarlynx_user_firstname }}"
-                class="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
-            >
-
-        </div>
+                            <i
+                                class="ri-notification-3-line text-xl"
+                            ></i>
 
 
-        <!-- User Details -->
+                            {% if unread_notification_count > 0 %}
 
-        <div class="hidden min-w-0 sm:block">
+                                <!-- Badge -->
 
-            <span
-                class="block max-w-36 truncate text-sm font-semibold text-[#153030]"
-            >
-                {{ request.session.yaarlynx_user_firstname }}
-                {{ request.session.yaarlynx_user_lastname }}
-            </span>
+                                <span
+                                    id="notification-badge"
+                                    class="notification-badge-pulse absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white"
+                                >
 
-            <p class="mt-0.5 truncate text-[10px] text-gray-400">
-                {{ request.session.yaarlynx_user_role|upper }}
-            </p>
+                                    {% if unread_notification_count > 99 %}
+                                        99+
+                                    {% else %}
+                                        {{ unread_notification_count }}
+                                    {% endif %}
 
-        </div>
+                                </span>
 
-    </a>
+                            {% endif %}
 
-</div>
+                        </button>
+
+
+                        <!-- =================================================
+                             NOTIFICATION DROPDOWN
+                        ================================================== -->
+
+                        <div
+                            id="notification-dropdown"
+                            class="notification-dropdown-animation absolute right-0 top-[calc(100%+10px)] z-50 hidden w-[calc(100vw-2rem)] max-w-[390px] overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl shadow-black/10"
+                        >
+
+
+                            <!-- DROPDOWN HEADER -->
+
+                            <div class="border-b border-gray-100 bg-white px-4 py-4">
+
+                                <div class="flex items-center justify-between">
+
+                                    <div>
+
+                                        <div class="flex items-center gap-2">
+
+                                            <h3 class="text-sm font-bold text-[#153030]">
+
+                                                Notifications
+
+                                            </h3>
+
+
+                                            {% if unread_notification_count > 0 %}
+
+                                                <span
+                                                    id="dropdown-unread-badge"
+                                                    class="rounded-full bg-[#F1F5F5] px-2 py-0.5 text-[9px] font-bold text-[#153030]"
+                                                >
+
+                                                    {{ unread_notification_count }}
+                                                    new
+
+                                                </span>
+
+                                            {% endif %}
+
+                                        </div>
+
+                                        <p class="mt-1 text-[11px] text-gray-400">
+
+                                            Stay updated with Yaarlynx.
+
+                                        </p>
+
+                                    </div>
+
+
+                                    {% if unread_notification_count > 0 %}
+
+                                        <button
+                                            id="mark-all-read-button"
+                                            type="button"
+                                            class="text-[10px] font-bold text-[#153030] transition hover:text-[#3f7070]"
+                                        >
+
+                                            Mark all read
+
+                                        </button>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- =================================================
+                                 NOTIFICATION ITEMS
+                            ================================================== -->
+
+                            <div
+                                class="notification-scroll max-h-[390px] overflow-y-auto"
+                            >
+
+
+                                {% if header_notifications %}
+
+
+                                    {% for recipient in header_notifications %}
+
+                                        {% with notification=recipient.notification %}
+
+
+                                            <a
+                                                href="{% url 'notification_detail' notification.notification_id %}"
+                                                class="group block border-b border-gray-50 px-4 py-3.5 transition last:border-b-0 hover:bg-[#F8FAFA]"
+                                            >
+
+                                                <div class="flex gap-3">
+
+
+                                                    <!-- ICON -->
+
+                                                    <div class="relative shrink-0">
+
+                                                        {% if notification.notification_type == "FESTIVAL" %}
+
+                                                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-50 text-pink-600">
+
+                                                                <i class="ri-gift-line text-lg"></i>
+
+                                                            </div>
+
+
+                                                        {% elif notification.notification_type == "SYSTEM" %}
+
+                                                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+
+                                                                <i class="ri-settings-3-line text-lg"></i>
+
+                                                            </div>
+
+
+                                                        {% elif notification.notification_type == "FEATURE" %}
+
+                                                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+
+                                                                <i class="ri-sparkling-2-line text-lg"></i>
+
+                                                            </div>
+
+
+                                                        {% elif notification.notification_type == "WARNING" %}
+
+                                                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+
+                                                                <i class="ri-error-warning-line text-lg"></i>
+
+                                                            </div>
+
+
+                                                        {% elif notification.notification_type == "SUCCESS" %}
+
+                                                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+
+                                                                <i class="ri-checkbox-circle-line text-lg"></i>
+
+                                                            </div>
+
+
+                                                        {% else %}
+
+                                                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F1F5F5] text-[#153030]">
+
+                                                                <i class="{{ notification.icon|default:'ri-notification-3-line' }} text-lg"></i>
+
+                                                            </div>
+
+                                                        {% endif %}
+
+
+                                                        {% if not recipient.is_read %}
+
+                                                            <span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500"></span>
+
+                                                        {% endif %}
+
+                                                    </div>
+
+
+                                                    <!-- CONTENT -->
+
+                                                    <div class="min-w-0 flex-1">
+
+
+                                                        <div class="flex items-start justify-between gap-2">
+
+                                                            <div class="min-w-0">
+
+                                                                <p
+                                                                    class="{% if recipient.is_read %}font-semibold{% else %}font-bold{% endif %} truncate text-xs text-[#153030]"
+                                                                >
+
+                                                                    {{ notification.title }}
+
+                                                                </p>
+
+                                                            </div>
+
+
+                                                            {% if not recipient.is_read %}
+
+                                                                <span class="mt-0.5 shrink-0 text-[8px] font-bold uppercase tracking-wide text-red-500">
+
+                                                                    New
+
+                                                                </span>
+
+                                                            {% endif %}
+
+                                                        </div>
+
+
+                                                        <p class="mt-1 line-clamp-2 text-[11px] leading-5 text-gray-500">
+
+                                                            {{ notification.message }}
+
+                                                        </p>
+
+
+                                                        <div class="mt-2 flex items-center justify-between">
+
+                                                            <span class="text-[9px] font-medium text-gray-400">
+
+                                                                {{ notification.get_notification_type_display }}
+
+                                                            </span>
+
+
+                                                            <span class="text-[9px] text-gray-400">
+
+                                                                {{ notification.publish_at|date:"d M Y, h:i A" }}
+
+                                                            </span>
+
+                                                        </div>
+
+                                                    </div>
+
+
+                                                    <!-- ARROW -->
+
+                                                    <div class="hidden items-center sm:flex">
+
+                                                        <i class="ri-arrow-right-s-line text-base text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-[#153030]"></i>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </a>
+
+
+                                        {% endwith %}
+
+                                    {% endfor %}
+
+
+                                {% else %}
+
+
+                                    <!-- EMPTY -->
+
+                                    <div class="px-6 py-12 text-center">
+
+                                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#F1F5F5] text-[#153030]">
+
+                                            <i class="ri-notification-off-line text-2xl"></i>
+
+                                        </div>
+
+                                        <p class="mt-4 text-sm font-bold text-[#153030]">
+
+                                            No notifications
+
+                                        </p>
+
+                                        <p class="mt-1 text-[11px] leading-5 text-gray-400">
+
+                                            You're all caught up.
+
+                                        </p>
+
+                                    </div>
+
+                                {% endif %}
+
+
+                            </div>
+
+
+                            <!-- =================================================
+                                 DROPDOWN FOOTER
+                            ================================================== -->
+
+                            <div class="border-t border-gray-100 bg-[#FAFBFB] p-3">
+
+                                <a
+                                    href="{% url 'notification_list' %}"
+                                    class="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#153030] text-xs font-bold text-white transition hover:bg-[#204747]"
+                                >
+
+                                    View all notifications
+
+                                    <i class="ri-arrow-right-line"></i>
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         USER
+                    ================================================== -->
+
+                    <div class="flex items-center gap-2">
+
+
+                        <!-- Profile Link -->
+
+                        <a
+                            href="{% url 'profile_view' %}"
+                            class="flex items-center gap-2"
+                            title="View Profile"
+                        >
+
+
+                            <!-- User Image -->
+
+                            <div
+                                class="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#153030] sm:h-10 sm:w-10"
+                            >
+
+                                <img
+                                    src="/media/{{ request.session.yaarlynx_user_profile_link }}"
+                                    alt="{{ request.session.yaarlynx_user_firstname }}"
+                                    class="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
+                                >
+
+                            </div>
+
+
+                            <!-- User Details -->
+
+                            <div class="hidden min-w-0 sm:block">
+
+                                <span
+                                    class="block max-w-36 truncate text-sm font-semibold text-[#153030]"
+                                >
+
+                                    {{ request.session.yaarlynx_user_firstname }}
+                                    {{ request.session.yaarlynx_user_lastname }}
+
+                                </span>
+
+                                <p class="mt-0.5 truncate text-[10px] text-gray-400">
+
+                                    {{ request.session.yaarlynx_user_role|upper }}
+
+                                </p>
+
+                            </div>
+
+                        </a>
+
+                    </div>
 
                 </div>
 
@@ -557,182 +1191,535 @@
 
     <script>
 
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
 
 
-            const sidebar =
-                document.getElementById("sidebar");
+                const sidebar =
+                    document.getElementById(
+                        "sidebar"
+                    );
 
-            const overlay =
-                document.getElementById("sidebar-overlay");
+                const overlay =
+                    document.getElementById(
+                        "sidebar-overlay"
+                    );
 
-            const openButton =
-                document.getElementById("sidebar-open");
+                const openButton =
+                    document.getElementById(
+                        "sidebar-open"
+                    );
 
 
-            /* =================================================
-               OPEN SIDEBAR
-            ================================================== */
+                /* =================================================
+                   OPEN SIDEBAR
+                ================================================== */
 
-            function openSidebar() {
+                function openSidebar() {
 
-                if (!sidebar || !overlay) {
-                    return;
+                    if (!sidebar || !overlay) {
+                        return;
+                    }
+
+                    sidebar.classList.remove(
+                        "-translate-x-full"
+                    );
+
+                    overlay.classList.remove(
+                        "hidden"
+                    );
+
+                    document.body.classList.add(
+                        "sidebar-open"
+                    );
+
                 }
 
-                sidebar.classList.remove("-translate-x-full");
 
-                overlay.classList.remove("hidden");
+                /* =================================================
+                   CLOSE SIDEBAR
+                ================================================== */
 
-                document.body.classList.add("sidebar-open");
+                function closeSidebar() {
 
-            }
+                    if (!sidebar || !overlay) {
+                        return;
+                    }
 
+                    sidebar.classList.add(
+                        "-translate-x-full"
+                    );
 
-            /* =================================================
-               CLOSE SIDEBAR
-            ================================================== */
+                    overlay.classList.add(
+                        "hidden"
+                    );
 
-            function closeSidebar() {
+                    document.body.classList.remove(
+                        "sidebar-open"
+                    );
 
-                if (!sidebar || !overlay) {
-                    return;
                 }
 
-                sidebar.classList.add("-translate-x-full");
 
-                overlay.classList.add("hidden");
+                /* =================================================
+                   OPEN BUTTON
+                ================================================== */
 
-                document.body.classList.remove("sidebar-open");
+                if (openButton) {
 
-            }
-
-
-            /* =================================================
-               OPEN BUTTON
-            ================================================== */
-
-            if (openButton) {
-
-                openButton.addEventListener(
-                    "click",
-                    openSidebar
-                );
-
-            }
-
-
-            /* =================================================
-               OVERLAY CLICK
-            ================================================== */
-
-            if (overlay) {
-
-                overlay.addEventListener(
-                    "click",
-                    closeSidebar
-                );
-
-            }
-
-
-            /* =================================================
-               CLOSE SIDEBAR AFTER LINK CLICK
-            ================================================== */
-
-            if (sidebar) {
-
-                const sidebarLinks =
-                    sidebar.querySelectorAll("a");
-
-                sidebarLinks.forEach(function (link) {
-
-                    link.addEventListener(
+                    openButton.addEventListener(
                         "click",
-                        function () {
+                        openSidebar
+                    );
 
-                            if (window.innerWidth < 1024) {
-                                closeSidebar();
+                }
+
+
+                /* =================================================
+                   OVERLAY CLICK
+                ================================================== */
+
+                if (overlay) {
+
+                    overlay.addEventListener(
+                        "click",
+                        closeSidebar
+                    );
+
+                }
+
+
+                /* =================================================
+                   CLOSE SIDEBAR AFTER LINK CLICK
+                ================================================== */
+
+                if (sidebar) {
+
+                    const sidebarLinks =
+                        sidebar.querySelectorAll(
+                            "a"
+                        );
+
+                    sidebarLinks.forEach(
+                        function (link) {
+
+                            link.addEventListener(
+                                "click",
+                                function () {
+
+                                    if (
+                                        window.innerWidth <
+                                        1024
+                                    ) {
+
+                                        closeSidebar();
+
+                                    }
+
+                                }
+                            );
+
+                        }
+                    );
+
+                }
+
+
+                /* =================================================
+                   ESC KEY
+                ================================================== */
+
+                document.addEventListener(
+                    "keydown",
+                    function (event) {
+
+                        if (
+                            event.key === "Escape" &&
+                            window.innerWidth < 1024
+                        ) {
+
+                            closeSidebar();
+
+                        }
+
+                    }
+                );
+
+
+                /* =================================================
+                   RESET ON DESKTOP
+                ================================================== */
+
+                window.addEventListener(
+                    "resize",
+                    function () {
+
+                        if (
+                            window.innerWidth >= 1024
+                        ) {
+
+                            if (sidebar) {
+
+                                sidebar.classList.remove(
+                                    "-translate-x-full"
+                                );
+
+                            }
+
+                            if (overlay) {
+
+                                overlay.classList.add(
+                                    "hidden"
+                                );
+
+                            }
+
+                            document.body.classList.remove(
+                                "sidebar-open"
+                            );
+
+                        }
+                        else {
+
+                            if (
+                                sidebar &&
+                                !sidebar.classList.contains(
+                                    "-translate-x-full"
+                                )
+                            ) {
+
+                                return;
+
+                            }
+
+                            if (sidebar) {
+
+                                sidebar.classList.add(
+                                    "-translate-x-full"
+                                );
+
+                            }
+
+                        }
+
+                    }
+                );
+
+
+                /* =================================================
+                   NOTIFICATION SYSTEM
+                ================================================== */
+
+                const notificationButton =
+                    document.getElementById(
+                        "notification-button"
+                    );
+
+                const notificationDropdown =
+                    document.getElementById(
+                        "notification-dropdown"
+                    );
+
+                const notificationWrapper =
+                    document.getElementById(
+                        "notification-wrapper"
+                    );
+
+
+                /* =================================================
+                   OPEN / CLOSE NOTIFICATION
+                ================================================== */
+
+                function closeNotificationDropdown() {
+
+                    if (!notificationDropdown) {
+                        return;
+                    }
+
+                    notificationDropdown.classList.add(
+                        "hidden"
+                    );
+
+                    if (notificationButton) {
+
+                        notificationButton.setAttribute(
+                            "aria-expanded",
+                            "false"
+                        );
+
+                    }
+
+                }
+
+
+                function openNotificationDropdown() {
+
+                    if (!notificationDropdown) {
+                        return;
+                    }
+
+                    notificationDropdown.classList.remove(
+                        "hidden"
+                    );
+
+                    if (notificationButton) {
+
+                        notificationButton.setAttribute(
+                            "aria-expanded",
+                            "true"
+                        );
+
+                    }
+
+                }
+
+
+                if (notificationButton) {
+
+                    notificationButton.addEventListener(
+                        "click",
+                        function (event) {
+
+                            event.stopPropagation();
+
+                            if (
+                                notificationDropdown.classList.contains(
+                                    "hidden"
+                                )
+                            ) {
+
+                                openNotificationDropdown();
+
+                            }
+                            else {
+
+                                closeNotificationDropdown();
+
                             }
 
                         }
                     );
 
-                });
-
-            }
-
-
-            /* =================================================
-               ESC KEY
-            ================================================== */
-
-            document.addEventListener(
-                "keydown",
-                function (event) {
-
-                    if (
-                        event.key === "Escape" &&
-                        window.innerWidth < 1024
-                    ) {
-
-                        closeSidebar();
-
-                    }
-
                 }
-            );
 
 
-            /* =================================================
-               RESET ON DESKTOP
-            ================================================== */
+                /* =================================================
+                   CLOSE WHEN CLICKING OUTSIDE
+                ================================================== */
 
-            window.addEventListener(
-                "resize",
-                function () {
-
-                    if (window.innerWidth >= 1024) {
-
-                        if (sidebar) {
-                            sidebar.classList.remove(
-                                "-translate-x-full"
-                            );
-                        }
-
-                        if (overlay) {
-                            overlay.classList.add("hidden");
-                        }
-
-                        document.body.classList.remove(
-                            "sidebar-open"
-                        );
-
-                    } else {
+                document.addEventListener(
+                    "click",
+                    function (event) {
 
                         if (
-                            sidebar &&
-                            !sidebar.classList.contains(
-                                "-translate-x-full"
+                            notificationWrapper &&
+                            !notificationWrapper.contains(
+                                event.target
                             )
                         ) {
 
-                            return;
+                            closeNotificationDropdown();
 
                         }
 
-                        if (sidebar) {
-                            sidebar.classList.add(
-                                "-translate-x-full"
-                            );
+                    }
+                );
+
+
+                /* =================================================
+                   ESC CLOSE
+                ================================================== */
+
+                document.addEventListener(
+                    "keydown",
+                    function (event) {
+
+                        if (
+                            event.key === "Escape"
+                        ) {
+
+                            closeNotificationDropdown();
+
+                        }
+
+                    }
+                );
+
+
+                /* =================================================
+                   CSRF COOKIE
+                ================================================== */
+
+                function getCookie(name) {
+
+                    let cookieValue = null;
+
+                    if (
+                        document.cookie &&
+                        document.cookie !== ""
+                    ) {
+
+                        const cookies =
+                            document.cookie.split(";");
+
+                        for (
+                            let i = 0;
+                            i < cookies.length;
+                            i++
+                        ) {
+
+                            const cookie =
+                                cookies[i].trim();
+
+                            if (
+                                cookie.substring(
+                                    0,
+                                    name.length + 1
+                                ) ===
+                                name + "="
+                            ) {
+
+                                cookieValue =
+                                    decodeURIComponent(
+                                        cookie.substring(
+                                            name.length + 1
+                                        )
+                                    );
+
+                                break;
+
+                            }
+
                         }
 
                     }
 
-                }
-            );
+                    return cookieValue;
 
-        });
+                }
+
+
+                /* =================================================
+                   MARK ALL NOTIFICATIONS AS READ
+                ================================================== */
+
+                const markAllButton =
+                    document.getElementById(
+                        "mark-all-read-button"
+                    );
+
+
+                if (markAllButton) {
+
+                    markAllButton.addEventListener(
+                        "click",
+                        function (event) {
+
+                            event.preventDefault();
+
+                            event.stopPropagation();
+
+
+                            markAllButton.disabled =
+                                true;
+
+                            markAllButton.innerHTML =
+                                "Marking...";
+
+
+                            fetch(
+                                "{% url 'mark_all_notifications_read' %}",
+                                {
+
+                                    method: "POST",
+
+                                    headers: {
+
+                                        "X-CSRFToken":
+                                            getCookie(
+                                                "csrftoken"
+                                            ),
+
+                                        "Content-Type":
+                                            "application/json"
+
+                                    }
+
+                                }
+                            )
+                            .then(
+                                function (response) {
+
+                                    if (
+                                        !response.ok
+                                    ) {
+
+                                        throw new Error(
+                                            "Request failed."
+                                        );
+
+                                    }
+
+                                    return response.json();
+
+                                }
+                            )
+                            .then(
+                                function (data) {
+
+                                    if (
+                                        data.success
+                                    ) {
+
+                                        /*
+                                         * Reload the page so:
+                                         *
+                                         * - badge disappears
+                                         * - dropdown updates
+                                         * - sidebar count updates
+                                         * - latest notification state updates
+                                         */
+
+                                        window.location.reload();
+
+                                    }
+                                    else {
+
+                                        markAllButton.disabled =
+                                            false;
+
+                                        markAllButton.innerHTML =
+                                            "Mark all read";
+
+                                    }
+
+                                }
+                            )
+                            .catch(
+                                function (error) {
+
+                                    console.error(
+                                        "Notification error:",
+                                        error
+                                    );
+
+                                    markAllButton.disabled =
+                                        false;
+
+                                    markAllButton.innerHTML =
+                                        "Mark all read";
+
+                                }
+                            );
+
+                        }
+                    );
+
+                }
+
+            }
+        );
 
     </script>
 

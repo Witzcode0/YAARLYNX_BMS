@@ -44,7 +44,8 @@ INSTALLED_APPS = [
 INSTALLED_APPS_CUSTOM = [
     'apps.master',
     'apps.dashboard',
-    'apps.accounts'
+    'apps.accounts',
+    'apps.pdf_overlay'
 ]
 
 INSTALLED_APPS += INSTALLED_APPS_CUSTOM
@@ -60,20 +61,33 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'project.urls'
-
 TEMPLATES = [
+
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+
         'DIRS': [],
+
         'APP_DIRS': True,
+
         'OPTIONS': {
+
             'context_processors': [
+
                 'django.template.context_processors.request',
+
                 'django.contrib.auth.context_processors.auth',
+
                 'django.contrib.messages.context_processors.messages',
+
+                'apps.dashboard.context_processors.notification_context',
+
             ],
+
         },
+
     },
+
 ]
 
 WSGI_APPLICATION = 'project.wsgi.application'

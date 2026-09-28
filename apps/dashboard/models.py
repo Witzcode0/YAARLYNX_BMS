@@ -5,8 +5,13 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.master.models import BaseModel
+from apps.accounts.models import UserAccount
 
 import uuid
+
+
+from django.conf import settings
+from django.utils import timezone
 
 
 # =========================================================
@@ -1326,7 +1331,6 @@ class PurchasePaymentInstallment(BaseModel):
         return result
 
 
-
 class QuickLinkCategory(BaseModel):
 
     name = models.CharField(
@@ -1401,3 +1405,213 @@ class QuickLink(BaseModel):
 
     def __str__(self):
         return self.name
+
+
+class Notification(BaseModel):
+
+    class NotificationType(models.TextChoices):
+
+        GENERAL = "GENERAL", "General"
+
+        SYSTEM = "SYSTEM", "System Update"
+
+        FESTIVAL = "FESTIVAL", "Festival Update"
+
+        FEATURE = "FEATURE", "New Feature"
+
+        ANNOUNCEMENT = "ANNOUNCEMENT", "Announcement"
+
+        PRODUCT = "PRODUCT", "Product Update"
+
+        ORDER = "ORDER", "Order Update"
+
+        PAYMENT = "PAYMENT", "Payment Update"
+
+        WARNING = "WARNING", "Warning"
+
+        SUCCESS = "SUCCESS", "Success"
+
+    class Priority(models.TextChoices):
+
+        LOW = "LOW", "Low"
+
+        NORMAL = "NORMAL", "Normal"
+
+        HIGH = "HIGH", "High"
+
+        URGENT = "URGENT", "Urgent"
+
+    notification_id = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        db_index=True
+    )
+
+    title = models.CharField(
+        max_length=200
+    )
+
+    message = models.TextField()
+
+    notification_type = models.CharField(
+        max_length=30,
+        choices=NotificationType.choices,
+        default=NotificationType.GENERAL,
+        db_index=True
+    )
+
+    priority = models.CharField(
+        max_length=20,
+        choices=Priority.choices,
+        default=Priority.NORMAL,
+        db_index=True
+    )
+
+    icon = models.CharField(
+        max_length=100,
+        default="ri-notification-3-line",
+        blank=True
+    )
+
+    image = models.ImageField(
+        upload_to="notifications/",
+        blank=True,
+        null=True
+    )
+
+    action_text = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    action_url = models.CharField(
+        max_length=500,
+        blank=True
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True
+    )
+
+    is_pinned = models.BooleanField(
+        default=False,
+        db_index=True
+    )
+
+    publish_at = models.DateTimeField(
+        default=timezone.now,
+        db_index=True
+    )
+
+    expires_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        db_index=True
+    )
+
+    class Meta:
+
+        db_table = "notifications"
+
+        ordering = [
+            "-is_pinned",
+            "-publish_at",
+            "-created_at"
+        ]
+
+    def __str__(self):
+
+        return self.title
+
+    @property
+    def is_published(self):
+
+        now = timezone.now()
+
+        if not self.is_active:
+            return False
+
+        if self.publish_at > now:
+            return False
+
+        if self.expires_at and self.expires_at < now:
+            return False
+
+        return True
+
+
+class NotificationRecipient(BaseModel):
+
+    notification = models.ForeignKey(
+        Notification,
+        on_delete=models.CASCADE,
+        related_name="recipients"
+    )
+
+    user = models.ForeignKey(
+        UserAccount,
+        on_delete=models.CASCADE,
+        related_name="notification_recipients"
+    )
+
+    is_read = models.BooleanField(
+        default=False,
+        db_index=True
+    )
+
+    read_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+
+        db_table = "notification_recipients"
+
+        constraints = [
+
+            models.UniqueConstraint(
+                fields=[
+                    "notification",
+                    "user"
+                ],
+                name="unique_notification_user"
+            )
+
+        ]
+
+        indexes = [
+
+            models.Index(
+                fields=[
+                    "user",
+                    "is_read"
+                ]
+            ),
+
+            models.Index(
+                fields=[
+                    "notification",
+                    "user"
+                ]
+            )
+
+        ]
+
+    def mark_as_read(self):
+
+        if not self.is_read:
+
+            self.is_read = True
+
+            self.read_at = timezone.now()
+
+            self.save(
+                update_fields=[
+                    "is_read",
+                    "read_at",
+                    "updated_at"
+                ]
+            )

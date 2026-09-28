@@ -28,5 +28,39 @@ path(
     name="purchase_installments",
 ),
     path("payments/", payment_list, name="payment_list"),
-    path("dashboard/", dashboard_view, name="dashboard_view")
+    path("dashboard/", dashboard_view, name="dashboard_view"),
+    path(
+        "notifications/",
+        notification_list,
+        name="notification_list"
+    ),
+
+    path(
+        "notifications/<uuid:notification_id>/",
+        notification_detail,
+        name="notification_detail"
+    ),
+
+    path(
+        "notifications/<uuid:notification_id>/read/",
+        mark_notification_read,
+        name="mark_notification_read"
+    ),
+
+    path(
+        "notifications/<uuid:notification_id>/unread/",
+        mark_notification_unread,
+        name="mark_notification_unread"
+    ),
+
+    path(
+        "notifications/read-all/",
+        mark_all_notifications_read,
+        name="mark_all_notifications_read"
+    ),
+    path(
+        "pdf-overlay/",
+        pdf_overlay_view,
+        name="pdf_overlay"
+    ),
 ]
