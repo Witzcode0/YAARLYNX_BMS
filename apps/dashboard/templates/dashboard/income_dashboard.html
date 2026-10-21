@@ -1,0 +1,515 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}Income Dashboard | Yaarlynx{% endblock %}
+
+{% block page_heading %}Income Dashboard{% endblock %}
+
+{% block meta_description %}
+Income analytics, completed receipts, pending payments and marketplace-wise financial reports.
+{% endblock %}
+
+{% block content %}
+
+<div class="mx-auto w-full max-w-[1600px] space-y-6 px-3 py-5 sm:px-5 lg:px-8 lg:py-7">
+
+    <!-- Header -->
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex min-w-0 items-center gap-3">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#153030] text-white shadow-lg shadow-[#153030]/10">
+                <i class="ri-funds-line text-2xl" aria-hidden="true"></i>
+            </div>
+
+            <div class="min-w-0">
+                <p class="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                    Finance / Overview
+                </p>
+                <h2 class="text-2xl font-extrabold tracking-tight text-[#153030] sm:text-3xl">
+                    Income Dashboard
+                </h2>
+                <p class="mt-1 text-xs text-slate-500 sm:text-sm">
+                    Track your receipts, payment status and marketplace performance.
+                </p>
+            </div>
+        </div>
+
+        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' and key != 'export' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}export=csv"
+           class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#153030] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#204646] focus:outline-none focus:ring-4 focus:ring-[#153030]/15">
+            <i class="ri-download-2-line text-lg" aria-hidden="true"></i>
+            Export CSV
+        </a>
+    </header>
+
+    <!-- Date range -->
+    <section class="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div>
+            <h3 class="text-sm font-bold text-[#153030]">Financial Overview</h3>
+            <p class="mt-1 text-xs text-slate-500">Review your income for a selected period.</p>
+        </div>
+
+        <nav class="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap" aria-label="Select date range">
+            <a href="?"
+               class="inline-flex min-h-9 items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition {% if not selected_period and not start_date and not end_date %}border-[#153030] bg-[#153030] text-white{% else %}border-slate-200 bg-white text-slate-600 hover:border-[#153030]/30 hover:bg-slate-50 hover:text-[#153030]{% endif %}">
+                All time
+            </a>
+
+            <a href="?period=today"
+               class="inline-flex min-h-9 items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition {% if selected_period == 'today' %}border-[#153030] bg-[#153030] text-white{% else %}border-slate-200 bg-white text-slate-600 hover:border-[#153030]/30 hover:bg-slate-50 hover:text-[#153030]{% endif %}">
+                Today
+            </a>
+
+            <a href="?period=week"
+               class="inline-flex min-h-9 items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition {% if selected_period == 'week' %}border-[#153030] bg-[#153030] text-white{% else %}border-slate-200 bg-white text-slate-600 hover:border-[#153030]/30 hover:bg-slate-50 hover:text-[#153030]{% endif %}">
+                7 days
+            </a>
+
+            <a href="?period=month"
+               class="inline-flex min-h-9 items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition {% if selected_period == 'month' %}border-[#153030] bg-[#153030] text-white{% else %}border-slate-200 bg-white text-slate-600 hover:border-[#153030]/30 hover:bg-slate-50 hover:text-[#153030]{% endif %}">
+                This month
+            </a>
+
+            <a href="?period=year"
+               class="inline-flex min-h-9 items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition {% if selected_period == 'year' %}border-[#153030] bg-[#153030] text-white{% else %}border-slate-200 bg-white text-slate-600 hover:border-[#153030]/30 hover:bg-slate-50 hover:text-[#153030]{% endif %}">
+                This year
+            </a>
+        </nav>
+    </section>
+
+    <!-- Financial statistics -->
+    <section aria-label="Payment statistics">
+        <div class="mb-4 flex items-center justify-between gap-3">
+            <div>
+                <h3 class="text-sm font-extrabold text-[#153030]">Payment Statistics</h3>
+                <p class="mt-1 text-xs text-slate-500">A snapshot of your recorded income.</p>
+            </div>
+            <span class="hidden items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-bold text-slate-500 sm:inline-flex">
+                <span class="h-1.5 w-1.5 rounded-full bg-[#153030]"></span>
+                Live summary
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+
+            <!-- Total recorded -->
+            <article class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-500">Total Recorded</p>
+                        <p class="mt-3 break-words text-xl font-extrabold tracking-tight text-[#153030] sm:text-2xl">
+                            ₹{{ stats.total_amount|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#153030]/[0.07] text-[#153030]">
+                        <i class="ri-wallet-3-line text-xl" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                    <span class="text-[11px] text-slate-500">All statuses</span>
+                    <span class="text-[11px] font-bold text-[#153030]">{{ stats.total_count }} records</span>
+                </div>
+            </article>
+
+            <!-- Received -->
+            <article class="group relative overflow-hidden rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-500">Income Received</p>
+                        <p class="mt-3 break-words text-xl font-extrabold tracking-tight text-emerald-700 sm:text-2xl">
+                            ₹{{ stats.completed_amount|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                        <i class="ri-check-double-line text-xl" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                    <span class="text-[11px] text-slate-500">Successfully received</span>
+                    <span class="text-[11px] font-bold text-emerald-700">{{ stats.completed_count }} paid</span>
+                </div>
+            </article>
+
+            <!-- Pending -->
+            <article class="group relative overflow-hidden rounded-2xl border border-amber-100 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-500">Pending Amount</p>
+                        <p class="mt-3 break-words text-xl font-extrabold tracking-tight text-amber-700 sm:text-2xl">
+                            ₹{{ stats.pending_amount|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+                        <i class="ri-time-line text-xl" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                    <span class="text-[11px] text-slate-500">Awaiting confirmation</span>
+                    <span class="text-[11px] font-bold text-amber-700">{{ stats.pending_count }} pending</span>
+                </div>
+            </article>
+
+            <!-- Failed -->
+            <article class="group relative overflow-hidden rounded-2xl border border-rose-100 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-500">Failed Amount</p>
+                        <p class="mt-3 break-words text-xl font-extrabold tracking-tight text-rose-700 sm:text-2xl">
+                            ₹{{ stats.failed_amount|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-700">
+                        <i class="ri-close-circle-line text-xl" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                    <span class="text-[11px] text-slate-500">Unsuccessful</span>
+                    <span class="text-[11px] font-bold text-rose-700">{{ stats.failed_count }} failed</span>
+                </div>
+            </article>
+
+            <!-- Cancelled -->
+            <article class="group relative overflow-hidden rounded-2xl border border-orange-100 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-500">Cancelled Amount</p>
+                        <p class="mt-3 break-words text-xl font-extrabold tracking-tight text-orange-700 sm:text-2xl">
+                            ₹{{ stats.cancelled_amount|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700">
+                        <i class="ri-forbid-2-line text-xl" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                    <span class="text-[11px] text-slate-500">Cancelled transactions</span>
+                    <span class="text-[11px] font-bold text-orange-700">{{ stats.cancelled_count }} cancelled</span>
+                </div>
+            </article>
+
+            <!-- Successful count -->
+            <article class="group relative overflow-hidden rounded-2xl border border-sky-100 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-500">Successful Payments</p>
+                        <p class="mt-3 break-words text-2xl font-extrabold tracking-tight text-sky-700 sm:text-3xl">
+                            {{ stats.completed_count }}
+                        </p>
+                    </div>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
+                        <i class="ri-receipt-line text-xl" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                    <span class="text-[11px] text-slate-500">Completed transactions</span>
+                    <span class="text-[11px] font-bold text-sky-700">Paid</span>
+                </div>
+            </article>
+
+        </div>
+    </section>
+
+    <!-- Search and filters -->
+    <section class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        <div class="flex items-center gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#153030]/[0.07] text-[#153030]">
+                <i class="ri-equalizer-line text-xl" aria-hidden="true"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-extrabold text-[#153030]">Search & Filters</h3>
+                <p class="mt-1 text-xs text-slate-500">Narrow down transactions by source, status, method or date.</p>
+            </div>
+        </div>
+
+        <form method="get" action="" class="space-y-4 p-4 sm:p-6">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+
+                <div>
+                    <label for="income-q" class="mb-2 block text-xs font-bold text-slate-600">Search transactions</label>
+                    <div class="relative">
+                        <i class="ri-search-line pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-slate-400" aria-hidden="true"></i>
+                        <input id="income-q"
+                               class="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/60 py-2.5 pl-10 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#153030] focus:bg-white focus:ring-4 focus:ring-[#153030]/[0.06]"
+                               type="search"
+                               name="q"
+                               value="{{ search_query }}"
+                               placeholder="Source, transaction ID...">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="income-source" class="mb-2 block text-xs font-bold text-slate-600">Income Source</label>
+                    <select id="income-source" name="source"
+                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-[#153030] focus:bg-white focus:ring-4 focus:ring-[#153030]/[0.06]">
+                        <option value="">All sources</option>
+                        {% for source_item in income_sources %}
+                            <option value="{{ source_item.pk }}" {% if selected_source == source_item.pk|stringformat:"s" %}selected{% endif %}>
+                                {{ source_item.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="income-status" class="mb-2 block text-xs font-bold text-slate-600">Payment Status</label>
+                    <select id="income-status" name="status"
+                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-[#153030] focus:bg-white focus:ring-4 focus:ring-[#153030]/[0.06]">
+                        <option value="">All statuses</option>
+                        {% for value, label in payment_statuses %}
+                            <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="income-method" class="mb-2 block text-xs font-bold text-slate-600">Payment Method</label>
+                    <select id="income-method" name="method"
+                            class="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-[#153030] focus:bg-white focus:ring-4 focus:ring-[#153030]/[0.06]">
+                        <option value="">All methods</option>
+                        {% for value, label in payment_methods %}
+                            <option value="{{ value }}" {% if selected_method == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="income-start" class="mb-2 block text-xs font-bold text-slate-600">From Date</label>
+                    <input id="income-start" type="date" name="start_date" value="{{ start_date }}"
+                           class="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-[#153030] focus:bg-white focus:ring-4 focus:ring-[#153030]/[0.06]">
+                </div>
+
+                <div>
+                    <label for="income-end" class="mb-2 block text-xs font-bold text-slate-600">To Date</label>
+                    <input id="income-end" type="date" name="end_date" value="{{ end_date }}"
+                           class="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-[#153030] focus:bg-white focus:ring-4 focus:ring-[#153030]/[0.06]">
+                </div>
+
+            </div>
+
+            <div class="flex flex-col gap-2 border-t border-slate-100 pt-4 min-[420px]:flex-row">
+                <button type="submit"
+                        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#153030] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#204646] focus:outline-none focus:ring-4 focus:ring-[#153030]/15">
+                    <i class="ri-filter-3-line text-base" aria-hidden="true"></i>
+                    Apply Filters
+                </button>
+
+                <a href="{% url 'income_dashboard' %}"
+                   class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-[#153030]">
+                    <i class="ri-refresh-line text-base" aria-hidden="true"></i>
+                    Reset Filters
+                </a>
+            </div>
+        </form>
+    </section>
+
+    <!-- Marketplace-wise income -->
+    <section class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <h3 class="text-sm font-extrabold text-[#153030]">Income by Source</h3>
+                <p class="mt-1 text-xs text-slate-500">Completed income by marketplace and sales channel.</p>
+            </div>
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#153030]/[0.07] text-[#153030]">
+                <i class="ri-store-2-line text-xl" aria-hidden="true"></i>
+            </div>
+        </div>
+
+        <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
+            {% for source_item in source_statistics %}
+                <article class="flex min-w-0 items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/60 p-4 transition hover:border-slate-200 hover:bg-white">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#153030]/[0.07] text-sm font-extrabold text-[#153030]">
+                        {{ source_item.name|slice:":1"|upper }}
+                    </div>
+
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-bold text-slate-800">{{ source_item.name }}</p>
+                        <p class="mt-1 text-xs text-slate-500">
+                            {{ source_item.get_source_type_display }}
+                        </p>
+                        <p class="mt-1 text-[11px] text-slate-400">
+                            {{ source_item.payment_count }} payment{{ source_item.payment_count|pluralize }}
+                        </p>
+                    </div>
+
+                    <div class="shrink-0 text-right">
+                        <p class="text-sm font-extrabold tabular-nums text-emerald-700">
+                            ₹{{ source_item.completed_amount|floatformat:2 }}
+                        </p>
+                        <p class="mt-1 text-[10px] font-medium text-slate-400">Received</p>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="col-span-full rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center">
+                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                        <i class="ri-bar-chart-box-line text-2xl" aria-hidden="true"></i>
+                    </div>
+                    <p class="mt-3 text-sm font-bold text-slate-700">No income sources found</p>
+                    <p class="mt-1 text-xs text-slate-500">Try another date range or check your income-source records.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Payment transactions -->
+    <section class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div>
+                <h3 class="text-sm font-extrabold text-[#153030]">Payment Transactions</h3>
+                <p class="mt-1 text-xs text-slate-500">Review payment records, transaction references and statuses.</p>
+            </div>
+
+            <div class="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
+                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-[#153030] shadow-sm">
+                    <i class="ri-file-list-3-line text-lg" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <p class="text-lg font-extrabold leading-tight text-[#153030]">{{ page_obj.paginator.count }}</p>
+                    <p class="mt-1 text-[10px] font-medium text-slate-500">Matching records</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[760px] border-collapse text-left">
+                <thead>
+                    <tr class="bg-slate-50/80">
+                        <th class="whitespace-nowrap border-b border-slate-100 px-5 py-3.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Payment Date</th>
+                        <th class="whitespace-nowrap border-b border-slate-100 px-5 py-3.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Income Source</th>
+                        <th class="whitespace-nowrap border-b border-slate-100 px-5 py-3.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Transaction ID</th>
+                        <th class="whitespace-nowrap border-b border-slate-100 px-5 py-3.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Payment Method</th>
+                        <th class="whitespace-nowrap border-b border-slate-100 px-5 py-3.5 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Amount</th>
+                        <th class="whitespace-nowrap border-b border-slate-100 px-5 py-3.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Status</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100">
+                    {% for payment in payments %}
+                        <tr class="transition hover:bg-slate-50/70">
+                            <td class="whitespace-nowrap px-5 py-4">
+                                <p class="text-xs font-bold text-slate-700">{{ payment.payment_date|date:"d M Y" }}</p>
+                            </td>
+
+                            <td class="px-5 py-4">
+                                <p class="text-xs font-bold text-[#153030]">{{ payment.income_source.name }}</p>
+                                <p class="mt-1 text-[10px] text-slate-400">{{ payment.income_source.get_source_type_display }}</p>
+                            </td>
+
+                            <td class="px-5 py-4">
+                                {% if payment.transaction_id %}
+                                    <span class="inline-block max-w-40 truncate rounded-md bg-slate-100 px-2 py-1 font-mono text-[11px] text-slate-600"
+                                          title="{{ payment.transaction_id }}">
+                                        {{ payment.transaction_id }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-xs text-slate-400">Not provided</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="whitespace-nowrap px-5 py-4 text-xs font-medium text-slate-600">
+                                {{ payment.get_payment_method_display }}
+                            </td>
+
+                            <td class="whitespace-nowrap px-5 py-4 text-right">
+                                <span class="text-sm font-extrabold tabular-nums text-[#153030]">
+                                    ₹{{ payment.amount|floatformat:2 }}
+                                </span>
+                            </td>
+
+                            <td class="whitespace-nowrap px-5 py-4">
+                                {% if payment.payment_status == 'completed' %}
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1.5 text-[10px] font-bold text-emerald-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                        {{ payment.get_payment_status_display }}
+                                    </span>
+                                {% elif payment.payment_status == 'pending' %}
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1.5 text-[10px] font-bold text-amber-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                        {{ payment.get_payment_status_display }}
+                                    </span>
+                                {% elif payment.payment_status == 'failed' or payment.payment_status == 'cancelled' %}
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1.5 text-[10px] font-bold text-rose-700">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                                        {{ payment.get_payment_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1.5 text-[10px] font-bold text-slate-600">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                        {{ payment.get_payment_status_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-5 py-16 text-center">
+                                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                                    <i class="ri-search-eye-line text-2xl" aria-hidden="true"></i>
+                                </div>
+                                <p class="mt-4 text-sm font-bold text-slate-700">No payment transactions found</p>
+                                <p class="mx-auto mt-1 max-w-sm text-xs leading-5 text-slate-500">
+                                    There are no records matching your current filters. Try changing your search or date range.
+                                </p>
+                                <a href="{% url 'income_dashboard' %}"
+                                   class="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-[#153030] transition hover:bg-slate-50">
+                                    <i class="ri-refresh-line" aria-hidden="true"></i>
+                                    Clear filters
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="flex flex-col gap-4 border-t border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <p class="text-xs text-slate-500">
+                    Page <span class="font-bold text-slate-700">{{ page_obj.number }}</span>
+                    of <span class="font-bold text-slate-700">{{ page_obj.paginator.num_pages }}</span>
+                    <span class="mx-1 text-slate-300">|</span>
+                    {{ page_obj.paginator.count }} records
+                </p>
+
+                <nav class="flex flex-wrap items-center gap-1.5" aria-label="Payment pages">
+                    {% if page_obj.has_previous %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' and key != 'export' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"
+                           class="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-[#153030]/30 hover:bg-slate-50 hover:text-[#153030]">
+                            <i class="ri-arrow-left-s-line text-base" aria-hidden="true"></i>
+                            Previous
+                        </a>
+                    {% endif %}
+
+                    {% for number in page_obj.paginator.page_range %}
+                        {% if number == page_obj.number %}
+                            <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-[#153030] bg-[#153030] px-3 text-xs font-bold text-white"
+                                  aria-current="page">{{ number }}</span>
+                        {% elif number >= page_obj.number|add:"-2" and number <= page_obj.number|add:"2" %}
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' and key != 'export' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}page={{ number }}"
+                               class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-[#153030]/30 hover:bg-slate-50 hover:text-[#153030]">
+                                {{ number }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' and key != 'export' %}{{ key }}={{ value|urlencode }}&amp;{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"
+                           class="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-[#153030]/30 hover:bg-slate-50 hover:text-[#153030]">
+                            Next
+                            <i class="ri-arrow-right-s-line text-base" aria-hidden="true"></i>
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        {% endif %}
+    </section>
+
+    <footer class="flex flex-col gap-1 pb-2 text-center text-[10px] text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+        <p>Yaarlynx · Income Management</p>
+        <p>Amounts are displayed in Indian Rupees (INR).</p>
+    </footer>
+
+</div>
+
+{% endblock %}

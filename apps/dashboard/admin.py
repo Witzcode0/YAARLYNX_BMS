@@ -7,7 +7,7 @@ from .models import (
     PaymentMethod,
     PartyPurchase,
     PurchasePaymentInstallment,
-    QuickLinkCategory, QuickLink, Notification, NotificationRecipient
+    QuickLinkCategory, QuickLink, Notification, NotificationRecipient, IncomeSource, IncomePayment
 )
 from django.utils import timezone
 from pathlib import Path as FilePath
@@ -16,6 +16,15 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Count, Sum
 from django.utils.safestring import mark_safe
+
+
+
+from django.db.models.functions import Coalesce
+from django.urls import path, reverse
+from django.shortcuts import redirect
+from django.template.response import TemplateResponse
+from django.utils.html import format_html
+
 
 # =========================================================
 # HELPER FUNCTIONS
@@ -629,11 +638,6 @@ class PaymentMethodAdmin(admin.ModelAdmin):
             return 0
 
         return obj.purchase_installments.count()
-
-
-# =========================================================
-# PARTY PURCHASE ADMIN
-# =========================================================
 
 
 
@@ -3691,4 +3695,366 @@ class NotificationRecipientAdmin(admin.ModelAdmin):
         return queryset.select_related(
             "user",
             "notification",
+        )
+
+
+
+# ==========================================================
+# INCOME SOURCE ADMIN
+# ==========================================================
+
+@admin.register(IncomeSource)
+class IncomeSourceAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "name",
+        "source_type_badge",
+        "payment_count",
+        "total_completed_income",
+        "is_active",
+    )
+
+    list_display_links = ("name",)
+    list_editable = ("is_active",)
+
+    list_filter = (
+        "source_type",
+        "is_active",
+    )
+
+    search_fields = (
+        "name",
+        "description",
+    )
+
+    list_per_page = 25
+    list_max_show_all = 100
+    ordering = ("name",)
+
+    actions = (
+        "activate_sources",
+        "deactivate_sources",
+    )
+
+    fieldsets = (
+        (
+            "Income Source Information",
+            {
+                "fields": (
+                    "name",
+                    "source_type",
+                    "description",
+                ),
+            },
+        ),
+        (
+            "Source Status",
+            {
+                "fields": ("is_active",),
+            },
+        ),
+    )
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        return queryset.annotate(
+            _payment_count=Count(
+                "payments",
+                distinct=True,
+            ),
+            _completed_income=Sum(
+                "payments__amount",
+                filter=Q(
+                    payments__payment_status=(
+                        IncomePayment.PaymentStatus.COMPLETED
+                    )
+                ),
+            ),
+        )
+
+    @admin.display(
+        description="Source Type",
+        ordering="source_type",
+    )
+    def source_type_badge(self, obj):
+        colors = {
+            "MARKETPLACE": ("#dbeafe", "#1d4ed8"),
+            "WEBSITE": ("#e0e7ff", "#3730a3"),
+            "OFFLINE": ("#dcfce7", "#166534"),
+            "WHOLESALE": ("#fef3c7", "#92400e"),
+            "SERVICES": ("#f3e8ff", "#7e22ce"),
+            "OTHER": ("#f3f4f6", "#374151"),
+        }
+
+        background, foreground = colors.get(
+            obj.source_type,
+            ("#f3f4f6", "#374151"),
+        )
+
+        return format_html(
+            '<span style="background:{}; color:{}; '
+            'padding:4px 9px; border-radius:12px; '
+            'font-weight:600;">{}</span>',
+            background,
+            foreground,
+            obj.get_source_type_display(),
+        )
+
+    @admin.display(
+        description="Total Payments",
+        ordering="_payment_count",
+    )
+    def payment_count(self, obj):
+        return obj._payment_count
+
+    @admin.display(
+        description="Completed Income",
+        ordering="_completed_income",
+    )
+    def total_completed_income(self, obj):
+        amount = obj._completed_income or 0
+        formatted_amount = f"₹{amount:,.2f}"
+
+        return format_html(
+            '<span style="color:#15803d; font-weight:700;">'
+            '{}</span>',
+            formatted_amount,
+        )
+
+    @admin.action(description="Activate selected income sources")
+    def activate_sources(self, request, queryset):
+        updated = queryset.update(is_active=True)
+
+        self.message_user(
+            request,
+            f"{updated} income source(s) activated.",
+            messages.SUCCESS,
+        )
+
+    @admin.action(description="Deactivate selected income sources")
+    def deactivate_sources(self, request, queryset):
+        updated = queryset.update(is_active=False)
+
+        self.message_user(
+            request,
+            f"{updated} income source(s) deactivated.",
+            messages.SUCCESS,
+        )
+
+
+# ==========================================================
+# INCOME PAYMENT ADMIN
+# ==========================================================
+
+@admin.register(IncomePayment)
+class IncomePaymentAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "payment_date",
+        "income_source",
+        "formatted_amount",
+        "payment_method_badge",
+        "payment_status_badge",
+        "transaction_id",
+    )
+
+    list_display_links = (
+        "payment_date",
+        "income_source",
+    )
+
+    list_filter = (
+        "payment_status",
+        "payment_method",
+        "income_source__source_type",
+        "income_source",
+        ("payment_date", admin.DateFieldListFilter),
+    )
+
+    search_fields = (
+        "income_source__name",
+        "transaction_id",
+        "description",
+    )
+
+    date_hierarchy = "payment_date"
+
+    autocomplete_fields = ("income_source",)
+    list_select_related = ("income_source",)
+
+    list_per_page = 30
+    list_max_show_all = 100
+
+    ordering = ("-payment_date", "-pk")
+
+    actions = (
+        "mark_as_completed",
+        "mark_as_pending",
+        "mark_as_failed",
+        "mark_as_cancelled",
+    )
+
+    fieldsets = (
+        (
+            "Payment Information",
+            {
+                "fields": (
+                    "income_source",
+                    "payment_date",
+                    "amount",
+                ),
+            },
+        ),
+        (
+            "Transaction Details",
+            {
+                "fields": (
+                    "payment_method",
+                    "transaction_id",
+                    "description",
+                ),
+            },
+        ),
+        (
+            "Payment Status",
+            {
+                "fields": ("payment_status",),
+            },
+        ),
+    )
+
+    # ------------------------------------------------------
+    # FORMATTED PAYMENT AMOUNT
+    # ------------------------------------------------------
+
+    @admin.display(
+        description="Amount",
+        ordering="amount",
+    )
+    def formatted_amount(self, obj):
+        amount = obj.amount or 0
+        formatted_amount = f"₹{amount:,.2f}"
+
+        return format_html(
+            '<span style="font-weight:700; color:#15803d;">'
+            '{}</span>',
+            formatted_amount,
+        )
+
+    # ------------------------------------------------------
+    # PAYMENT METHOD BADGE
+    # ------------------------------------------------------
+
+    @admin.display(
+        description="Payment Method",
+        ordering="payment_method",
+    )
+    def payment_method_badge(self, obj):
+        colors = {
+            "BANK_TRANSFER": ("#e0e7ff", "#3730a3"),
+            "UPI": ("#dbeafe", "#1d4ed8"),
+            "CASH": ("#dcfce7", "#166534"),
+            "CHEQUE": ("#fef3c7", "#92400e"),
+            "WALLET": ("#f3e8ff", "#7e22ce"),
+            "OTHER": ("#f3f4f6", "#374151"),
+        }
+
+        background, foreground = colors.get(
+            obj.payment_method,
+            ("#f3f4f6", "#374151"),
+        )
+
+        return format_html(
+            '<span style="background:{}; color:{}; '
+            'padding:4px 8px; border-radius:10px; '
+            'font-weight:600;">{}</span>',
+            background,
+            foreground,
+            obj.get_payment_method_display(),
+        )
+
+    # ------------------------------------------------------
+    # PAYMENT STATUS BADGE
+    # ------------------------------------------------------
+
+    @admin.display(
+        description="Payment Status",
+        ordering="payment_status",
+    )
+    def payment_status_badge(self, obj):
+        colors = {
+            "COMPLETED": ("#dcfce7", "#166534"),
+            "PENDING": ("#fef3c7", "#92400e"),
+            "FAILED": ("#fee2e2", "#991b1b"),
+            "CANCELLED": ("#f3f4f6", "#4b5563"),
+        }
+
+        background, foreground = colors.get(
+            obj.payment_status,
+            ("#f3f4f6", "#374151"),
+        )
+
+        return format_html(
+            '<span style="background:{}; color:{}; '
+            'padding:4px 9px; border-radius:12px; '
+            'font-weight:700;">{}</span>',
+            background,
+            foreground,
+            obj.get_payment_status_display(),
+        )
+
+    # ------------------------------------------------------
+    # COMMON STATUS UPDATE ACTION
+    # ------------------------------------------------------
+
+    def update_payment_status(
+        self,
+        request,
+        queryset,
+        status,
+        label,
+    ):
+        updated = queryset.update(payment_status=status)
+
+        self.message_user(
+            request,
+            f"{updated} payment(s) marked as {label}.",
+            messages.SUCCESS,
+        )
+
+    @admin.action(description="Mark selected payments as completed")
+    def mark_as_completed(self, request, queryset):
+        self.update_payment_status(
+            request,
+            queryset,
+            IncomePayment.PaymentStatus.COMPLETED,
+            "completed",
+        )
+
+    @admin.action(description="Mark selected payments as pending")
+    def mark_as_pending(self, request, queryset):
+        self.update_payment_status(
+            request,
+            queryset,
+            IncomePayment.PaymentStatus.PENDING,
+            "pending",
+        )
+
+    @admin.action(description="Mark selected payments as failed")
+    def mark_as_failed(self, request, queryset):
+        self.update_payment_status(
+            request,
+            queryset,
+            IncomePayment.PaymentStatus.FAILED,
+            "failed",
+        )
+
+    @admin.action(description="Mark selected payments as cancelled")
+    def mark_as_cancelled(self, request, queryset):
+        self.update_payment_status(
+            request,
+            queryset,
+            IncomePayment.PaymentStatus.CANCELLED,
+            "cancelled",
         )

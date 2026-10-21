@@ -6,11 +6,17 @@ from django.db.models import Prefetch
 from decimal import Decimal
 from django.http import JsonResponse
 from django.utils import timezone
+from django.http import HttpResponse
 
-from django.db.models import Sum, Count
+import csv
+from datetime import timedelta
+
+from django.db.models import Sum, Count, DecimalField, Value
+from django.utils.dateparse import parse_date
+from django.db.models.functions import Coalesce
 
 from apps.accounts.models import UserAccount
-from apps.dashboard.models import Party, PartyPaymentQR, PartyPurchase, PurchasePaymentInstallment, QuickLink, QuickLinkCategory, Notification, NotificationRecipient
+from apps.dashboard.models import Party, PartyPaymentQR, PartyPurchase, PurchasePaymentInstallment, QuickLink, QuickLinkCategory, Notification, NotificationRecipient, IncomeSource, IncomePayment
 
 from apps.dashboard.session import (
     get_logged_in_user,
@@ -775,6 +781,184 @@ def payment_list(request):
         "dashboard/payment_list.html",
         context,
     )
+
+
+@login_required
+def income_dashboard(request):
+    today = timezone.localdate()
+
+    money_field = DecimalField(max_digits=14, decimal_places=2)
+    zero = Value(Decimal("0.00"), output_field=money_field)
+
+    payments = IncomePayment.objects.select_related("income_source")
+
+    # Search
+    search = request.GET.get("q", "").strip()
+    if search:
+        payments = payments.filter(
+            Q(income_source__name__icontains=search)
+            | Q(transaction_id__icontains=search)
+            | Q(description__icontains=search)
+        )
+
+    # Payment status
+    status = request.GET.get("status", "").strip()
+    valid_statuses = dict(IncomePayment.PaymentStatus.choices)
+    if status in valid_statuses:
+        payments = payments.filter(payment_status=status)
+
+    # Payment method
+    method = request.GET.get("method", "").strip()
+    valid_methods = dict(IncomePayment.PaymentMethod.choices)
+    if method in valid_methods:
+        payments = payments.filter(payment_method=method)
+
+    # Income source (supports integer and UUID primary keys)
+    source = request.GET.get("source", "").strip()
+    if source and IncomeSource.objects.filter(pk=source).exists():
+        payments = payments.filter(income_source_id=source)
+
+    # Date filters
+    period = request.GET.get("period", "").strip()
+    start_date = parse_date(request.GET.get("start_date", "").strip())
+    end_date = parse_date(request.GET.get("end_date", "").strip())
+
+    if period == "today":
+        start_date = end_date = today
+    elif period == "week":
+        start_date = today - timedelta(days=6)
+        end_date = today
+    elif period == "month":
+        start_date = today.replace(day=1)
+        end_date = today
+    elif period == "year":
+        start_date = today.replace(month=1, day=1)
+        end_date = today
+
+    if start_date and end_date and start_date > end_date:
+        start_date = end_date = None
+
+    if start_date:
+        payments = payments.filter(payment_date__gte=start_date)
+    if end_date:
+        payments = payments.filter(payment_date__lte=end_date)
+
+    payments = payments.order_by("-payment_date", "-pk")
+
+    # Reusable amount aggregation
+    def amount_total(queryset):
+        return queryset.aggregate(
+            total=Coalesce(
+                Sum("amount"),
+                zero,
+                output_field=money_field,
+            )
+        )["total"]
+
+    # Overall filtered statistics
+    completed = payments.filter(
+        payment_status=IncomePayment.PaymentStatus.COMPLETED
+    )
+    pending = payments.filter(
+        payment_status=IncomePayment.PaymentStatus.PENDING
+    )
+    failed = payments.filter(
+        payment_status=IncomePayment.PaymentStatus.FAILED
+    )
+    cancelled = payments.filter(
+        payment_status=IncomePayment.PaymentStatus.CANCELLED
+    )
+
+    total_count = payments.count()
+
+    stats = {
+        "total_count": total_count,
+        "total_amount": amount_total(payments),
+        "completed_count": completed.count(),
+        "completed_amount": amount_total(completed),
+        "pending_count": pending.count(),
+        "pending_amount": amount_total(pending),
+        "failed_count": failed.count(),
+        "failed_amount": amount_total(failed),
+        "cancelled_count": cancelled.count(),
+        "cancelled_amount": amount_total(cancelled),
+    }
+
+    # Source-wise completed income for the same date/search filters.
+    source_statistics = (
+        IncomeSource.objects.filter(payments__in=payments)
+        .annotate(
+            payment_count=Count("payments", distinct=True),
+            completed_amount=Coalesce(
+                Sum(
+                    "payments__amount",
+                    filter=Q(
+                        payments__payment_status=(
+                            IncomePayment.PaymentStatus.COMPLETED
+                        )
+                    ),
+                ),
+                zero,
+                output_field=money_field,
+            ),
+        )
+        .order_by("-completed_amount", "name")
+    )
+
+    # CSV export using the same filters
+    if request.GET.get("export") == "csv":
+        response = HttpResponse(
+            content_type="text/csv; charset=utf-8"
+        )
+        response["Content-Disposition"] = (
+            'attachment; filename="income_payments.csv"'
+        )
+        response.write("\ufeff")
+
+        writer = csv.writer(response)
+        writer.writerow([
+            "Date", "Source", "Amount", "Method",
+            "Transaction ID", "Status", "Description",
+        ])
+
+        for payment in payments.iterator():
+            writer.writerow([
+                payment.payment_date,
+                payment.income_source.name,
+                payment.amount,
+                payment.get_payment_method_display(),
+                payment.transaction_id,
+                payment.get_payment_status_display(),
+                payment.description,
+            ])
+
+        return response
+
+    # Pagination
+    paginator = Paginator(payments, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    context = {
+        "stats": stats,
+        "source_statistics": source_statistics,
+        "recent_payments": payments[:10],
+        "payments": page_obj.object_list,
+        "page_obj": page_obj,
+        "income_sources": IncomeSource.objects.filter(
+            is_active=True
+        ).order_by("name"),
+        "payment_statuses": IncomePayment.PaymentStatus.choices,
+        "payment_methods": IncomePayment.PaymentMethod.choices,
+        "search_query": search,
+        "selected_status": status,
+        "selected_method": method,
+        "selected_source": source,
+        "selected_period": period,
+        "start_date": start_date.isoformat() if start_date else "",
+        "end_date": end_date.isoformat() if end_date else "",
+    }
+
+    return render(request, "dashboard/income_dashboard.html", context)
 
 # ==========================================================
 # USER PROFILE

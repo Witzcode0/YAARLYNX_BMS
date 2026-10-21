@@ -28,6 +28,11 @@ path(
     name="purchase_installments",
 ),
     path("payments/", payment_list, name="payment_list"),
+    path(
+        "dashboard/",
+        income_dashboard,
+        name="income_dashboard",
+    ),
     path("dashboard/", dashboard_view, name="dashboard_view"),
     path(
         "notifications/",

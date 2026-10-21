@@ -13,10 +13,6 @@ from apps.master.utils import get_instance_file_path
 from apps.master.mixins import FileReplaceMixin
 
 
-# =========================================================
-# PARTY
-# =========================================================
-
 class Party(BaseModel):
 
     class PartyType(models.TextChoices):
@@ -146,10 +142,6 @@ class Party(BaseModel):
         return self.name
 
 
-# =========================================================
-# PARTY PAYMENT QR
-# =========================================================
-
 def party_payment_qr_upload_path(instance, filename):
     return get_instance_file_path(
         "parties/payment_qr",
@@ -210,10 +202,6 @@ class PartyPaymentQR(
         return f"{self.party.name} - {self.qr_name}"
 
 
-# =========================================================
-# PAYMENT METHOD
-# =========================================================
-
 class PaymentMethod(BaseModel):
 
     name = models.CharField(
@@ -235,10 +223,6 @@ class PaymentMethod(BaseModel):
     def __str__(self):
         return self.name
 
-
-# =========================================================
-# PARTY PURCHASE ORDER
-# =========================================================
 
 def party_purchase_invoice_upload_path(instance, filename):
     return get_instance_file_path(
@@ -1012,10 +996,6 @@ class PartyPurchase(
         self.update_payment_summary()
 
 
-# =========================================================
-# PURCHASE PAYMENT INSTALLMENT
-# =========================================================
-
 class PurchasePaymentInstallment(BaseModel):
 
     # =========================================================
@@ -1344,10 +1324,6 @@ class PurchasePaymentInstallment(BaseModel):
         return result
 
 
-# =========================================================
-# QUICK LINK CATEGORY
-# =========================================================
-
 class QuickLinkCategory(BaseModel):
 
     name = models.CharField(
@@ -1383,10 +1359,6 @@ class QuickLinkCategory(BaseModel):
     def __str__(self):
         return self.name
 
-
-# =========================================================
-# QUICK LINK
-# =========================================================
 
 class QuickLink(BaseModel):
 
@@ -1440,10 +1412,6 @@ class QuickLink(BaseModel):
     def __str__(self):
         return self.name
 
-
-# =========================================================
-# NOTIFICATION
-# =========================================================
 
 def notification_image_upload_path(instance, filename):
     return get_instance_file_path(
@@ -1598,10 +1566,6 @@ class Notification(
         return True
 
 
-# =========================================================
-# NOTIFICATION RECIPIENT
-# =========================================================
-
 class NotificationRecipient(BaseModel):
 
     notification = models.ForeignKey(
@@ -1671,3 +1635,119 @@ class NotificationRecipient(BaseModel):
                     "updated_at",
                 ]
             )
+
+
+class IncomeSource(BaseModel):
+
+    class SourceType(models.TextChoices):
+        MARKETPLACE = "MARKETPLACE", "Online Marketplace"
+        WEBSITE = "WEBSITE", "Website Sales"
+        OFFLINE = "OFFLINE", "Offline Sales"
+        WHOLESALE = "WHOLESALE", "Wholesale"
+        SERVICES = "SERVICES", "Services"
+        OTHER = "OTHER", "Other"
+
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        help_text="Example: Amazon, Meesho, Myntra, Flipkart.",
+    )
+
+    source_type = models.CharField(
+        max_length=20,
+        choices=SourceType.choices,
+        default=SourceType.MARKETPLACE,
+        db_index=True,
+    )
+
+    description = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+    )
+
+    class Meta:
+        db_table = "income_sources"
+        ordering = ["name"]
+        verbose_name = "Income Source"
+        verbose_name_plural = "Income Sources"
+
+    def __str__(self):
+        return self.name
+
+
+class IncomePayment(BaseModel):
+
+    class PaymentMethod(models.TextChoices):
+        BANK_TRANSFER = "BANK_TRANSFER", "Bank Transfer"
+        UPI = "UPI", "UPI"
+        CASH = "CASH", "Cash"
+        CHEQUE = "CHEQUE", "Cheque"
+        WALLET = "WALLET", "Wallet"
+        OTHER = "OTHER", "Other"
+
+    class PaymentStatus(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        COMPLETED = "COMPLETED", "Completed"
+        FAILED = "FAILED", "Failed"
+        CANCELLED = "CANCELLED", "Cancelled"
+
+    payment_date = models.DateField(
+        db_index=True,
+        help_text="Date on which the payment was received.",
+    )
+
+    income_source = models.ForeignKey(
+        IncomeSource,
+        on_delete=models.PROTECT,
+        related_name="payments",
+        db_index=True,
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Payment amount.",
+    )
+
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.BANK_TRANSFER,
+    )
+
+    transaction_id = models.CharField(
+        max_length=100,
+        blank=True,
+        db_index=True,
+        help_text="Bank reference number, UTR, or transaction ID.",
+    )
+
+    payment_status = models.CharField(
+        max_length=15,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.COMPLETED,
+        db_index=True,
+    )
+
+    description = models.TextField(
+        blank=True,
+        help_text="Additional payment details or notes.",
+    )
+
+    class Meta:
+        db_table = "income_payments"
+        ordering = ["-payment_date"]
+        verbose_name = "Income Payment"
+        verbose_name_plural = "Income Payments"
+
+    def __str__(self):
+        return (
+            f"{self.income_source.name} - "
+            f"₹{self.amount} - {self.payment_date}"
+        )
