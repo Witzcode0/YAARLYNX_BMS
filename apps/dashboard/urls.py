@@ -29,7 +29,7 @@ path(
 ),
     path("payments/", payment_list, name="payment_list"),
     path(
-        "dashboard/",
+        "income-dashboard/",
         income_dashboard,
         name="income_dashboard",
     ),
