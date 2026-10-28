@@ -1,0 +1,809 @@
+{% extends "dashboard/layout.html" %}
+{% load static %}
+
+{% block title %}Purchase Studio | YAARLYNX{% endblock %}
+{% block page_heading %}Purchase Transactions{% endblock %}
+{% block meta_description %}YAARLYNX Purchase Studio for supplier purchases, payment collections, outstanding balances and purchase record exports.{% endblock %}
+
+{% block content %}
+
+<style>
+    .purchase-studio {
+        --ps-ink: #153030;
+        --ps-teal: #2b716b;
+        --ps-border: #e4ebe9;
+        --ps-muted: #788784;
+    }
+
+    .ps-panel {
+        min-width: 0;
+        background: #fff;
+        border: 1px solid var(--ps-border);
+        border-radius: 20px;
+        box-shadow: 0 3px 12px rgba(21, 48, 48, .025);
+    }
+
+    .ps-control {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid #dfe7e5;
+        border-radius: 11px;
+        background: #f9fbfa;
+        color: #253b39;
+        font-size: 13px;
+        outline: none;
+        transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .ps-control:focus {
+        border-color: #43857f;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(38, 115, 109, .09);
+    }
+
+    .ps-button {
+        display: inline-flex;
+        min-height: 42px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 11px;
+        font-size: 12px;
+        font-weight: 750;
+        transition: background .16s ease, transform .16s ease;
+    }
+
+    .ps-button:active {
+        transform: scale(.98);
+    }
+
+    .ps-button-primary {
+        background: var(--ps-ink);
+        color: white;
+    }
+
+    .ps-button-primary:hover {
+        background: #214747;
+    }
+
+    .ps-button-secondary {
+        border: 1px solid #dfe7e5;
+        background: #fff;
+        color: #415653;
+    }
+
+    .ps-button-secondary:hover {
+        background: #f3f8f6;
+    }
+
+    .ps-button-export {
+        border: 1px solid #bde5d4;
+        background: #edfaf3;
+        color: #126642;
+    }
+
+    .ps-button-export:hover {
+        background: #daf4e6;
+    }
+
+    .ps-summary-cell {
+        padding: 17px 18px;
+        border-right: 1px solid #e9efee;
+    }
+
+    .ps-summary-cell:last-child {
+        border-right: none;
+    }
+
+    .ps-number {
+        font-variant-numeric: tabular-nums;
+        overflow-wrap: anywhere;
+    }
+
+    .ps-table th {
+        white-space: nowrap;
+    }
+
+    .ps-table td {
+        vertical-align: middle;
+    }
+
+    .ps-table-row {
+        transition: background .16s ease;
+    }
+
+    .ps-table-row:hover {
+        background: #f4f9f8;
+    }
+
+    .ps-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        max-width: 100%;
+        border-radius: 999px;
+        padding: 5px 9px;
+        font-size: 11px;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .ps-dot {
+        width: 6px;
+        height: 6px;
+        flex: 0 0 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .ps-collection-track {
+        height: 6px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e8efee;
+    }
+
+    .ps-collection-track > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: #28776f;
+        transition: width .5s ease;
+    }
+
+    @media (max-width: 767px) {
+        .ps-summary-cell {
+            border-right: none;
+            border-bottom: 1px solid #e9efee;
+            padding: 14px;
+        }
+
+        .ps-summary-cell:nth-child(odd) {
+            border-right: 1px solid #e9efee;
+        }
+
+        .ps-summary-cell:nth-last-child(-n+2) {
+            border-bottom: none;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .ps-panel {
+            border-radius: 16px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ps-control,
+        .ps-button,
+        .ps-table-row,
+        .ps-collection-track > span {
+            transition: none;
+        }
+    }
+</style>
+
+<div class="purchase-studio mx-auto w-full max-w-[1700px] space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+
+    <!-- HEADER -->
+    <section class="relative isolate overflow-hidden rounded-[26px] bg-[#153030] text-white shadow-lg shadow-teal-950/10">
+        <div class="pointer-events-none absolute -right-14 -top-16 h-64 w-64 rounded-full border-[34px] border-white/[0.045]"></div>
+        <div class="pointer-events-none absolute -bottom-24 right-[25%] h-48 w-48 rounded-full bg-teal-300/[0.06] blur-2xl"></div>
+
+        <div class="relative p-5 sm:p-7 lg:p-8">
+            <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+
+                <div class="min-w-0">
+                    <span class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.17em] text-teal-50">
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-300"></span>
+                        Finance Studio / Supplier Ledger
+                    </span>
+
+                    <h1 class="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
+                        Purchase Studio
+                    </h1>
+
+                    <p class="mt-2 max-w-2xl text-sm leading-6 text-teal-50/75">
+                        Track supplier commitments, monitor money paid, identify outstanding balances,
+                        and export your purchase records from one workspace.
+                    </p>
+
+                    <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-teal-50/80">
+                        <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2">
+                            <i class="ri-calendar-check-line"></i>
+                            {{ period_label|default:"All time" }}
+                        </span>
+
+                        <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2">
+                            <i class="ri-database-2-line"></i>
+                            {{ page_obj.paginator.count|default:0 }} matching purchases
+                        </span>
+                    </div>
+                </div>
+
+                <nav class="flex flex-wrap gap-2" aria-label="Finance navigation">
+                    <a href="{% url 'finance_dashboard' %}"
+                       class="ps-button border border-white/20 bg-white px-4 text-[#153030] hover:bg-teal-50">
+                        <i class="ri-dashboard-3-line text-base"></i>
+                        Finance dashboard
+                    </a>
+
+                    <a href="{% url 'income_transactions' %}"
+                       class="ps-button border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15]">
+                        <i class="ri-arrow-down-circle-line text-base"></i>
+                        Income ledger
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </section>
+
+    <!-- SUMMARY STRIP -->
+    <section class="ps-panel overflow-hidden" aria-label="Filtered purchase summary">
+        <div class="grid grid-cols-2 md:grid-cols-4">
+
+            <div class="ps-summary-cell">
+                <p class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                        <i class="ri-file-list-3-line"></i>
+                    </span>
+                    Matching purchases
+                </p>
+
+                <p class="ps-number mt-3 text-2xl font-extrabold tracking-tight text-slate-900">
+                    {{ stats.count|default:0 }}
+                </p>
+
+                <p class="mt-1 text-[11px] text-slate-400">
+                    Records matching filters
+                </p>
+            </div>
+
+            <div class="ps-summary-cell">
+                <p class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+                        <i class="ri-shopping-bag-3-line"></i>
+                    </span>
+                    Purchase value
+                </p>
+
+                <p class="ps-number mt-3 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+                    ₹{{ stats.value|default:0|floatformat:2 }}
+                </p>
+
+                <p class="mt-1 text-[11px] text-slate-400">
+                    Grand total of matching purchases
+                </p>
+            </div>
+
+            <div class="ps-summary-cell">
+                <p class="flex items-center gap-2 text-xs font-semibold text-emerald-800">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100">
+                        <i class="ri-checkbox-circle-line"></i>
+                    </span>
+                    Amount paid
+                </p>
+
+                <p class="ps-number mt-3 text-xl font-extrabold tracking-tight text-emerald-800 sm:text-2xl">
+                    ₹{{ stats.paid|default:0|floatformat:2 }}
+                </p>
+
+                <p class="mt-1 text-[11px] text-emerald-700">
+                    {{ stats.collection_percentage|default:0|floatformat:1 }}% collected
+                </p>
+            </div>
+
+            <div class="ps-summary-cell">
+                <p class="flex items-center gap-2 text-xs font-semibold text-amber-800">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100">
+                        <i class="ri-time-line"></i>
+                    </span>
+                    Outstanding
+                </p>
+
+                <p class="ps-number mt-3 text-xl font-extrabold tracking-tight text-amber-800 sm:text-2xl">
+                    ₹{{ stats.due|default:0|floatformat:2 }}
+                </p>
+
+                <p class="mt-1 text-[11px] text-amber-700">
+                    Remaining supplier balance
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- COLLECTION PROGRESS -->
+    <section class="ps-panel p-4 sm:p-5">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">
+                    Payment performance
+                </p>
+                <h2 class="mt-1 text-base font-extrabold text-slate-900">
+                    Purchase collection progress
+                </h2>
+                <p class="mt-1 text-xs leading-5 text-slate-500">
+                    Compare paid amounts with the total purchase value for the current filters.
+                </p>
+            </div>
+
+            <div class="sm:text-right">
+                <p class="text-2xl font-extrabold tracking-tight text-[#153030]">
+                    {{ stats.collection_percentage|default:0|floatformat:1 }}%
+                </p>
+                <p class="text-[11px] font-semibold text-slate-400">
+                    Collection rate
+                </p>
+            </div>
+        </div>
+
+        <div class="ps-collection-track mt-4 h-3">
+            <span
+                style="width:{% if stats.collection_percentage > 100 %}100{% else %}{{ stats.collection_percentage|default:0 }}{% endif %}%">
+            </span>
+        </div>
+
+        <div class="mt-3 grid grid-cols-1 gap-3 text-xs sm:grid-cols-3">
+            <div class="flex items-center justify-between gap-3 sm:justify-start">
+                <span class="text-slate-500">Total value</span>
+                <strong class="ps-number text-slate-900">₹{{ stats.value|default:0|floatformat:2 }}</strong>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 sm:justify-center">
+                <span class="text-slate-500">Paid</span>
+                <strong class="ps-number text-emerald-700">₹{{ stats.paid|default:0|floatformat:2 }}</strong>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 sm:justify-end">
+                <span class="text-slate-500">Still due</span>
+                <strong class="ps-number text-amber-700">₹{{ stats.due|default:0|floatformat:2 }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- FILTER WORKSPACE -->
+    <section class="ps-panel overflow-hidden" id="purchase-filters">
+        <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div>
+                <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">
+                    Search & refine
+                </p>
+
+                <h2 class="mt-1 text-base font-extrabold text-slate-900">
+                    Find a purchase record
+                </h2>
+
+                <p class="mt-1 text-xs leading-5 text-slate-500">
+                    Combine search, supplier, status and date filters. Export includes all matching records.
+                </p>
+            </div>
+
+            <span class="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600">
+                <i class="ri-filter-3-line text-teal-700"></i>
+                {{ page_obj.paginator.count|default:0 }} results
+            </span>
+        </div>
+
+        <form method="get" class="p-4 sm:p-5">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+
+                <div class="sm:col-span-2">
+                    <label for="purchase-q" class="mb-1.5 block text-xs font-bold text-slate-600">
+                        Search purchases
+                    </label>
+
+                    <div class="relative">
+                        <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-base text-slate-400"></i>
+
+                        <input
+                            id="purchase-q"
+                            type="search"
+                            name="q"
+                            value="{{ search_query }}"
+                            placeholder="Purchase number, supplier, notes..."
+                            class="ps-control pl-9"
+                            autocomplete="off">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="purchase-period" class="mb-1.5 block text-xs font-bold text-slate-600">
+                        Reporting period
+                    </label>
+
+                    <select id="purchase-period" name="period" class="ps-control">
+                        {% for value, label in period_options %}
+                            <option value="{{ value }}" {% if selected_period == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if party_filter_supported %}
+                    <div>
+                        <label for="purchase-party" class="mb-1.5 block text-xs font-bold text-slate-600">
+                            Party / supplier
+                        </label>
+
+                        <select id="purchase-party" name="party" class="ps-control">
+                            <option value="">All parties</option>
+                            {% for party in parties %}
+                                <option value="{{ party.pk }}"
+                                    {% if selected_party == party.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ party }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+
+                {% if purchase_statuses %}
+                    <div>
+                        <label for="purchase-status" class="mb-1.5 block text-xs font-bold text-slate-600">
+                            Purchase status
+                        </label>
+
+                        <select id="purchase-status" name="status" class="ps-control">
+                            <option value="">All statuses</option>
+
+                            {% for value, label in purchase_statuses %}
+                                <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+
+                <div>
+                    <label for="purchase-start" class="mb-1.5 block text-xs font-bold text-slate-600">
+                        Start date
+                    </label>
+
+                    <input
+                        id="purchase-start"
+                        type="date"
+                        name="start_date"
+                        value="{{ start_date }}"
+                        class="ps-control">
+                </div>
+
+                <div>
+                    <label for="purchase-end" class="mb-1.5 block text-xs font-bold text-slate-600">
+                        End date
+                    </label>
+
+                    <input
+                        id="purchase-end"
+                        type="date"
+                        name="end_date"
+                        value="{{ end_date }}"
+                        class="ps-control">
+                </div>
+
+            </div>
+
+            <div class="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
+                <button type="submit" class="ps-button ps-button-primary">
+                    <i class="ri-equalizer-2-line text-base"></i>
+                    Apply filters
+                </button>
+
+                <a href="{% url 'purchase_transactions' %}"
+                   class="ps-button ps-button-secondary">
+                    <i class="ri-refresh-line text-base"></i>
+                    Clear filters
+                </a>
+
+                <span class="hidden h-7 w-px bg-slate-200 sm:block"></span>
+
+                <button type="submit"
+                        name="export"
+                        value="xlsx"
+                        class="ps-button ps-button-export">
+                    <i class="ri-file-excel-2-line text-base"></i>
+                    Download Excel
+                </button>
+
+                <p class="text-[11px] leading-5 text-slate-400 sm:ml-auto sm:text-right">
+                    Exports all matching purchases, not just the current page.
+                </p>
+            </div>
+        </form>
+
+        {% if filter_message %}
+            <div class="mx-4 mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900 sm:mx-5">
+                <i class="ri-information-line mt-0.5"></i>
+                <span>{{ filter_message }}</span>
+            </div>
+        {% endif %}
+
+        {% if not date_field %}
+            <div class="mx-4 mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900 sm:mx-5">
+                <i class="ri-alert-line mt-0.5"></i>
+                <span>
+                    No recognized purchase date field was found. Date filters cannot narrow purchases until the candidate field list in finance_views.py matches your model.
+                </span>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- PURCHASE LEDGER -->
+    <section class="ps-panel overflow-hidden" id="purchase-records">
+        <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div>
+                <h2 class="flex items-center gap-2 font-extrabold text-slate-900">
+                    <i class="ri-list-check-3 text-lg text-teal-800"></i>
+                    Purchase ledger
+                </h2>
+
+                <p class="mt-1 text-xs text-slate-500">
+                    Page {{ page_obj.number|default:1 }}
+                    of {{ page_obj.paginator.num_pages|default:1 }}
+                    · 25 records per page
+                </p>
+            </div>
+
+            <span class="inline-flex w-fit items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+                <i class="ri-file-excel-2-line"></i>
+                Excel export ready
+            </span>
+        </div>
+
+        <!-- DESKTOP TABLE -->
+        <div class="hidden overflow-x-auto md:block">
+            <table class="ps-table w-full min-w-[1050px]">
+                <thead class="bg-[#f7f9f8]">
+                    <tr class="text-left text-[10px] font-extrabold uppercase tracking-[.13em] text-slate-500">
+                        <th class="px-5 py-4">Purchase date</th>
+                        <th class="px-5 py-4">Purchase reference</th>
+                        <th class="px-5 py-4">Party / supplier</th>
+                        <th class="px-5 py-4">Status</th>
+                        <th class="px-5 py-4 text-right">Grand total</th>
+                        <th class="px-5 py-4 text-right">Paid</th>
+                        <th class="px-5 py-4 text-right">Outstanding</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100">
+                    {% for purchase in purchases %}
+                        <tr class="ps-table-row">
+                            <td class="whitespace-nowrap px-5 py-4 text-xs font-medium text-slate-600">
+                                {% if purchase.finance_date %}
+                                    {{ purchase.finance_date|date:"d M Y" }}
+                                {% else %}
+                                    <span class="text-slate-400">Not recorded</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="whitespace-nowrap px-5 py-4">
+                                <p class="text-sm font-extrabold text-[#153030]">
+                                    {{ purchase.finance_number|default:"—" }}
+                                </p>
+                                <p class="mt-1 text-[10px] text-slate-400">
+                                    Record #{{ purchase.pk }}
+                                </p>
+                            </td>
+
+                            <td class="px-5 py-4">
+                                <div class="flex min-w-0 items-center gap-3">
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                                        <i class="ri-store-2-line text-lg"></i>
+                                    </span>
+
+                                    <span class="max-w-[240px] truncate text-sm font-semibold text-slate-700">
+                                        {{ purchase.finance_party|default:"Unassigned supplier" }}
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td class="whitespace-nowrap px-5 py-4">
+                                {% if purchase.finance_status_label %}
+                                    <span class="ps-status bg-slate-100 text-slate-700">
+                                        <span class="ps-dot"></span>
+                                        {{ purchase.finance_status_label }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-xs text-slate-400">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="whitespace-nowrap px-5 py-4 text-right">
+                                <span class="ps-number text-sm font-bold text-slate-900">
+                                    ₹{{ purchase.finance_grand_total|default:0|floatformat:2 }}
+                                </span>
+                            </td>
+
+                            <td class="whitespace-nowrap px-5 py-4 text-right">
+                                <span class="ps-number text-sm font-bold text-emerald-700">
+                                    ₹{{ purchase.finance_paid_amount|default:0|floatformat:2 }}
+                                </span>
+                            </td>
+
+                            <td class="whitespace-nowrap px-5 py-4 text-right">
+                                <span class="ps-number text-sm font-extrabold text-amber-700">
+                                    ₹{{ purchase.finance_due_amount|default:0|floatformat:2 }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-5 py-16 text-center">
+                                <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                                    <i class="ri-search-eye-line text-2xl"></i>
+                                </span>
+
+                                <p class="mt-3 text-sm font-extrabold text-slate-800">
+                                    No purchase records found
+                                </p>
+
+                                <p class="mt-1 text-xs text-slate-500">
+                                    Try another supplier, status or reporting period.
+                                </p>
+
+                                <a href="{% url 'purchase_transactions' %}"
+                                   class="mt-4 inline-flex items-center gap-2 text-xs font-bold text-teal-800 hover:underline">
+                                    <i class="ri-refresh-line"></i>
+                                    Reset filters
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- MOBILE PURCHASE LIST -->
+        <div class="divide-y divide-slate-100 md:hidden">
+            {% for purchase in purchases %}
+                <article class="p-4 transition hover:bg-slate-50/80">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex min-w-0 items-start gap-3">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#153030]">
+                                <i class="ri-shopping-bag-3-line text-xl"></i>
+                            </span>
+
+                            <div class="min-w-0">
+                                <h3 class="break-words text-sm font-extrabold text-slate-900">
+                                    {{ purchase.finance_number|default:"Purchase record" }}
+                                </h3>
+
+                                <p class="mt-1 break-words text-xs text-slate-500">
+                                    {{ purchase.finance_party|default:"Unassigned supplier" }}
+                                </p>
+
+                                <p class="mt-1 text-[11px] text-slate-400">
+                                    {% if purchase.finance_date %}
+                                        {{ purchase.finance_date|date:"d M Y" }}
+                                    {% else %}
+                                        Date not recorded
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="shrink-0 text-right">
+                            <p class="ps-number text-sm font-extrabold text-slate-900">
+                                ₹{{ purchase.finance_grand_total|default:0|floatformat:2 }}
+                            </p>
+
+                            <p class="mt-1 text-[11px] text-slate-500">
+                                {{ purchase.finance_status_label|default:"—" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+                        <div class="mb-2 flex items-center justify-between gap-3">
+                            <span class="text-[11px] font-semibold text-slate-500">
+                                Payment progress
+                            </span>
+
+                            {% if purchase.finance_grand_total %}
+                                <span class="text-[11px] font-extrabold text-slate-700">
+                                    {% widthratio purchase.finance_paid_amount purchase.finance_grand_total 100 %}%
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="ps-collection-track">
+                            <span
+                                style="width:{% if purchase.finance_grand_total > 0 %}{% widthratio purchase.finance_paid_amount purchase.finance_grand_total 100 %}{% else %}0{% endif %}%">
+                            </span>
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[11px] font-medium text-slate-500">Paid</p>
+                                <p class="ps-number mt-1 text-sm font-extrabold text-emerald-700">
+                                    ₹{{ purchase.finance_paid_amount|default:0|floatformat:2 }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p class="text-[11px] font-medium text-slate-500">Outstanding</p>
+                                <p class="ps-number mt-1 text-sm font-extrabold text-amber-700">
+                                    ₹{{ purchase.finance_due_amount|default:0|floatformat:2 }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="mt-3 text-[10px] text-slate-400">
+                        Record #{{ purchase.pk }}
+                    </p>
+                </article>
+            {% empty %}
+                <div class="px-5 py-12 text-center">
+                    <i class="ri-file-search-line text-3xl text-slate-300"></i>
+                    <p class="mt-2 text-sm font-extrabold text-slate-800">
+                        No matching purchases
+                    </p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Change the filters to find purchase records.
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- PAGINATION -->
+        {% if page_obj.paginator.num_pages > 1 %}
+            <nav class="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+                 aria-label="Purchase transaction pagination">
+
+                <p class="text-xs leading-5 text-slate-500">
+                    Showing
+                    <strong class="text-slate-800">{{ page_obj.start_index }}</strong>–<strong class="text-slate-800">{{ page_obj.end_index }}</strong>
+                    of <strong class="text-slate-800">{{ page_obj.paginator.count }}</strong> records
+                </p>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page=1#purchase-records"
+                           class="ps-button ps-button-secondary">
+                            <i class="ri-skip-back-mini-line"></i>
+                            First
+                        </a>
+
+                        <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.previous_page_number }}#purchase-records"
+                           class="ps-button ps-button-secondary">
+                            <i class="ri-arrow-left-s-line"></i>
+                            Previous
+                        </a>
+                    {% endif %}
+
+                    <span class="inline-flex min-h-10 items-center rounded-xl bg-[#153030] px-4 text-xs font-extrabold text-white">
+                        {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                    </span>
+
+                    {% if page_obj.has_next %}
+                        <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.next_page_number }}#purchase-records"
+                           class="ps-button ps-button-secondary">
+                            Next
+                            <i class="ri-arrow-right-s-line"></i>
+                        </a>
+
+                        <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.paginator.num_pages }}#purchase-records"
+                           class="ps-button ps-button-secondary">
+                            Last
+                            <i class="ri-skip-forward-mini-line"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </nav>
+        {% endif %}
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="flex flex-col gap-1 border-t border-slate-200 pt-4 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+        <span>YAARLYNX Finance Studio · Purchase Ledger</span>
+        <span>Currency: INR (₹) · Export follows the active filters</span>
+    </footer>
+
+</div>
+
+{% endblock %}

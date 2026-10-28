@@ -7,6 +7,11 @@ urlpatterns = [
     path("profile/", profile_view, name="profile_view"),
     path("quick-links/", quick_links, name="quick_links"),
     path("party/", party_list, name="party_list"),
+    path(
+    "parties/export-excel/",
+    export_parties_excel,
+    name="party_export",
+),
     path("party/<uuid:pk>/", party_detail, name="party_detail"),
     path(
     "parties/<uuid:party_id>/orders/",party_orders_view,
@@ -27,12 +32,9 @@ path(
     purchase_installments_view,
     name="purchase_installments",
 ),
-    path("payments/", payment_list, name="payment_list"),
-    path(
-        "income-dashboard/",
-        income_dashboard,
-        name="income_dashboard",
-    ),
+    path("finance/", finance_dashboard, name="finance_dashboard"),
+        path("finance/income/", income_transactions, name="income_transactions"),
+        path("finance/purchases/", purchase_transactions, name="purchase_transactions"),
     path("dashboard/", dashboard_view, name="dashboard_view"),
     path(
         "notifications/",

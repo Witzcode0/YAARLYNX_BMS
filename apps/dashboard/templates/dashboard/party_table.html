@@ -1,950 +1,500 @@
-<!-- =========================================================
-     SMART PARTY TABLE
-     Template: dashboard/party_table.html
-     ========================================================= -->
+<!-- ============================================================
+     FILE: templates/dashboard/party_table.html
 
-<div class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-[0_2px_12px_rgba(21,48,48,0.04)]">
+     YAARLYNX PARTY STUDIO
+     Responsive party directory, desktop table, mobile cards,
+     filter-preserving AJAX pagination and empty states.
 
-    <!-- =====================================================
-         TABLE HEADER
-         ===================================================== -->
-    <div class="flex flex-col gap-3 border-b border-gray-100 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+     Required view context:
+     page_obj, parties, pagination_query, filtered_parties_count
+     ============================================================ -->
 
-        <!-- LEFT -->
-        <div class="flex min-w-0 items-center gap-3">
+<div class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#153030]/[0.07] text-[#153030]">
-                <svg class="h-[17px] w-[17px]"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor"
-                     stroke-width="1.8">
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-                </svg>
-            </div>
+    <!-- DIRECTORY HEADER -->
+    <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div class="min-w-0">
+            <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">
+                Directory results
+            </p>
 
-            <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                    <h2 class="truncate text-sm font-bold tracking-tight text-[#153030]">
-                        Party Directory
-                    </h2>
+            <h2 class="mt-1 flex items-center gap-2 font-extrabold text-slate-900">
+                <i class="ri-team-line text-lg text-[#153030]"></i>
+                Party records
+            </h2>
 
-                    <span class="hidden rounded-full bg-[#153030]/[0.06] px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[#153030] sm:inline-flex">
-                        Directory
-                    </span>
-                </div>
-
-                <p class="mt-0.5 text-[11px] text-gray-400">
-                    {{ page_obj.paginator.count }} matching
-                    {% if page_obj.paginator.count == 1 %}
-                        party
-                    {% else %}
-                        parties
-                    {% endif %}
-                </p>
-            </div>
-
+            <p class="mt-1 text-xs text-slate-500">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages|default:1 }}
+                <span class="mx-1 text-slate-300">·</span>
+                {{ page_obj.paginator.per_page }} rows per page
+            </p>
         </div>
 
-
-        <!-- RIGHT -->
-        <div class="flex items-center justify-between gap-3 sm:justify-end">
-
-            <div class="hidden items-center gap-1.5 text-[10px] text-gray-400 md:flex">
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                Live directory
-            </div>
-
-            <div class="rounded-lg bg-gray-50 px-2.5 py-1.5 text-[10px] font-semibold text-gray-500">
-                Page
-                <span class="text-[#153030]">
-                    {{ page_obj.number }}
-                </span>
-                /
-                {{ page_obj.paginator.num_pages }}
-            </div>
-
-        </div>
-
+        <span
+            data-result-count="{{ page_obj.paginator.count }}"
+            class="inline-flex w-fit shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600"
+        >
+            <i class="ri-list-check-2 text-teal-700"></i>
+            {{ page_obj.paginator.count }} match{{ page_obj.paginator.count|pluralize }}
+        </span>
     </div>
 
-
-    <!-- =====================================================
+    <!-- ========================================================
          DESKTOP / TABLET TABLE
-         ===================================================== -->
-    <div class="overflow-x-auto">
+         ======================================================== -->
 
-        <table class="min-w-[1050px] w-full border-collapse">
-
-            <!-- TABLE HEAD -->
-            <thead>
-                <tr class="border-b border-gray-100 bg-[#F8FAFA]">
-
-                    <th class="px-4 py-2.5 text-left">
-                        <span class="text-[9px] font-bold uppercase tracking-[0.12em] text-gray-400">
-                            Party
-                        </span>
-                    </th>
-                    
-                    <th class="px-4 py-2.5 text-left">
-                        <span class="text-[9px] font-bold uppercase tracking-[0.12em] text-gray-400">
-                            Contact
-                        </span>
-                    </th>
-
-                    <th class="px-4 py-2.5 text-left">
-                        <span class="text-[9px] font-bold uppercase tracking-[0.12em] text-gray-400">
-                            Type
-                        </span>
-                    </th>
-
-
-                    <th class="px-4 py-2.5 text-left">
-                        <span class="text-[9px] font-bold uppercase tracking-[0.12em] text-gray-400">
-                            GST
-                        </span>
-                    </th>
-
-                    <th class="px-4 py-2.5 text-left">
-                        <span class="text-[9px] font-bold uppercase tracking-[0.12em] text-gray-400">
-                            Bank
-                        </span>
-                    </th>
-
-                    <th class="px-4 py-2.5 text-left">
-                        <span class="text-[9px] font-bold uppercase tracking-[0.12em] text-gray-400">
-                            Payment
-                        </span>
-                    </th>
-
-                    <th class="px-4 py-2.5 text-left">
-                        <span class="text-[9px] font-bold uppercase tracking-[0.12em] text-gray-400">
-                            Status
-                        </span>
-                    </th>
-
-                    <th class="px-4 py-2.5 text-right">
-                        <span class="text-[9px] font-bold uppercase tracking-[0.12em] text-gray-400">
-                            Actions
-                        </span>
-                    </th>
-
+    <div class="hidden overflow-x-auto md:block">
+        <table class="w-full min-w-[1050px]">
+            <thead class="bg-[#f7f9f8]">
+                <tr class="text-left text-[10px] font-extrabold uppercase tracking-[.13em] text-slate-500">
+                    <th scope="col" class="px-5 py-4">Party</th>
+                    <th scope="col" class="px-5 py-4">Type</th>
+                    <th scope="col" class="px-5 py-4">Contact</th>
+                    <th scope="col" class="px-5 py-4">Location</th>
+                    <th scope="col" class="px-5 py-4">GST profile</th>
+                    <th scope="col" class="px-5 py-4">Payment profile</th>
+                    <th scope="col" class="px-5 py-4">Status</th>
                 </tr>
             </thead>
 
-
-            <!-- =================================================
-                 TABLE BODY
-                 ================================================= -->
-            <tbody class="divide-y divide-gray-100">
+            <tbody class="divide-y divide-slate-100">
 
                 {% for party in parties %}
+                    <tr class="transition-colors duration-150 hover:bg-teal-50/40">
 
-                <tr class="group relative transition-all duration-200 hover:bg-[#F9FBFB]">
+                        <!-- PARTY NAME -->
+                        <td class="px-5 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#153030]">
+                                    <i class="ri-building-2-line text-lg"></i>
+                                </span>
 
-                    <!-- =========================================
-                         PARTY
-                         ========================================= -->
-                    <td class="px-4 py-3">
-
-                        <div class="flex min-w-[210px] items-center gap-2.5">
-
-                            <!-- Avatar -->
-                            <div class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#153030] text-xs font-bold text-white shadow-sm">
-
-                                {{ party.name|first|upper }}
-
-                                <!-- active indicator -->
-                                {% if party.is_active %}
-                                    <span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500"></span>
-                                {% endif %}
-
-                            </div>
-
-
-                            <!-- Party Info -->
-                            <div class="min-w-0">
-
-                                <div class="flex items-center gap-1.5">
-
-                                    <p class="max-w-[190px] truncate text-[12px] font-bold text-[#153030]">
-                                        {{ party.name }}
+                                <div class="min-w-0">
+                                    <p
+                                        class="max-w-[220px] truncate text-sm font-extrabold text-slate-900"
+                                        title="{{ party.name }}"
+                                    >
+                                        {{ party.name|default:"Unnamed party" }}
                                     </p>
 
+                                    <p class="mt-1 max-w-[220px] truncate text-[11px] text-slate-400">
+                                        {{ party.contact_person|default:"Contact person not set" }}
+                                    </p>
                                 </div>
+                            </div>
+                        </td>
 
-                                {% if party.contact_person %}
-                                    <p class="mt-0.5 max-w-[190px] truncate text-[10px] text-gray-400">
-                                        {{ party.contact_person }}
+                        <!-- PARTY TYPE -->
+                        <td class="px-5 py-4">
+                            <span class="inline-flex max-w-[160px] items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700">
+                                {{ party.get_party_type_display|default:party.party_type|default:"Unspecified" }}
+                            </span>
+                        </td>
+
+                        <!-- CONTACT DETAILS -->
+                        <td class="px-5 py-4">
+                            <div class="space-y-1">
+                                {% if party.phone %}
+                                    <p class="text-xs font-semibold text-slate-700">
+                                        <i class="ri-phone-line mr-1 text-slate-400"></i>
+                                        {{ party.phone }}
                                     </p>
                                 {% else %}
-                                    <p class="mt-0.5 text-[10px] text-gray-300">
-                                        No contact person
+                                    <p class="text-xs text-slate-400">No phone number</p>
+                                {% endif %}
+
+                                {% if party.email %}
+                                    <p class="max-w-[220px] truncate text-[11px] text-slate-400" title="{{ party.email }}">
+                                        <i class="ri-mail-line mr-1"></i>
+                                        {{ party.email }}
                                     </p>
+                                {% else %}
+                                    <p class="text-[11px] text-slate-400">No email address</p>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- LOCATION -->
+                        <td class="px-5 py-4">
+                            <p class="text-xs font-semibold text-slate-700">
+                                {{ party.city|default:"—" }}
+                            </p>
+
+                            <p class="mt-1 text-[11px] text-slate-400">
+                                {% if party.state %}
+                                    {{ party.state }}
                                 {% endif %}
 
-                            </div>
+                                {% if party.pincode %}
+                                    {% if party.state %}, {% endif %}{{ party.pincode }}
+                                {% endif %}
 
-                        </div>
-                        
-                    </td>
-                    
-                    <!-- =========================================
-                         CONTACT
-                         ========================================= -->
-                    <td class="px-4 py-3">
+                                {% if not party.state and not party.pincode %}
+                                    Location not set
+                                {% endif %}
+                            </p>
+                        </td>
 
-                        <div class="min-w-[125px]">
-
-                            {% if party.phone %}
-
-                                <div class="flex items-center gap-1.5">
-
-                                    <svg class="h-3 w-3 shrink-0 text-gray-300"
-                                         fill="none"
-                                         viewBox="0 0 24 24"
-                                         stroke="currentColor"
-                                         stroke-width="1.8">
-                                        <path stroke-linecap="round"
-                                              stroke-linejoin="round"
-                                              d="M3 5.5A2.5 2.5 0 015.5 3h1A1.5 1.5 0 018 4.5v1A1.5 1.5 0 016.5 7H6a13 13 0 0012 12v-.5a1.5 1.5 0 011.5-1.5h1a1.5 1.5 0 011.5 1.5v1A2.5 2.5 0 0119.5 22C10.387 22 3 14.613 3 5.5z"/>
-                                    </svg>
-
-                                    <span class="text-[11px] font-semibold text-gray-700">
-                                        {{ party.phone }}
-                                    </span>
-
-                                </div>
-
-                            {% else %}
-
-                                <span class="text-[10px] text-gray-300">
-                                    No phone
+                        <!-- GST PROFILE -->
+                        <td class="px-5 py-4">
+                            {% if party.gst_number %}
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                    Available
                                 </span>
 
-                            {% endif %}
-
-
-                            {% if party.city %}
-
-                                <p class="mt-1 truncate text-[10px] text-gray-400">
-
-                                    {{ party.city }}
-
-                                    {% if party.state %}
-                                        <span class="text-gray-300">,</span>
-                                        {{ party.state }}
-                                    {% endif %}
-
-                                </p>
-
-                            {% endif %}
-
-                        </div>
-
-                    </td>
-
-                    <!-- =========================================
-                         PARTY TYPE
-                         ========================================= -->
-                    <td class="px-4 py-3">
-
-                        {% if party.party_type == "MANUFACTURER" %}
-
-                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-purple-50 px-2 py-1 text-[10px] font-bold text-purple-600">
-                                <span class="h-1.5 w-1.5 rounded-full bg-purple-500"></span>
-                                Manufacturer
-                            </span>
-
-                        {% elif party.party_type == "WHOLESALER" %}
-
-                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-600">
-                                <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-                                Wholesaler
-                            </span>
-
-                        {% elif party.party_type == "DISTRIBUTOR" %}
-
-                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 px-2 py-1 text-[10px] font-bold text-orange-600">
-                                <span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>
-                                Distributor
-                            </span>
-
-                        {% else %}
-
-                            <span class="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-500">
-                                <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
-                                Other
-                            </span>
-
-                        {% endif %}
-
-                    </td>
-
-
-
-
-                    <!-- =========================================
-                         GST
-                         ========================================= -->
-                    <td class="px-4 py-3">
-
-                        {% if party.gst_number %}
-
-                            <div class="flex items-center gap-1.5">
-
-                                <span class="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-50 text-emerald-600">
-
-                                    <svg class="h-2.5 w-2.5"
-                                         fill="none"
-                                         viewBox="0 0 24 24"
-                                         stroke="currentColor"
-                                         stroke-width="2">
-                                        <path stroke-linecap="round"
-                                              stroke-linejoin="round"
-                                              d="M5 13l4 4L19 7"/>
-                                    </svg>
-
-                                </span>
-
-                                <span class="max-w-[115px] truncate text-[10px] font-semibold text-gray-600">
+                                <p class="mt-1.5 max-w-[155px] truncate text-[10px] text-slate-400" title="{{ party.gst_number }}">
                                     {{ party.gst_number }}
-                                </span>
-
-                            </div>
-
-                        {% else %}
-
-                            <span class="inline-flex items-center gap-1 rounded-lg bg-red-50 px-2 py-1 text-[9px] font-bold text-red-500">
-                                <span class="h-1.5 w-1.5 rounded-full bg-red-400"></span>
-                                Missing
-                            </span>
-
-                        {% endif %}
-
-                    </td>
-
-
-                    <!-- =========================================
-                         BANK
-                         ========================================= -->
-                    <td class="px-4 py-3">
-
-                        {% if party.bank_name and party.account_number and party.ifsc_code %}
-
-                            <div class="min-w-[115px]">
-
-                                <div class="flex items-center gap-1.5">
-
-                                    <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-500">
-
-                                        <svg class="h-2.5 w-2.5"
-                                             fill="none"
-                                             viewBox="0 0 24 24"
-                                             stroke="currentColor"
-                                             stroke-width="1.8">
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  d="M3 10h18M5 10v8m4-8v8m6-8v8m4-8v8M2 18h20M12 3l10 5H2l10-5z"/>
-                                        </svg>
-
-                                    </span>
-
-                                    <span class="max-w-[105px] truncate text-[10px] font-semibold text-gray-600">
-                                        {{ party.bank_name }}
-                                    </span>
-
-                                </div>
-
-                                <p class="mt-1 pl-6 text-[9px] font-medium text-gray-400">
-                                    {{ party.ifsc_code }}
                                 </p>
-
-                            </div>
-
-                        {% else %}
-
-                            <span class="inline-flex items-center gap-1 rounded-lg bg-red-50 px-2 py-1 text-[9px] font-bold text-red-500">
-                                <span class="h-1.5 w-1.5 rounded-full bg-red-400"></span>
-                                Incomplete
-                            </span>
-
-                        {% endif %}
-
-                    </td>
-
-
-                    <!-- =========================================
-                         PAYMENT
-                         ========================================= -->
-                    <td class="px-4 py-3">
-
-                        <div class="flex min-w-[100px] flex-wrap items-center gap-1">
-
-                            {% with qr_count=party.payment_qrs.all|length %}
-
-                                {% if qr_count > 0 %}
-
-                                    <span class="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-[9px] font-bold text-emerald-600">
-
-                                        <svg class="h-2.5 w-2.5"
-                                             fill="none"
-                                             viewBox="0 0 24 24"
-                                             stroke="currentColor"
-                                             stroke-width="2">
-                                            <rect x="4" y="4" width="16" height="16" rx="2"/>
-                                            <path stroke-linecap="round" d="M8 8h3v3H8zM13 13h3v3h-3z"/>
-                                        </svg>
-
-                                        {{ qr_count }} QR
-
-                                    </span>
-
-                                {% endif %}
-
-                            {% endwith %}
-
-
-                            {% if party.gpay_number %}
-
-                                <span class="inline-flex items-center gap-1 rounded-lg bg-[#153030]/[0.07] px-2 py-1 text-[9px] font-bold text-[#153030]">
-
-                                    <span class="h-1.5 w-1.5 rounded-full bg-[#153030]"></span>
-
-                                    G-Pay
-
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-800">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                    Missing
                                 </span>
-
                             {% endif %}
+                        </td>
 
-
-                            {% if not party.gpay_number and not party.payment_qrs.all %}
-
-                                <span class="text-[10px] text-gray-300">
-                                    No payment
+                        <!-- BANK / UPI PROFILE -->
+                        <td class="px-5 py-4">
+                            {% if party.bank_name or party.account_holder_name or party.account_number or party.ifsc_code or party.branch_name or party.upi_id or party.gpay_number %}
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1 text-[11px] font-bold text-teal-800">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-teal-600"></span>
+                                    Available
                                 </span>
 
+                                <p class="mt-1.5 max-w-[155px] truncate text-[10px] text-slate-400">
+                                    {% if party.bank_name %}
+                                        {{ party.bank_name }}
+                                    {% elif party.upi_id %}
+                                        UPI configured
+                                    {% elif party.gpay_number %}
+                                        GPay configured
+                                    {% else %}
+                                        Payment details saved
+                                    {% endif %}
+                                </p>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+                                    Not set
+                                </span>
                             {% endif %}
+                        </td>
 
-                        </div>
-
-                    </td>
-
-
-                    <!-- =========================================
-                         STATUS
-                         ========================================= -->
-                    <td class="px-4 py-3">
-
-                        {% if party.is_active %}
-
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-bold text-emerald-600">
-
-                                <span class="relative flex h-1.5 w-1.5">
-                                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60"></span>
-                                    <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                        <!-- ACTIVE STATUS -->
+                        <td class="px-5 py-4">
+                            {% if party.is_active %}
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                    Active
                                 </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-800">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                                    Inactive
+                                </span>
+                            {% endif %}
+                        </td>
 
-                                Active
-
-                            </span>
-
-                        {% else %}
-
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-[9px] font-bold text-red-500">
-
-                                <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
-
-                                Inactive
-
-                            </span>
-
-                        {% endif %}
-
-                    </td>
-
-
-                    <!-- =========================================
-                         ACTIONS
-                         ========================================= -->
-                    <td class="px-4 py-3 text-right">
-
-                        <div class="flex items-center justify-end gap-1">
-
-                            <!-- VIEW -->
-                            <a
-                                href="{% url 'party_detail' party.id %}"
-                                title="View Party"
-                                class="group/action inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 shadow-sm transition-all duration-150 hover:border-[#153030]/20 hover:bg-[#153030] hover:text-white hover:shadow-md"
-                            >
-
-                                <svg class="h-3.5 w-3.5"
-                                     fill="none"
-                                     viewBox="0 0 24 24"
-                                     stroke="currentColor"
-                                     stroke-width="1.8">
-                                    <path stroke-linecap="round"
-                                          stroke-linejoin="round"
-                                          d="M2.25 12s3.75-6 9.75-6 9.75 6 9.75 6-3.75 6-9.75 6-9.75-6-9.75-6z"/>
-                                    <circle cx="12" cy="12" r="2.5"/>
-                                </svg>
-
-                            </a>
-
-
-                            <!-- ORDERS -->
-                            <a
-                                href="{% url 'party_orders' party.pk %}"
-                                title="View Party Orders"
-                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#153030]/[0.07] text-[#153030] transition-all duration-150 hover:bg-[#153030] hover:text-white hover:shadow-md"
-                            >
-
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="h-3.5 w-3.5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M3 7h18M5 7l1 13h12l1-13M8 7V5a4 4 0 018 0v2"
-                                    />
-                                </svg>
-
-                            </a>
-
-                        </div>
-
-                    </td>
-
-                </tr>
-
+                    </tr>
 
                 {% empty %}
 
-                <!-- =================================================
-                     EMPTY STATE
-                     ================================================= -->
-                <tr>
+                    <tr>
+                        <td colspan="7" class="px-5 py-16 text-center">
+                            <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                                <i class="ri-search-eye-line text-2xl"></i>
+                            </span>
 
-                    <td colspan="8" class="px-5 py-16">
-
-                        <div class="mx-auto flex max-w-xs flex-col items-center text-center">
-
-                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F7F9F9] text-gray-300">
-
-                                <svg
-                                    class="h-6 w-6"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="1.6"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M17 20h5v-2a4 4 0 00-4-4h-1m-3 6H5v-2a4 4 0 014-4h4a4 4 0 014 4v2zm-2-9a4 4 0 11-8 0 4 4 0 018 0z"
-                                    />
-                                </svg>
-
-                            </div>
-
-                            <h3 class="mt-4 text-sm font-bold text-[#153030]">
+                            <p class="mt-3 text-sm font-extrabold text-slate-800">
                                 No parties found
-                            </h3>
-
-                            <p class="mt-1 text-[11px] leading-5 text-gray-400">
-                                No party matches your current search or filters.
                             </p>
 
-                        </div>
+                            <p class="mt-1 text-xs text-slate-500">
+                                Try a different search or clear your filters.
+                            </p>
 
-                    </td>
-
-                </tr>
+                            <button
+                                type="button"
+                                onclick="document.getElementById('clearFilters')?.click()"
+                                class="mt-4 inline-flex items-center gap-2 text-xs font-bold text-teal-800 hover:underline"
+                            >
+                                <i class="ri-refresh-line"></i>
+                                Clear filters
+                            </button>
+                        </td>
+                    </tr>
 
                 {% endfor %}
 
             </tbody>
-
         </table>
-
     </div>
 
+    <!-- ========================================================
+         MOBILE PARTY DIRECTORY
+         ======================================================== -->
 
-    <!-- =====================================================
-         MOBILE PARTY CARDS
-         ===================================================== -->
-    <div class="divide-y divide-gray-100 md:hidden">
+    <div class="divide-y divide-slate-100 md:hidden">
 
         {% for party in parties %}
+            <article class="p-4 transition-colors duration-150 hover:bg-slate-50/70">
 
-        <div class="p-3">
+                <!-- NAME AND STATUS -->
+                <div class="flex items-start gap-3">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#153030]">
+                        <i class="ri-building-2-line text-xl"></i>
+                    </span>
 
-            <div class="rounded-xl border border-gray-100 bg-[#FCFDFD] p-3 transition hover:border-[#153030]/10 hover:shadow-sm">
+                    <div class="min-w-0 flex-1">
 
-                <!-- TOP -->
-                <div class="flex items-start justify-between gap-3">
-
-                    <div class="flex min-w-0 items-center gap-2.5">
-
-                        <div class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#153030] text-xs font-bold text-white">
-                            {{ party.name|first|upper }}
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h3 class="break-words text-sm font-extrabold text-slate-900">
+                                {{ party.name|default:"Unnamed party" }}
+                            </h3>
 
                             {% if party.is_active %}
-                                <span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500"></span>
+                                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-800">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                                    Inactive
+                                </span>
                             {% endif %}
                         </div>
 
-                        <div class="min-w-0">
+                        <p class="mt-1 text-xs font-semibold text-slate-500">
+                            {{ party.get_party_type_display|default:party.party_type|default:"Unspecified" }}
+                        </p>
 
-                            <p class="truncate text-[12px] font-bold text-[#153030]">
-                                {{ party.name }}
+                        {% if party.contact_person %}
+                            <p class="mt-2 text-xs text-slate-600">
+                                <i class="ri-user-line mr-1 text-slate-400"></i>
+                                {{ party.contact_person }}
                             </p>
+                        {% endif %}
 
-                            {% if party.contact_person %}
-                                <p class="mt-0.5 truncate text-[10px] text-gray-400">
-                                    {{ party.contact_person }}
+                        <div class="mt-2 space-y-1">
+                            {% if party.phone %}
+                                <p class="break-words text-xs font-semibold text-slate-700">
+                                    <i class="ri-phone-line mr-1 text-slate-400"></i>
+                                    {{ party.phone }}
+                                </p>
+                            {% else %}
+                                <p class="text-xs text-slate-400">No phone number</p>
+                            {% endif %}
+
+                            {% if party.email %}
+                                <p class="break-all text-[11px] text-slate-400">
+                                    <i class="ri-mail-line mr-1"></i>
+                                    {{ party.email }}
                                 </p>
                             {% endif %}
-
                         </div>
-
                     </div>
-
-
-                    <!-- STATUS -->
-                    {% if party.is_active %}
-
-                        <span class="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[8px] font-bold text-emerald-600">
-                            Active
-                        </span>
-
-                    {% else %}
-
-                        <span class="shrink-0 rounded-full bg-red-50 px-2 py-1 text-[8px] font-bold text-red-500">
-                            Inactive
-                        </span>
-
-                    {% endif %}
-
                 </div>
 
+                <!-- DETAILS GRID -->
+                <div class="mt-4 grid grid-cols-2 gap-2">
 
-                <!-- META -->
-                <div class="mt-3 grid grid-cols-2 gap-2">
-
-                    <!-- TYPE -->
-                    <div class="rounded-lg bg-white px-2.5 py-2">
-
-                        <p class="text-[8px] font-bold uppercase tracking-wider text-gray-300">
-                            Type
+                    <div class="min-w-0 rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+                        <p class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
+                            <i class="ri-map-pin-line"></i>
+                            Location
                         </p>
 
-                        <p class="mt-0.5 truncate text-[10px] font-semibold text-gray-600">
+                        <p class="mt-1.5 break-words text-xs font-semibold text-slate-700">
+                            {{ party.city|default:"—" }}
 
-                            {% if party.party_type == "MANUFACTURER" %}
-                                Manufacturer
-                            {% elif party.party_type == "WHOLESALER" %}
-                                Wholesaler
-                            {% elif party.party_type == "DISTRIBUTOR" %}
-                                Distributor
-                            {% else %}
-                                Other
-                            {% endif %}
-
-                        </p>
-
-                    </div>
-
-
-                    <!-- CONTACT -->
-                    <div class="rounded-lg bg-white px-2.5 py-2">
-
-                        <p class="text-[8px] font-bold uppercase tracking-wider text-gray-300">
-                            Contact
-                        </p>
-
-                        <p class="mt-0.5 truncate text-[10px] font-semibold text-gray-600">
-                            {% if party.phone %}
-                                {{ party.phone }}
-                            {% else %}
-                                —
+                            {% if party.state %}
+                                , {{ party.state }}
                             {% endif %}
                         </p>
 
+                        {% if party.pincode %}
+                            <p class="mt-1 text-[10px] text-slate-400">
+                                {{ party.pincode }}
+                            </p>
+                        {% endif %}
                     </div>
 
-
-                    <!-- GST -->
-                    <div class="rounded-lg bg-white px-2.5 py-2">
-
-                        <p class="text-[8px] font-bold uppercase tracking-wider text-gray-300">
-                            GST
+                    <div class="min-w-0 rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+                        <p class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
+                            <i class="ri-file-shield-2-line"></i>
+                            GST profile
                         </p>
 
                         {% if party.gst_number %}
-
-                            <p class="mt-0.5 truncate text-[10px] font-semibold text-emerald-600">
-                                Available
+                            <p class="mt-1.5 break-all text-xs font-bold text-emerald-700">
+                                {{ party.gst_number }}
                             </p>
-
                         {% else %}
-
-                            <p class="mt-0.5 text-[10px] font-semibold text-red-500">
-                                Missing
+                            <p class="mt-1.5 text-xs font-bold text-amber-700">
+                                GST missing
                             </p>
-
                         {% endif %}
-
                     </div>
 
-
-                    <!-- BANK -->
-                    <div class="rounded-lg bg-white px-2.5 py-2">
-
-                        <p class="text-[8px] font-bold uppercase tracking-wider text-gray-300">
-                            Bank
+                    <div class="min-w-0 rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+                        <p class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
+                            <i class="ri-bank-card-line"></i>
+                            Payment profile
                         </p>
 
-                        {% if party.bank_name and party.account_number and party.ifsc_code %}
-
-                            <p class="mt-0.5 truncate text-[10px] font-semibold text-emerald-600">
-                                Complete
+                        {% if party.bank_name or party.account_holder_name or party.account_number or party.ifsc_code or party.branch_name or party.upi_id or party.gpay_number %}
+                            <p class="mt-1.5 text-xs font-bold text-teal-800">
+                                Details available
                             </p>
 
-                        {% else %}
-
-                            <p class="mt-0.5 text-[10px] font-semibold text-red-500">
-                                Incomplete
-                            </p>
-
-                        {% endif %}
-
-                    </div>
-
-                </div>
-
-
-                <!-- ACTIONS -->
-                <div class="mt-3 flex items-center justify-between border-t border-gray-100 pt-2.5">
-
-                    <div class="flex items-center gap-1.5">
-
-                        {% with qr_count=party.payment_qrs.all|length %}
-
-                            {% if qr_count > 0 %}
-                                <span class="rounded-lg bg-emerald-50 px-2 py-1 text-[8px] font-bold text-emerald-600">
-                                    {{ qr_count }} QR
-                                </span>
+                            {% if party.bank_name %}
+                                <p class="mt-1 truncate text-[10px] text-slate-400">
+                                    {{ party.bank_name }}
+                                </p>
+                            {% elif party.upi_id %}
+                                <p class="mt-1 break-all text-[10px] text-slate-400">
+                                    {{ party.upi_id }}
+                                </p>
                             {% endif %}
-
-                        {% endwith %}
-
-                        {% if party.gpay_number %}
-                            <span class="rounded-lg bg-[#153030]/[0.07] px-2 py-1 text-[8px] font-bold text-[#153030]">
-                                G-Pay
-                            </span>
+                        {% else %}
+                            <p class="mt-1.5 text-xs font-semibold text-slate-500">
+                                Not configured
+                            </p>
                         {% endif %}
-
                     </div>
 
+                    <div class="min-w-0 rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+                        <p class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
+                            <i class="ri-building-line"></i>
+                            Party type
+                        </p>
 
-                    <div class="flex items-center gap-1">
-
-                        <a
-                            href="{% url 'party_detail' party.id %}"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 shadow-sm transition hover:bg-[#153030] hover:text-white"
-                            title="View Party"
-                        >
-                            <svg
-                                class="h-3.5 w-3.5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M2.25 12s3.75-6 9.75-6 9.75 6 9.75 6-3.75 6-9.75 6-9.75-6-9.75-6z"
-                                />
-                                <circle cx="12" cy="12" r="2.5"/>
-                            </svg>
-                        </a>
-
-
-                        <a
-                            href="{% url 'party_orders' party.pk %}"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#153030]/[0.07] text-[#153030] transition hover:bg-[#153030] hover:text-white"
-                            title="View Party Orders"
-                        >
-                            <svg
-                                class="h-3.5 w-3.5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M3 7h18M5 7l1 13h12l1-13M8 7V5a4 4 0 018 0v2"
-                                />
-                            </svg>
-                        </a>
-
+                        <p class="mt-1.5 break-words text-xs font-bold text-slate-700">
+                            {{ party.get_party_type_display|default:party.party_type|default:"Unspecified" }}
+                        </p>
                     </div>
 
                 </div>
-
-            </div>
-
-        </div>
+            </article>
 
         {% empty %}
 
-        <div class="px-5 py-16 text-center">
+            <div class="px-5 py-14 text-center">
+                <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                    <i class="ri-search-eye-line text-2xl"></i>
+                </span>
 
-            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F7F9F9] text-gray-300">
+                <p class="mt-3 text-sm font-extrabold text-slate-800">
+                    No matching parties
+                </p>
 
-                <svg
-                    class="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M17 20h5v-2a4 4 0 00-4-4h-1m-3 6H5v-2a4 4 0 014-4h4a4 4 0 014 4v2zm-2-9a4 4 0 11-8 0 4 4 0 018 0z"
-                    />
-                </svg>
-
+                <p class="mt-1 text-xs text-slate-500">
+                    Change your search or filters to find a partner.
+                </p>
             </div>
-
-            <h3 class="mt-4 text-sm font-bold text-[#153030]">
-                No parties found
-            </h3>
-
-            <p class="mt-1 text-[11px] text-gray-400">
-                Try changing your search or filters.
-            </p>
-
-        </div>
 
         {% endfor %}
 
     </div>
 
-
-    <!-- =====================================================
+    <!-- ========================================================
          PAGINATION
-         ===================================================== -->
+         Keeps search, filters and sorting in every page URL.
+         data-party-page is required by your AJAX JavaScript.
+         ======================================================== -->
+
     {% if page_obj.paginator.num_pages > 1 %}
 
-    <div class="flex flex-col gap-3 border-t border-gray-100 bg-[#FCFDFD] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <nav
+            class="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+            aria-label="Party pagination"
+        >
 
-        <!-- RESULT RANGE -->
-        <p class="text-[10px] text-gray-400">
+            <!-- RESULT COUNTER -->
+            <div class="text-xs leading-5 text-slate-500">
+                Showing
+                <strong class="text-slate-800">{{ page_obj.start_index }}</strong>
+                –
+                <strong class="text-slate-800">{{ page_obj.end_index }}</strong>
+                of
+                <strong class="text-slate-800">{{ page_obj.paginator.count }}</strong>
+                parties
 
-            Showing
+                <span class="block text-[11px] text-slate-400 sm:ml-1 sm:inline">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </div>
 
-            <span class="font-bold text-gray-600">
-                {{ page_obj.start_index }}
-            </span>
+            <!-- PAGE NAVIGATION -->
+            <div class="flex flex-wrap items-center gap-1.5">
 
-            –
-
-            <span class="font-bold text-gray-600">
-                {{ page_obj.end_index }}
-            </span>
-
-            of
-
-            <span class="font-bold text-[#153030]">
-                {{ page_obj.paginator.count }}
-            </span>
-
-        </p>
-
-
-        <!-- PAGE BUTTONS -->
-        <div class="flex items-center gap-1">
-
-            {% if page_obj.has_previous %}
-
-                <a
-                    data-party-page
-                    href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if party_type %}&party_type={{ party_type|urlencode }}{% endif %}{% if status %}&status={{ status|urlencode }}{% endif %}{% if gst %}&gst={{ gst|urlencode }}{% endif %}{% if bank %}&bank={{ bank|urlencode }}{% endif %}"
-                    class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-[#153030]/20 hover:bg-[#153030] hover:text-white"
-                    aria-label="Previous page"
-                >
-                    ‹
-                </a>
-
-            {% endif %}
-
-
-            {% for number in page_obj.paginator.page_range %}
-
-                {% if number == page_obj.number %}
-
-                    <span class="flex h-8 min-w-8 items-center justify-center rounded-lg bg-[#153030] px-2 text-[10px] font-bold text-white shadow-sm">
-                        {{ number }}
-                    </span>
-
-                {% elif number > page_obj.number|add:"-2" and number < page_obj.number|add:"2" %}
+                {% if page_obj.has_previous %}
 
                     <a
                         data-party-page
-                        href="?page={{ number }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if party_type %}&party_type={{ party_type|urlencode }}{% endif %}{% if status %}&status={{ status|urlencode }}{% endif %}{% if gst %}&gst={{ gst|urlencode }}{% endif %}{% if bank %}&bank={{ bank|urlencode }}{% endif %}"
-                        class="flex h-8 min-w-8 items-center justify-center rounded-lg border border-gray-200 bg-white px-2 text-[10px] font-semibold text-gray-500 transition hover:border-[#153030]/20 hover:bg-[#153030] hover:text-white"
+                        href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page=1#party-filters"
+                        aria-label="First page"
+                        title="First page"
+                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-600 transition hover:border-[#153030] hover:bg-slate-50 hover:text-[#153030]"
                     >
-                        {{ number }}
+                        <i class="ri-skip-back-line"></i>
+                        <span class="hidden sm:inline">First</span>
+                    </a>
+
+                    <a
+                        data-party-page
+                        href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.previous_page_number }}#party-filters"
+                        aria-label="Previous page"
+                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-600 transition hover:border-[#153030] hover:bg-slate-50 hover:text-[#153030]"
+                    >
+                        <i class="ri-arrow-left-s-line"></i>
+                        <span class="hidden sm:inline">Previous</span>
                     </a>
 
                 {% endif %}
 
-            {% endfor %}
-
-
-            {% if page_obj.has_next %}
-
-                <a
-                    data-party-page
-                    href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if party_type %}&party_type={{ party_type|urlencode }}{% endif %}{% if status %}&status={{ status|urlencode }}{% endif %}{% if gst %}&gst={{ gst|urlencode }}{% endif %}{% if bank %}&bank={{ bank|urlencode }}{% endif %}"
-                    class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-[#153030]/20 hover:bg-[#153030] hover:text-white"
-                    aria-label="Next page"
+                <!-- CURRENT PAGE -->
+                <span
+                    class="inline-flex h-9 min-w-10 items-center justify-center rounded-lg bg-[#153030] px-3 text-xs font-extrabold text-white shadow-sm"
+                    aria-current="page"
                 >
-                    ›
-                </a>
+                    {{ page_obj.number }}
+                </span>
 
-            {% endif %}
+                <span class="px-0.5 text-xs text-slate-400">
+                    of {{ page_obj.paginator.num_pages }}
+                </span>
 
-        </div>
+                {% if page_obj.has_next %}
 
-    </div>
+                    <a
+                        data-party-page
+                        href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.next_page_number }}#party-filters"
+                        aria-label="Next page"
+                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-600 transition hover:border-[#153030] hover:bg-slate-50 hover:text-[#153030]"
+                    >
+                        <span class="hidden sm:inline">Next</span>
+                        <i class="ri-arrow-right-s-line"></i>
+                    </a>
+
+                    <a
+                        data-party-page
+                        href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.paginator.num_pages }}#party-filters"
+                        aria-label="Last page"
+                        title="Last page"
+                        class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-bold text-slate-600 transition hover:border-[#153030] hover:bg-slate-50 hover:text-[#153030]"
+                    >
+                        <span class="hidden sm:inline">Last</span>
+                        <i class="ri-skip-forward-line"></i>
+                    </a>
+
+                {% endif %}
+
+            </div>
+        </nav>
 
     {% endif %}
-
-
-    <!-- =====================================================
-         AJAX RESULT COUNT
-         ===================================================== -->
-    <span
-        data-result-count="{{ page_obj.paginator.count }}"
-        class="hidden"
-    ></span>
 
 </div>

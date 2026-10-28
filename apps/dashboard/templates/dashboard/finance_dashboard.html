@@ -1,0 +1,1116 @@
+{% extends "dashboard/layout.html" %}
+{% load static %}
+
+{% block title %}Finance Studio | YAARLYNX{% endblock %}
+{% block page_heading %}Finance Dashboard{% endblock %}
+{% block meta_description %}YAARLYNX finance analytics, collection efficiency, payment trends and financial performance.{% endblock %}
+
+{% block content %}
+
+<style>
+    .finance-dashboard {
+        --finance-ink: #153030;
+        --finance-teal: #22615e;
+        --finance-muted: #64748b;
+    }
+
+    .finance-chart {
+        min-width: 0;
+        position: relative;
+        height: 290px;
+    }
+
+    .finance-chart--wide {
+        height: 350px;
+    }
+
+    .finance-progress {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e8efee;
+    }
+
+    .finance-progress > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        transition: width .6s ease;
+    }
+
+    .finance-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 14px 0;
+        border-bottom: 1px solid #edf1f1;
+    }
+
+    .finance-row:last-child {
+        border-bottom: none;
+    }
+
+    .finance-panel {
+        min-width: 0;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(15, 45, 45, .025);
+    }
+
+    .finance-panel-heading {
+        padding: 18px 20px;
+        border-bottom: 1px solid #edf1f1;
+    }
+
+    .finance-number {
+        font-variant-numeric: tabular-nums;
+        overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 640px) {
+        .finance-chart {
+            height: 260px;
+        }
+
+        .finance-chart--wide {
+            height: 300px;
+        }
+
+        .finance-panel-heading {
+            padding: 15px;
+        }
+
+        .finance-row {
+            align-items: flex-start;
+            gap: .75rem;
+            padding: 12px 0;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .finance-progress > span {
+            transition: none;
+        }
+    }
+</style>
+
+<div class="finance-dashboard mx-auto w-full max-w-[1700px] space-y-6 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+
+    <!-- HEADER -->
+    <section class="relative isolate overflow-hidden rounded-[28px] bg-[#153030] text-white shadow-lg shadow-teal-950/10">
+        <div class="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full border-[36px] border-white/[0.045]"></div>
+        <div class="pointer-events-none absolute -bottom-28 right-[28%] h-64 w-64 rounded-full bg-teal-300/[0.06] blur-2xl"></div>
+
+        <div class="relative flex flex-col gap-6 p-5 sm:p-7 lg:flex-row lg:items-end lg:justify-between lg:p-8">
+            <div class="max-w-2xl">
+                <span class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.16em] text-teal-50">
+                    <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
+                    Finance Studio / Analytics
+                </span>
+
+                <h1 class="mt-4 text-2xl font-bold tracking-tight sm:text-3xl lg:text-[38px]">
+                    Your financial overview
+                </h1>
+
+                <p class="mt-2 max-w-xl text-sm leading-6 text-teal-50/75">
+                    Monitor income, supplier commitments, collections and payment trends in one place.
+                    Transaction details are available on separate pages.
+                </p>
+
+                <div class="mt-4 flex flex-wrap items-center gap-3 text-xs text-teal-50/75">
+                    <span class="inline-flex items-center gap-2 rounded-lg bg-white/[0.08] px-2.5 py-1.5">
+                        <i class="ri-calendar-check-line"></i>
+                        {{ period_label|default:"All time" }}
+                    </span>
+                    <span class="inline-flex items-center gap-2">
+                        <i class="ri-refresh-line"></i>
+                        Updated {{ today|date:"d M Y" }}
+                    </span>
+                </div>
+            </div>
+
+            <nav class="flex flex-wrap gap-2" aria-label="Finance navigation">
+                <a href="{% url 'income_transactions' %}"
+                   class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#153030] transition hover:bg-teal-50">
+                    <i class="ri-arrow-down-circle-line text-lg"></i>
+                    Income transactions
+                </a>
+
+                <a href="{% url 'purchase_transactions' %}"
+                   class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[0.08] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.16]">
+                    <i class="ri-shopping-bag-3-line text-lg"></i>
+                    Purchase transactions
+                </a>
+            </nav>
+        </div>
+    </section>
+
+    <!-- REPORTING PERIOD -->
+    <section class="finance-panel p-4 sm:p-5">
+        <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="text-[10px] font-extrabold uppercase tracking-[.18em] text-teal-800">
+                    Reporting controls
+                </p>
+                <h2 class="mt-1 text-base font-bold text-slate-900">
+                    Choose your financial period
+                </h2>
+            </div>
+            <p class="text-xs text-slate-500">
+                Filter dashboard figures and chart data.
+            </p>
+        </div>
+
+        <form method="get" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <div>
+                <label for="dash-period" class="mb-1.5 block text-xs font-bold text-slate-600">
+                    Quick period
+                </label>
+                <select id="dash-period" name="period"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-teal-700 focus:bg-white focus:ring-4 focus:ring-teal-900/5">
+                    {% for value, label in period_options %}
+                        <option value="{{ value }}" {% if selected_period == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="dash-start" class="mb-1.5 block text-xs font-bold text-slate-600">
+                    Start date
+                </label>
+                <input id="dash-start" type="date" name="start_date" value="{{ start_date }}"
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-teal-700 focus:bg-white focus:ring-4 focus:ring-teal-900/5">
+            </div>
+
+            <div>
+                <label for="dash-end" class="mb-1.5 block text-xs font-bold text-slate-600">
+                    End date
+                </label>
+                <input id="dash-end" type="date" name="end_date" value="{{ end_date }}"
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-teal-700 focus:bg-white focus:ring-4 focus:ring-teal-900/5">
+            </div>
+
+            <div class="flex items-end gap-2 sm:col-span-2 xl:col-span-2">
+                <button type="submit"
+                        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#153030] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#214747]">
+                    <i class="ri-equalizer-2-line"></i>
+                    Apply filters
+                </button>
+
+                <a href="{% url 'finance_dashboard' %}"
+                   class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">
+                    Reset
+                </a>
+            </div>
+        </form>
+
+        {% if filter_message %}
+            <p class="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900">
+                {{ filter_message }}
+            </p>
+        {% endif %}
+
+        {% if not purchase_date_filter_supported %}
+            {% if start_date or end_date %}
+                <p class="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900">
+                    Purchase records do not have a recognized date field, so purchase totals remain all-time.
+                    Configure the purchase date field in your view to enable purchase date filtering.
+                </p>
+            {% endif %}
+        {% endif %}
+    </section>
+
+    <!-- KEY FIGURES: FINANCIAL STATEMENT, NOT SEPARATE CARDS -->
+    <section class="space-y-3" aria-labelledby="key-figures-heading">
+        <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="text-[10px] font-extrabold uppercase tracking-[.18em] text-teal-800">
+                    Financial pulse
+                </p>
+                <h2 id="key-figures-heading" class="mt-1 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                    Key figures
+                    <span class="font-medium text-slate-400">
+                        / {{ period_label|default:"All time" }}
+                    </span>
+                </h2>
+            </div>
+            <p class="text-xs text-slate-500">
+                Consolidated financial statement · amounts in INR
+            </p>
+        </div>
+
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#153030] text-white">
+                        <i class="ri-scales-3-line text-xl"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900">
+                            Financial position statement
+                        </h3>
+                        <p class="mt-0.5 text-xs text-slate-500">
+                            Income, supplier commitments and outstanding balances
+                        </p>
+                    </div>
+                </div>
+
+                <span class="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-600">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                    {{ period_label|default:"All time" }}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 lg:divide-x lg:divide-slate-200">
+                <!-- INCOME STATEMENT ROWS -->
+                <div class="px-4 py-4 sm:px-6 sm:py-5">
+                    <h3 class="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.12em] text-teal-800">
+                        <i class="ri-arrow-down-circle-line text-base"></i>
+                        Income & cash position
+                    </h3>
+
+                    <dl class="divide-y divide-slate-100">
+                        <div class="finance-row" title="Income transactions marked Completed for the selected period.">
+                            <dt class="min-w-0 text-sm text-slate-600">
+                                Completed income
+                                <span class="mt-0.5 block text-[11px] text-slate-400">
+                                    {{ income_stats.completed_count|default:0 }} successful payment(s)
+                                </span>
+                            </dt>
+                            <dd class="finance-number shrink-0 text-right text-sm font-extrabold text-emerald-700">
+                                ₹{{ financial_stats.total_income_received|floatformat:2 }}
+                            </dd>
+                        </div>
+
+                        <div class="finance-row" title="Total amount across all recorded income payment statuses.">
+                            <dt class="min-w-0 text-sm text-slate-600">
+                                Total income recorded
+                                <span class="mt-0.5 block text-[11px] text-slate-400">
+                                    All statuses combined
+                                </span>
+                            </dt>
+                            <dd class="finance-number shrink-0 text-right text-sm font-bold text-slate-900">
+                                ₹{{ financial_stats.total_income_recorded|floatformat:2 }}
+                            </dd>
+                        </div>
+
+                        <div class="finance-row" title="The percentage of income records marked Completed by transaction count.">
+                            <dt class="min-w-0 text-sm text-slate-600">
+                                Income completion rate
+                                <span class="mt-0.5 block text-[11px] text-slate-400">
+                                    {{ income_stats.completed_count|default:0 }} completed of {{ income_stats.total_count|default:0 }}
+                                </span>
+                            </dt>
+                            <dd class="shrink-0 text-right text-sm font-extrabold text-[#153030]">
+                                {{ income_stats.completion_percentage|floatformat:1 }}%
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <div class="finance-progress mt-2" role="progressbar"
+                         aria-label="Income completion rate" aria-valuemin="0" aria-valuemax="100"
+                         aria-valuenow="{{ income_stats.completion_percentage|default:0 }}">
+                        <span class="bg-emerald-500"
+                              style="width:{% if income_stats.completion_percentage > 100 %}100{% else %}{{ income_stats.completion_percentage|default:0 }}{% endif %}%"></span>
+                    </div>
+                </div>
+
+                <!-- PURCHASE STATEMENT ROWS -->
+                <div class="border-t border-slate-200 px-4 py-4 sm:px-6 sm:py-5 lg:border-t-0">
+                    <h3 class="mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.12em] text-teal-800">
+                        <i class="ri-shopping-bag-3-line text-base"></i>
+                        Purchases & commitments
+                    </h3>
+
+                    <dl class="divide-y divide-slate-100">
+                        <div class="finance-row" title="Sum of recorded purchase grand totals.">
+                            <dt class="min-w-0 text-sm text-slate-600">
+                                Purchase value
+                                <span class="mt-0.5 block text-[11px] text-slate-400">
+                                    {{ purchase_stats.purchase_count|default:0 }} purchase record(s)
+                                </span>
+                            </dt>
+                            <dd class="finance-number shrink-0 text-right text-sm font-extrabold text-slate-900">
+                                ₹{{ financial_stats.total_purchase_value|floatformat:2 }}
+                            </dd>
+                        </div>
+
+                        <div class="finance-row" title="Amount recorded as paid against purchase records.">
+                            <dt class="min-w-0 text-sm text-slate-600">
+                                Purchase payments made
+                                <span class="mt-0.5 block text-[11px] text-slate-400">
+                                    {{ purchase_stats.collection_percentage|floatformat:1 }}% of purchase value
+                                </span>
+                            </dt>
+                            <dd class="finance-number shrink-0 text-right text-sm font-extrabold text-emerald-700">
+                                ₹{{ financial_stats.total_purchase_paid|floatformat:2 }}
+                            </dd>
+                        </div>
+
+                        <div class="finance-row" title="Remaining purchase balance recorded in your purchase model.">
+                            <dt class="min-w-0 text-sm text-slate-600">
+                                Purchase outstanding
+                                <span class="mt-0.5 block text-[11px] text-slate-400">
+                                    Recorded supplier balance remaining
+                                </span>
+                            </dt>
+                            <dd class="finance-number shrink-0 text-right text-sm font-extrabold text-amber-700">
+                                ₹{{ financial_stats.total_purchase_due|floatformat:2 }}
+                            </dd>
+                        </div>
+
+                        <div class="finance-row" title="Sum of outstanding installment balances.">
+                            <dt class="min-w-0 text-sm text-slate-600">
+                                Installment balance
+                                <span class="mt-0.5 block text-[11px] text-slate-400">
+                                    {{ installment_stats.installment_count|default:0 }} installment record(s)
+                                </span>
+                            </dt>
+                            <dd class="finance-number shrink-0 text-right text-sm font-extrabold text-amber-700">
+                                ₹{{ installment_stats.remaining_amount|floatformat:2 }}
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <div class="finance-progress mt-2" role="progressbar"
+                         aria-label="Purchase collection rate" aria-valuemin="0" aria-valuemax="100"
+                         aria-valuenow="{{ purchase_stats.collection_percentage|default:0 }}">
+                        <span class="bg-[#153030]"
+                              style="width:{% if purchase_stats.collection_percentage > 100 %}100{% else %}{{ purchase_stats.collection_percentage|default:0 }}{% endif %}%"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HIGHLIGHTED FINANCIAL RESULT: NOT A CARD -->
+            <div class="grid grid-cols-1 gap-3 border-t border-slate-200 bg-[#153030] px-4 py-4 text-white sm:grid-cols-[1fr_auto] sm:items-center sm:px-6">
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-100/75">
+                        Estimated cash movement
+                    </p>
+                    <p class="mt-1 text-xs leading-5 text-teal-50/75">
+                        Completed income minus purchase payments recorded.
+                        This is an operational indicator, not audited profit.
+                    </p>
+                </div>
+                <p class="finance-number text-2xl font-extrabold tracking-tight {% if financial_stats.estimated_cash_surplus < 0 %}text-rose-300{% else %}text-white{% endif %}">
+                    ₹{{ financial_stats.estimated_cash_surplus|floatformat:2 }}
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- COLLECTION EFFICIENCY: COMPACT PROGRESS ROWS -->
+    <section class="finance-panel px-4 py-5 sm:px-6">
+        <div class="mb-5">
+            <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">
+                Collection efficiency
+            </p>
+            <h2 class="mt-1 text-lg font-bold text-slate-900">
+                Collections at a glance
+            </h2>
+        </div>
+
+        <div class="space-y-6">
+            <div>
+                <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-sm font-semibold text-slate-700">Purchase collection</span>
+                    <span class="text-sm font-extrabold text-[#153030]">
+                        {{ purchase_stats.collection_percentage|floatformat:1 }}%
+                    </span>
+                </div>
+
+                <div class="finance-progress">
+                    <span class="bg-[#153030]"
+                          style="width:{% if purchase_stats.collection_percentage > 100 %}100{% else %}{{ purchase_stats.collection_percentage|default:0 }}{% endif %}%"></span>
+                </div>
+
+                <div class="mt-2 flex flex-wrap justify-between gap-2 text-xs text-slate-500">
+                    <span>Paid: <strong class="text-emerald-700">₹{{ purchase_stats.purchase_paid|floatformat:2 }}</strong></span>
+                    <span>Outstanding: <strong class="text-amber-700">₹{{ purchase_stats.purchase_due|floatformat:2 }}</strong></span>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 pt-5">
+                <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-sm font-semibold text-slate-700">Installment collection</span>
+                    <span class="text-sm font-extrabold text-[#153030]">
+                        {{ installment_stats.collection_percentage|floatformat:1 }}%
+                    </span>
+                </div>
+
+                <div class="finance-progress">
+                    <span class="bg-teal-600"
+                          style="width:{% if installment_stats.collection_percentage > 100 %}100{% else %}{{ installment_stats.collection_percentage|default:0 }}{% endif %}%"></span>
+                </div>
+
+                <div class="mt-2 flex flex-wrap justify-between gap-2 text-xs text-slate-500">
+                    <span>Collected: <strong class="text-emerald-700">₹{{ installment_stats.paid_amount|floatformat:2 }}</strong></span>
+                    <span>Remaining: <strong class="text-amber-700">₹{{ installment_stats.remaining_amount|floatformat:2 }}</strong></span>
+                </div>
+
+                {% if installment_stats.overdue_count %}
+                    <div class="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-100 bg-rose-50 px-3 py-2.5">
+                        <span class="inline-flex items-center gap-2 text-xs font-bold text-rose-800">
+                            <i class="ri-alert-line"></i>
+                            {{ installment_stats.overdue_count }} overdue installment(s)
+                        </span>
+                        <span class="text-xs font-extrabold text-rose-800">
+                            ₹{{ installment_stats.overdue_amount|floatformat:2 }} outstanding
+                        </span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- PAYMENT STATUS: ROWS, NOT CARDS -->
+    <section class="finance-panel overflow-hidden">
+        <div class="finance-panel-heading">
+            <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">
+                Income health
+            </p>
+            <h2 class="mt-1 text-lg font-bold text-slate-900">
+                Payment status summary
+                <span class="font-medium text-slate-400">/ {{ period_label|default:"All time" }}</span>
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto px-4 sm:px-6">
+            <table class="w-full min-w-[520px]">
+                <thead>
+                    <tr class="border-b border-slate-100 text-left text-[10px] font-extrabold uppercase tracking-[.12em] text-slate-400">
+                        <th class="py-3 pr-4">Status</th>
+                        <th class="py-3 px-4 text-right">Transactions</th>
+                        <th class="py-3 pl-4 text-right">Recorded amount</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <tr>
+                        <td class="py-4 pr-4">
+                            <span class="inline-flex items-center gap-2 text-sm font-semibold text-emerald-800">
+                                <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Completed
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-right text-sm font-bold tabular-nums text-slate-900">
+                            {{ income_stats.completed_count|default:0 }}
+                        </td>
+                        <td class="py-4 pl-4 text-right text-sm font-bold tabular-nums text-emerald-700">
+                            ₹{{ income_stats.completed_amount|floatformat:2 }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="py-4 pr-4">
+                            <span class="inline-flex items-center gap-2 text-sm font-semibold text-amber-800">
+                                <span class="h-2 w-2 rounded-full bg-amber-500"></span> Pending
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-right text-sm font-bold tabular-nums text-slate-900">
+                            {{ income_stats.pending_count|default:0 }}
+                        </td>
+                        <td class="py-4 pl-4 text-right text-sm font-bold tabular-nums text-amber-700">
+                            ₹{{ income_stats.pending_amount|floatformat:2 }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="py-4 pr-4">
+                            <span class="inline-flex items-center gap-2 text-sm font-semibold text-rose-800">
+                                <span class="h-2 w-2 rounded-full bg-rose-500"></span> Failed
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-right text-sm font-bold tabular-nums text-slate-900">
+                            {{ income_stats.failed_count|default:0 }}
+                        </td>
+                        <td class="py-4 pl-4 text-right text-sm font-bold tabular-nums text-rose-700">
+                            ₹{{ income_stats.failed_amount|floatformat:2 }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="py-4 pr-4">
+                            <span class="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                <span class="h-2 w-2 rounded-full bg-slate-400"></span> Cancelled
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-right text-sm font-bold tabular-nums text-slate-900">
+                            {{ income_stats.cancelled_count|default:0 }}
+                        </td>
+                        <td class="py-4 pl-4 text-right text-sm font-bold tabular-nums text-slate-600">
+                            ₹{{ income_stats.cancelled_amount|floatformat:2 }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- INTERACTIVE CHARTS -->
+    <section class="space-y-3" id="finance-analytics">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="text-[10px] font-extrabold uppercase tracking-[.18em] text-teal-800">
+                    Visual analytics
+                </p>
+                <h2 class="mt-1 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                    Money flow & payment patterns
+                </h2>
+                <p class="mt-1 text-xs text-slate-500">
+                    Hover or tap a chart element to reveal exact values and percentage shares.
+                </p>
+            </div>
+            <span class="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-500">
+                <i class="ri-cursor-line text-teal-700"></i>
+                Interactive charts
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 2xl:grid-cols-2">
+            <section class="finance-panel p-4 sm:p-5 2xl:col-span-2">
+                <div class="mb-4">
+                    <h3 class="font-bold text-slate-900">Completed income vs purchase value</h3>
+                    <p class="mt-1 text-xs leading-5 text-slate-500">
+                        Compare income with purchase value over the selected timeframe.
+                    </p>
+                </div>
+                <div class="finance-chart finance-chart--wide">
+                    <canvas id="trendChart" role="img" aria-label="Completed income and purchase value over time"></canvas>
+                    <div id="trendEmpty" class="absolute inset-0 hidden items-center justify-center rounded-xl bg-slate-50 text-center text-sm text-slate-400">
+                        No trend data for this timeframe.
+                    </div>
+                </div>
+            </section>
+
+            <section class="finance-panel p-4 sm:p-5">
+                <div class="mb-4">
+                    <h3 class="font-bold text-slate-900">Completed income by source</h3>
+                    <p class="mt-1 text-xs leading-5 text-slate-500">
+                        Hover a segment for the amount and share of total completed income.
+                    </p>
+                </div>
+                <div class="finance-chart">
+                    <canvas id="sourceChart" role="img" aria-label="Completed income by source"></canvas>
+                    <div id="sourceEmpty" class="absolute inset-0 hidden items-center justify-center rounded-xl bg-slate-50 text-center text-sm text-slate-400">
+                        No income source data for this timeframe.
+                    </div>
+                </div>
+            </section>
+
+            <section class="finance-panel p-4 sm:p-5">
+                <div class="mb-4">
+                    <h3 class="font-bold text-slate-900">Transaction status mix</h3>
+                    <p class="mt-1 text-xs leading-5 text-slate-500">
+                        Hover a segment to see transaction count and percentage share.
+                    </p>
+                </div>
+                <div class="finance-chart">
+                    <canvas id="statusChart" role="img" aria-label="Transaction status breakdown"></canvas>
+                    <div id="statusEmpty" class="absolute inset-0 hidden items-center justify-center rounded-xl bg-slate-50 text-center text-sm text-slate-400">
+                        No transaction status data.
+                    </div>
+                </div>
+            </section>
+
+            <section class="finance-panel p-4 sm:p-5">
+                <div class="mb-4">
+                    <h3 class="font-bold text-slate-900">Completed income by payment method</h3>
+                    <p class="mt-1 text-xs leading-5 text-slate-500">
+                        Compare collected amounts by method and percentage share.
+                    </p>
+                </div>
+                <div class="finance-chart">
+                    <canvas id="methodChart" role="img" aria-label="Completed income by payment method"></canvas>
+                    <div id="methodEmpty" class="absolute inset-0 hidden items-center justify-center rounded-xl bg-slate-50 text-center text-sm text-slate-400">
+                        No payment method data.
+                    </div>
+                </div>
+            </section>
+
+            <section class="finance-panel p-4 sm:p-5">
+                <div class="mb-4">
+                    <h3 class="font-bold text-slate-900">Installment collections by method</h3>
+                    <p class="mt-1 text-xs leading-5 text-slate-500">
+                        Compare recorded installment collection amounts by method.
+                    </p>
+                </div>
+                <div class="finance-chart">
+                    <canvas id="installmentChart" role="img" aria-label="Installment collections by payment method"></canvas>
+                    <div id="installmentEmpty" class="absolute inset-0 hidden items-center justify-center rounded-xl bg-slate-50 text-center text-sm text-slate-400">
+                        No installment collection data.
+                    </div>
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <!-- SMART INSIGHTS -->
+    <section class="finance-panel overflow-hidden">
+        <div class="finance-panel-heading">
+            <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">
+                Smart observations
+            </p>
+            <h2 class="mt-1 text-lg font-bold text-slate-900">
+                Finance attention points
+            </h2>
+            <p class="mt-1 text-xs text-slate-500">
+                Insights generated from the current dashboard data.
+            </p>
+        </div>
+
+        <div class="divide-y divide-slate-100 px-4 sm:px-6">
+            {% for insight in smart_insights %}
+                <div class="flex items-start gap-3 py-4">
+                    <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl
+                        {% if insight.type == 'warning' %}bg-amber-100 text-amber-800
+                        {% elif insight.type == 'success' %}bg-emerald-100 text-emerald-800
+                        {% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {% if insight.type == 'warning' %}
+                            <i class="ri-alert-line text-lg"></i>
+                        {% elif insight.type == 'success' %}
+                            <i class="ri-check-double-line text-lg"></i>
+                        {% else %}
+                            <i class="ri-lightbulb-flash-line text-lg"></i>
+                        {% endif %}
+                    </span>
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-bold text-slate-900">{{ insight.title }}</h3>
+                        <p class="mt-1 text-xs leading-5 text-slate-600">{{ insight.message }}</p>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="py-5 text-sm text-slate-500">
+                    No insights are available for this timeframe.
+                </p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ACCOUNTING NOTE -->
+    <section class="rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 sm:p-5">
+        <div class="flex items-start gap-3">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+                <i class="ri-scales-3-line text-lg"></i>
+            </span>
+            <div>
+                <p class="text-sm font-bold text-amber-950">How to read estimated cash movement</p>
+                <p class="mt-1 text-xs leading-5 text-amber-900/85">
+                    Estimated cash movement is completed income minus purchase payments recorded in the selected timeframe.
+                    It is not audited net profit. Inventory, cost of goods sold, marketplace fees, shipping, refunds, taxes
+                    and operating expenses may not be represented.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="flex flex-col gap-2 border-t border-slate-200 pt-4 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+        <span>YAARLYNX Finance Studio · Analytics dashboard</span>
+        <span>Currency: INR (₹) · Values follow the selected period where date fields are supported</span>
+    </footer>
+</div>
+
+{{ trend_chart|json_script:"finance-trend-data" }}
+{{ source_chart|json_script:"finance-source-data" }}
+{{ status_chart|json_script:"finance-status-data" }}
+{{ method_chart|json_script:"finance-method-data" }}
+{{ installment_method_chart|json_script:"finance-installment-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+<script>
+(function () {
+    "use strict";
+
+    const readJson = (id) => {
+        const node = document.getElementById(id);
+        if (!node) return {};
+        try {
+            return JSON.parse(node.textContent || "{}");
+        } catch (error) {
+            return {};
+        }
+    };
+
+    const trend = readJson("finance-trend-data");
+    const sources = readJson("finance-source-data");
+    const statuses = readJson("finance-status-data");
+    const methods = readJson("finance-method-data");
+    const installments = readJson("finance-installment-data");
+
+    const moneyFormatter = new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+    const compactFormatter = new Intl.NumberFormat("en-IN", {
+        notation: "compact",
+        maximumFractionDigits: 1
+    });
+
+    const countFormatter = new Intl.NumberFormat("en-IN", {
+        maximumFractionDigits: 0
+    });
+
+    const money = (value) => moneyFormatter.format(Number(value || 0));
+
+    const compactMoney = (value) => {
+        const number = Number(value || 0);
+        if (Math.abs(number) < 1000) {
+            return "₹" + countFormatter.format(number);
+        }
+        return "₹" + compactFormatter.format(number);
+    };
+
+    const sum = (values) =>
+        (values || []).reduce((total, value) => total + Number(value || 0), 0);
+
+    const palette = [
+        "#153030", "#0f766e", "#2c9990", "#60a5fa", "#d97706",
+        "#8b5cf6", "#e879a9", "#64748b", "#84a98c", "#f97316"
+    ];
+
+    if (typeof window.Chart === "undefined") {
+        document.querySelectorAll(".finance-chart").forEach((container) => {
+            const note = document.createElement("p");
+            note.className = "p-4 text-xs text-amber-700";
+            note.textContent = "Charts could not load. Check Chart.js CDN access.";
+            container.appendChild(note);
+        });
+        return;
+    }
+
+    Chart.defaults.font.family =
+        "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = "#64748b";
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.boxWidth = 9;
+    Chart.defaults.plugins.legend.labels.boxHeight = 9;
+    Chart.defaults.plugins.tooltip.backgroundColor = "#102b2b";
+    Chart.defaults.plugins.tooltip.titleColor = "#ffffff";
+    Chart.defaults.plugins.tooltip.bodyColor = "#e2eeee";
+    Chart.defaults.plugins.tooltip.borderColor = "rgba(255,255,255,.12)";
+    Chart.defaults.plugins.tooltip.borderWidth = 1;
+    Chart.defaults.plugins.tooltip.padding = 12;
+    Chart.defaults.plugins.tooltip.cornerRadius = 10;
+    Chart.defaults.plugins.tooltip.displayColors = true;
+
+    const showEmptyState = (canvasId, emptyId, hasData) => {
+        const canvas = document.getElementById(canvasId);
+        const empty = document.getElementById(emptyId);
+
+        if (!canvas || !empty) return false;
+
+        if (!hasData) {
+            canvas.classList.add("hidden");
+            empty.classList.remove("hidden");
+            empty.classList.add("flex");
+            return false;
+        }
+
+        return true;
+    };
+
+    const pointerCursor = (event, active) => {
+        const target = event && event.native && event.native.target;
+        if (target) {
+            target.style.cursor = active && active.length ? "pointer" : "default";
+        }
+    };
+
+    // Add a total label in the centre of doughnut charts.
+    const centerTextPlugin = {
+        id: "financeCenterText",
+        afterDraw(chart, args, options) {
+            if (!options || chart.config.type !== "doughnut" || !chart.chartArea) return;
+
+            const values = chart.data.datasets[0] ? chart.data.datasets[0].data : [];
+            const total = sum(values);
+            const { left, right, top, bottom } = chart.chartArea;
+            const x = (left + right) / 2;
+            const y = (top + bottom) / 2;
+            const ctx = chart.ctx;
+
+            ctx.save();
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "700 9px Inter, ui-sans-serif, system-ui, sans-serif";
+            ctx.fillText(String(options.label || "TOTAL").toUpperCase(), x, y - 10);
+
+            ctx.fillStyle = "#153030";
+            ctx.font = "800 16px Inter, ui-sans-serif, system-ui, sans-serif";
+
+            const valueText = options.mode === "count"
+                ? countFormatter.format(total)
+                : compactMoney(total);
+
+            ctx.fillText(valueText, x, y + 11);
+            ctx.restore();
+        }
+    };
+
+    Chart.register(centerTextPlugin);
+
+    // Income and purchase trend chart.
+    const trendHasData =
+        Array.isArray(trend.labels) && trend.labels.length > 0;
+
+    if (showEmptyState("trendChart", "trendEmpty", trendHasData)) {
+        new Chart(document.getElementById("trendChart"), {
+            type: "line",
+            data: {
+                labels: trend.labels,
+                datasets: [
+                    {
+                        label: "Completed income",
+                        data: trend.income || [],
+                        borderColor: "#153030",
+                        backgroundColor: "rgba(21,48,48,.09)",
+                        fill: true,
+                        tension: 0.32,
+                        borderWidth: 2.5,
+                        pointRadius: 3,
+                        pointHoverRadius: 7,
+                        pointHitRadius: 16,
+                        pointBackgroundColor: "#ffffff",
+                        pointBorderColor: "#153030",
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: "Purchase value",
+                        data: trend.purchases || [],
+                        borderColor: "#d97706",
+                        backgroundColor: "rgba(217,119,6,.06)",
+                        fill: false,
+                        tension: 0.32,
+                        borderWidth: 2.5,
+                        pointRadius: 3,
+                        pointHoverRadius: 7,
+                        pointHitRadius: 16,
+                        pointBackgroundColor: "#ffffff",
+                        pointBorderColor: "#d97706",
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+                onHover: pointerCursor,
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: { padding: 18 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) =>
+                                items.length ? "Period: " + items[0].label : "",
+                            label: (context) =>
+                                context.dataset.label + ": " + money(context.parsed.y),
+                            afterBody: (items) => {
+                                if (!items.length) return "";
+
+                                const chart = items[0].chart;
+                                const incomeDataset = chart.data.datasets.find(
+                                    (dataset) => dataset.label === "Completed income"
+                                );
+                                const purchaseDataset = chart.data.datasets.find(
+                                    (dataset) => dataset.label === "Purchase value"
+                                );
+
+                                const index = items[0].dataIndex;
+                                const income = Number(
+                                    incomeDataset && incomeDataset.data[index] || 0
+                                );
+                                const purchase = Number(
+                                    purchaseDataset && purchaseDataset.data[index] || 0
+                                );
+
+                                return [
+                                    "Income minus purchase value: " + money(income - purchase)
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (value) => compactMoney(value),
+                            maxTicksLimit: 6
+                        },
+                        grid: { color: "rgba(148,163,184,.15)" },
+                        border: { display: false }
+                    },
+                    x: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 12
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Interactive doughnut charts with exact values and percentage shares.
+    const makeDoughnut = (canvasId, emptyId, data, label, mode) => {
+        const values = data.values || [];
+        const labels = data.labels || [];
+        const hasData = labels.length > 0 && values.some((value) => Number(value) > 0);
+
+        if (!showEmptyState(canvasId, emptyId, hasData)) return;
+
+        new Chart(document.getElementById(canvasId), {
+            type: "doughnut",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: values,
+                    backgroundColor: values.map(
+                        (_, index) => palette[index % palette.length]
+                    ),
+                    borderColor: "#ffffff",
+                    borderWidth: 3,
+                    hoverOffset: 12,
+                    spacing: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "68%",
+                onHover: pointerCursor,
+                plugins: {
+                    financeCenterText: {
+                        label: mode === "count" ? "PAYMENTS" : "TOTAL",
+                        mode: mode
+                    },
+                    legend: {
+                        position: "bottom",
+                        labels: {
+                            padding: 16,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => items.length ? items[0].label : "",
+                            label: (context) => {
+                                const chartValues = context.dataset.data || [];
+                                const total = sum(chartValues);
+                                const value = Number(context.parsed || 0);
+                                const share = total > 0
+                                    ? (value / total * 100).toFixed(1)
+                                    : "0.0";
+
+                                const formattedValue = mode === "count"
+                                    ? "Payments: " + countFormatter.format(value)
+                                    : "Amount: " + money(value);
+
+                                return formattedValue + " · " + share + "% of total";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    makeDoughnut("sourceChart", "sourceEmpty", sources, "Completed income", "money");
+    makeDoughnut("statusChart", "statusEmpty", statuses, "Transactions", "count");
+
+    // Horizontal bars for payment methods and installment methods.
+    const makeBar = (canvasId, emptyId, data, label) => {
+        const values = data.values || [];
+        const labels = data.labels || [];
+        const hasData = labels.length > 0 && values.some((value) => Number(value) > 0);
+
+        if (!showEmptyState(canvasId, emptyId, hasData)) return;
+
+        const chartTotal = sum(values);
+
+        new Chart(document.getElementById(canvasId), {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: values,
+                    backgroundColor: values.map(
+                        (_, index) => index === 0 ? "#153030" : "#3b8882"
+                    ),
+                    hoverBackgroundColor: values.map(
+                        (_, index) => index === 0 ? "#0b2222" : "#246a65"
+                    ),
+                    borderRadius: 7,
+                    borderSkipped: false,
+                    maxBarThickness: 30,
+                    barPercentage: 0.72,
+                    categoryPercentage: 0.78
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                onHover: pointerCursor,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => items.length ? items[0].label : "",
+                            label: (context) =>
+                                label + ": " + money(context.parsed.x),
+                            afterLabel: (context) => {
+                                const share = chartTotal > 0
+                                    ? Number(context.parsed.x) / chartTotal * 100
+                                    : 0;
+                                return share.toFixed(1) + "% of chart total";
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (value) => compactMoney(value),
+                            maxTicksLimit: 5
+                        },
+                        grid: { color: "rgba(148,163,184,.15)" },
+                        border: { display: false }
+                    },
+                    y: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            autoSkip: false,
+                            color: "#475569",
+                            font: { size: 11 }
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    makeBar("methodChart", "methodEmpty", methods, "Completed income");
+    makeBar("installmentChart", "installmentEmpty", installments, "Installment payments");
+})();
+</script>
+
+{% endblock %}

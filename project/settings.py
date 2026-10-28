@@ -108,6 +108,18 @@ DATABASES = {
 }
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / (
+#             'LOCAL_YAARLYNX_DB.db'
+#             if not DEBUG
+#             else 'LIVE_YAARLYNX_DB.db'
+#         ),
+#     }
+# }
+
+
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
 

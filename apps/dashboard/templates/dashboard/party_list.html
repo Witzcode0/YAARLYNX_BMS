@@ -1,1037 +1,375 @@
 {% extends "dashboard/layout.html" %}
+{% load static %}
 
-{% block title %}Parties | Yaarlynx{% endblock %}
-
-{% block page_heading %}
-Parties
-{% endblock %}
-
-{% block meta_description %}
-Manage suppliers, manufacturers, wholesalers and distributors.
-{% endblock %}
+{% block title %}Party Studio | YAARLYNX{% endblock %}
+{% block page_heading %}Parties{% endblock %}
+{% block meta_description %}Manage your suppliers, manufacturers, wholesalers and distributors in the YAARLYNX party directory.{% endblock %}
 
 {% block content %}
+<style>
+    .party-studio{--party-ink:#153030;--party-teal:#26736d;--party-border:#e4ebe9;--party-muted:#72817e}
+    .party-panel{min-width:0;background:#fff;border:1px solid var(--party-border);border-radius:20px;box-shadow:0 3px 12px rgba(21,48,48,.025)}
+    .party-control{width:100%;min-height:43px;border:1px solid #dfe7e5;border-radius:11px;background:#f9fbfa;padding:10px 12px;color:#253b39;font-size:13px;outline:none;transition:border-color .18s,box-shadow .18s,background .18s}
+    .party-control:focus{border-color:#43857f;background:#fff;box-shadow:0 0 0 3px rgba(38,115,109,.09)}
+    .party-button{display:inline-flex;min-height:42px;align-items:center;justify-content:center;gap:8px;border-radius:11px;padding:10px 14px;font-size:12px;font-weight:750;transition:background .16s,transform .16s}
+    .party-button:active{transform:scale(.98)}
+    .party-button-primary{background:#153030;color:#fff}.party-button-primary:hover{background:#214747}
+    .party-button-light{border:1px solid #dfe7e5;background:#fff;color:#415653}.party-button-light:hover{background:#f4f8f7}
+    .party-stat{padding:16px 18px;border-right:1px solid #e9efee}.party-stat:last-child{border-right:0}
+    .party-chart{position:relative;height:260px;min-width:0}.party-chart-wide{height:290px}
+    .party-result-row{transition:background .16s}.party-result-row:hover{background:#f4f9f8}
+    .party-status{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:750;white-space:nowrap}
+    .party-status-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+    .party-number{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+    @media(max-width:767px){.party-stat{padding:13px;border-right:0;border-bottom:1px solid #e9efee}.party-stat:nth-child(odd){border-right:1px solid #e9efee}.party-stat:nth-last-child(-n+2){border-bottom:0}.party-chart{height:245px}.party-chart-wide{height:260px}}
+    @media(max-width:640px){.party-panel{border-radius:16px}}
+    @media(prefers-reduced-motion:reduce){.party-control,.party-button,.party-result-row{transition:none}}
+</style>
 
-<div class="mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-5 sm:py-5 lg:px-8">
-
-
-<!-- ========================================================= -->
-<!-- PAGE HEADER -->
-<!-- ========================================================= -->
-
-<div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-    <div class="flex min-w-0 items-center gap-3">
-
-        <!-- ICON -->
-
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#153030] shadow-sm">
-
-            <svg
-                class="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.8"
-            >
-
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"
-                />
-
-                <circle
-                    cx="9"
-                    cy="7"
-                    r="4"
-                />
-
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M22 21v-2a4 4 0 00-3-3.87"
-                />
-
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M16 3.13a4 4 0 010 7.75"
-                />
-
-            </svg>
-
-        </div>
-
-
-        <!-- TITLE -->
-
-        <div class="min-w-0">
-
-            <div class="flex items-center gap-2">
-
-                <h1 class="truncate text-xl font-bold tracking-tight text-[#153030] sm:text-2xl">
-                    Parties
-                </h1>
-
-                <span class="hidden rounded-full bg-emerald-50 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-emerald-600 sm:inline-flex">
-                    Directory
+<div class="party-studio mx-auto w-full max-w-[1700px] space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+    <!-- Hero header -->
+    <section class="relative isolate overflow-hidden rounded-[26px] bg-[#153030] text-white shadow-lg shadow-teal-950/10">
+        <div class="pointer-events-none absolute -right-14 -top-16 h-64 w-64 rounded-full border-[34px] border-white/[0.045]"></div>
+        <div class="pointer-events-none absolute -bottom-24 right-[25%] h-48 w-48 rounded-full bg-teal-300/[0.06] blur-2xl"></div>
+        <div class="relative flex flex-col gap-6 p-5 sm:p-7 xl:flex-row xl:items-end xl:justify-between lg:p-8">
+            <div class="min-w-0">
+                <span class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.17em] text-teal-50">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-300"></span> Partner network / Directory
                 </span>
-
+                <h1 class="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">Party Studio</h1>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-teal-50/75">A clear view of suppliers, manufacturers, wholesalers and distributors—search contacts, check profile completeness and explore your partner mix.</p>
+                <div class="mt-4 flex flex-wrap gap-2 text-xs text-teal-50/80">
+                    <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2"><i class="ri-database-2-line"></i>{{ total_parties }} total parties</span>
+                    <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2"><i class="ri-checkbox-circle-line"></i>{{ active_percentage }}% active</span>
+                </div>
             </div>
-
-            <p class="mt-0.5 text-[10px] text-gray-400 sm:text-xs">
-                Suppliers, manufacturers, wholesalers & distributors
-            </p>
-
+            <div class="flex flex-wrap gap-2">
+                {# Replace 'party_create' with your actual URL name if different. #}
+                {% url 'party_create' as party_create_url %}
+                <a href="{{ party_create_url|default:'#' }}" class="party-button bg-white px-4 text-[#153030] hover:bg-teal-50">
+                    <i class="ri-user-add-line text-base"></i> Add party
+                </a>
+                <a
+    href="{% url 'party_export' %}"
+    id="partyExportButton"
+    class="party-button border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15]"
+    title="Download all matching party records in Excel format"
+>
+    <i class="ri-file-excel-2-line text-base"></i>
+    Export All Parties
+</a>
+            </div>
         </div>
+    </section>
 
-    </div>
+    <!-- Overview strip, intentionally not separate oversized cards -->
+    <section class="party-panel overflow-hidden" aria-label="Party directory overview">
+        <div class="grid grid-cols-2 md:grid-cols-4">
+            <div class="party-stat"><p class="text-[10px] font-extrabold uppercase tracking-[.13em] text-slate-400">Total parties</p><p class="party-number mt-2 text-2xl font-extrabold text-[#153030]">{{ total_parties }}</p><p class="mt-1 text-[11px] text-slate-400">Full directory</p></div>
+            <div class="party-stat"><p class="text-[10px] font-extrabold uppercase tracking-[.13em] text-emerald-700">Active</p><p class="party-number mt-2 text-2xl font-extrabold text-emerald-800">{{ active_parties }}</p><p class="mt-1 text-[11px] text-slate-400">{{ active_percentage }}% of the directory</p></div>
+            <div class="party-stat"><p class="text-[10px] font-extrabold uppercase tracking-[.13em] text-rose-600">Inactive</p><p class="party-number mt-2 text-2xl font-extrabold text-rose-700">{{ inactive_parties }}</p><p class="mt-1 text-[11px] text-slate-400">Not currently active</p></div>
+            <div class="party-stat"><p class="text-[10px] font-extrabold uppercase tracking-[.13em] text-teal-700">GST profiles</p><p class="party-number mt-2 text-2xl font-extrabold text-[#153030]">{{ gst_parties }}</p><p class="mt-1 text-[11px] text-slate-400">{{ gst_percentage }}% with GST entered</p></div>
+        </div>
+    </section>
 
+    <!-- Charts overview -->
+    <section class="space-y-3" aria-labelledby="party-insights-title">
+        <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div><p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">Directory intelligence</p><h2 id="party-insights-title" class="mt-1 text-lg font-extrabold text-slate-900">Partner network insights</h2><p class="mt-1 text-xs text-slate-500">Charts summarize all parties; filters below refine the result list.</p></div>
+            <span class="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-500"><i class="ri-cursor-line text-teal-700"></i> Hover or tap chart segments for details</span>
+        </div>
+        <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+            <article class="party-panel p-4 sm:p-5">
+                <div class="mb-3"><h3 class="font-extrabold text-slate-900">Active vs inactive</h3><p class="mt-1 text-xs text-slate-500">Current partner status distribution</p></div>
+                <div class="party-chart"><canvas id="partyStatusChart" aria-label="Active and inactive party distribution" role="img"></canvas><div id="partyStatusEmpty" class="absolute inset-0 hidden items-center justify-center text-sm text-slate-400">No party records yet.</div></div>
+            </article>
+            <article class="party-panel p-4 sm:p-5">
+                <div class="mb-3"><h3 class="font-extrabold text-slate-900">Party type mix</h3><p class="mt-1 text-xs text-slate-500">Supplier and partner categories</p></div>
+                <div class="party-chart"><canvas id="partyTypeChart" aria-label="Party counts by party type" role="img"></canvas><div id="partyTypeEmpty" class="absolute inset-0 hidden items-center justify-center text-sm text-slate-400">No party type data.</div></div>
+            </article>
+            <article class="party-panel p-4 sm:p-5 xl:col-span-1">
+                <div class="mb-3"><h3 class="font-extrabold text-slate-900">Top states</h3><p class="mt-1 text-xs text-slate-500">Locations with the most partners</p></div>
+                <div class="party-chart party-chart-wide"><canvas id="partyStateChart" aria-label="Party counts in top states" role="img"></canvas><div id="partyStateEmpty" class="absolute inset-0 hidden items-center justify-center text-sm text-slate-400">No state data available.</div></div>
+            </article>
+        </div>
+    </section>
 
-    <!-- ADD PARTY -->
+    <!-- Smart filter bar -->
+    <section class="party-panel overflow-hidden" id="party-filters">
+        <div class="flex flex-col gap-2 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div><p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">Directory controls</p><h2 class="mt-1 text-base font-extrabold text-slate-900">Find a party</h2><p class="mt-1 text-xs text-slate-500">Search contact, business, GST or bank details. Filters update the list as you type.</p></div>
+            <span class="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600"><i class="ri-filter-3-line text-teal-700"></i><span id="partyResultCount">{{ filtered_parties_count }}</span> matches</span>
+        </div>
+        <form id="partyFilterForm" method="get" action="{% url 'party_list' %}" class="p-4 sm:p-5">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+               <div class="sm:col-span-2">
+    <label for="partySearch" class="mb-1.5 block text-xs font-bold text-slate-600">
+        Search Directory
+    </label>
 
-    <a
-        href=""
-        class="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#153030] px-3.5 text-[11px] font-bold text-white shadow-sm transition hover:bg-[#0f2424] sm:h-10 sm:px-4 sm:text-xs"
-    >
+    <div class="relative">
+        <!-- Search Icon -->
+        <i class="ri-search-2-line pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-lg text-slate-400"></i>
 
-        <svg
-            class="h-3.5 w-3.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
+        <!-- Search Input -->
+        <input
+            class="party-control pr-10"
+            style="padding-left: 44px !important;"
+            type="search"
+            name="search"
+            id="partySearch"
+            value="{{ search }}"
+            placeholder="Search by name, mobile, GSTIN, city or bank..."
+            autocomplete="off"
         >
 
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 4v16M4 12h16"
-            />
-
-        </svg>
-
-        Add Party
-
-    </a>
-
+        <!-- Search Loader -->
+        <span
+            id="searchLoader"
+            class="absolute inset-y-0 right-3 hidden items-center"
+        >
+            <i class="ri-loader-4-line animate-spin text-lg text-[#153030]"></i>
+        </span>
+    </div>
 </div>
-
-
-
-<!-- ========================================================= -->
-<!-- MICRO STAT BAR -->
-<!-- ========================================================= -->
-
-<div class="mb-4 grid grid-cols-3 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-
-    <!-- TOTAL -->
-
-    <div class="border-r border-gray-100 px-3 py-3.5 sm:px-4">
-
-        <div class="flex items-center justify-between gap-2">
-
-            <div class="min-w-0">
-
-                <p class="text-[8px] font-bold uppercase tracking-[0.12em] text-gray-400 sm:text-[9px]">
-                    Total
-                </p>
-
-                <p class="mt-1 text-lg font-bold tracking-tight text-[#153030] sm:text-xl">
-                    {{ total_parties }}
-                </p>
-
+                <div><label for="partyType" class="mb-1.5 block text-xs font-bold text-slate-600">Party type</label><select class="party-control" name="party_type" id="partyType"><option value="">All types</option>{% for value,label in party_types %}<option value="{{ value }}" {% if party_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+                <div><label for="partyStatus" class="mb-1.5 block text-xs font-bold text-slate-600">Status</label><select class="party-control" name="status" id="partyStatus"><option value="">All statuses</option><option value="active" {% if status == "active" %}selected{% endif %}>Active</option><option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive</option></select></div>
+                <div><label for="gstStatus" class="mb-1.5 block text-xs font-bold text-slate-600">GST profile</label><select class="party-control" name="gst" id="gstStatus"><option value="">All GST profiles</option><option value="available" {% if gst == "available" %}selected{% endif %}>GST available</option><option value="missing" {% if gst == "missing" %}selected{% endif %}>GST missing</option></select></div>
+                <div><label for="bankStatus" class="mb-1.5 block text-xs font-bold text-slate-600">Bank / payment profile</label><select class="party-control" name="bank" id="bankStatus"><option value="">All bank profiles</option><option value="available" {% if bank == "available" %}selected{% endif %}>Details available</option><option value="missing" {% if bank == "missing" %}selected{% endif %}>Details missing</option></select></div>
+                <div><label for="partySort" class="mb-1.5 block text-xs font-bold text-slate-600">Sort by</label><select class="party-control" name="sort" id="partySort">{% for value,label in sort_options %}<option value="{{ value }}" {% if sort == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+                <div><label for="partyPerPage" class="mb-1.5 block text-xs font-bold text-slate-600">Rows per page</label><select class="party-control" name="per_page" id="partyPerPage">{% for amount in page_size_options %}<option value="{{ amount }}" {% if per_page == amount %}selected{% endif %}>{{ amount }} records</option>{% endfor %}</select></div>
             </div>
-
-            <div class="hidden h-7 w-7 items-center justify-center rounded-lg bg-[#153030]/5 sm:flex">
-
-                <svg
-                    class="h-3.5 w-3.5 text-[#153030]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                >
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M17 20h5v-2a4 4 0 00-4-4h-1"
-                    />
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M3 20h10v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2z"
-                    />
-
-                    <circle
-                        cx="8"
-                        cy="7"
-                        r="3"
-                    />
-
-                </svg>
-
+            <div class="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
+                <button class="party-button party-button-primary" type="submit"><i class="ri-filter-3-line text-base"></i> Apply filters</button>
+                <button class="party-button party-button-light" type="button" id="clearFilters"><i class="ri-refresh-line text-base"></i> Reset filters</button>
+                <span class="hidden h-7 w-px bg-slate-200 sm:block"></span>
+                <p id="searchStatus" class="text-[11px] text-slate-400">Showing {{ filtered_parties_count }} matching parties</p>
+                <span class="sm:ml-auto inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.14em] text-slate-300"><i class="ri-flashlight-line"></i> Live search</span>
             </div>
+        </form>
+    </section>
 
-        </div>
-
+    <!-- Results table / cards: swapped on AJAX search -->
+    <div id="partyTableContainer" class="min-w-0 transition-opacity duration-200">
+        {% include "dashboard/party_table.html" %}
     </div>
 
-
-    <!-- ACTIVE -->
-
-    <div class="border-r border-gray-100 px-3 py-3.5 sm:px-4">
-
-        <div class="flex items-center justify-between gap-2">
-
-            <div class="min-w-0">
-
-                <p class="text-[8px] font-bold uppercase tracking-[0.12em] text-gray-400 sm:text-[9px]">
-                    Active
-                </p>
-
-                <p class="mt-1 text-lg font-bold tracking-tight text-emerald-600 sm:text-xl">
-                    {{ active_parties }}
-                </p>
-
-            </div>
-
-            <div class="hidden h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 sm:flex">
-
-                <svg
-                    class="h-3.5 w-3.5 text-emerald-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                >
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M5 13l4 4L19 7"
-                    />
-
-                </svg>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- INACTIVE -->
-
-    <div class="px-3 py-3.5 sm:px-4">
-
-        <div class="flex items-center justify-between gap-2">
-
-            <div class="min-w-0">
-
-                <p class="text-[8px] font-bold uppercase tracking-[0.12em] text-gray-400 sm:text-[9px]">
-                    Inactive
-                </p>
-
-                <p class="mt-1 text-lg font-bold tracking-tight text-rose-500 sm:text-xl">
-                    {{ inactive_parties }}
-                </p>
-
-            </div>
-
-            <div class="hidden h-7 w-7 items-center justify-center rounded-lg bg-rose-50 sm:flex">
-
-                <svg
-                    class="h-3.5 w-3.5 text-rose-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                >
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M6 18L18 6M6 6l12 12"
-                    />
-
-                </svg>
-
-            </div>
-
-        </div>
-
-    </div>
-
+    <footer class="flex flex-col gap-1 border-t border-slate-200 pt-4 text-[10px] font-medium uppercase tracking-[.14em] text-slate-300 sm:flex-row sm:items-center sm:justify-between"><span>Partner directory</span><span>YAARLYNX · Party Studio</span></footer>
 </div>
 
-
-
-<!-- ========================================================= -->
-<!-- SMART SEARCH + FILTER TOOLBAR -->
-<!-- ========================================================= -->
-
-<div class="mb-4 rounded-xl border border-gray-200 bg-white shadow-sm">
-
-    <form
-        id="partyFilterForm"
-        method="GET"
-        action="{% url 'party_list' %}"
-    >
-
-        <div class="p-3 sm:p-3.5">
-
-
-            <!-- ================================================= -->
-            <!-- MAIN TOOLBAR -->
-            <!-- ================================================= -->
-
-            <div class="flex flex-col gap-2.5 xl:flex-row xl:items-center">
-
-
-                <!-- SEARCH -->
-
-                <div class="relative min-w-0 flex-1">
-
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-
-                        <svg
-                            class="h-4 w-4 text-gray-400"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="m21 21-4.35-4.35m2.1-5.4a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"
-                            />
-
-                        </svg>
-
-                    </div>
-
-
-                    <input
-                        type="text"
-                        name="search"
-                        id="partySearch"
-                        value="{{ search }}"
-                        autocomplete="off"
-                        placeholder="Search party, phone, GST, city, bank..."
-                        class="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-9 text-[11px] text-[#153030] outline-none transition placeholder:text-gray-400 hover:border-gray-300 focus:border-[#153030] focus:bg-white focus:ring-2 focus:ring-[#153030]/10 sm:h-10 sm:text-xs"
-                    >
-
-
-                    <!-- LOADER -->
-
-                    <div
-                        id="searchLoader"
-                        class="absolute inset-y-0 right-3 hidden items-center"
-                    >
-
-                        <svg
-                            class="h-4 w-4 animate-spin text-[#153030]"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-
-                            <circle
-                                class="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                stroke-width="3"
-                            />
-
-                            <path
-                                class="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"
-                            />
-
-                        </svg>
-
-                    </div>
-
-                </div>
-
-
-
-                <!-- ================================================= -->
-                <!-- FILTERS -->
-                <!-- ================================================= -->
-
-                <div class="flex flex-wrap items-center gap-1.5">
-
-
-                    <!-- PARTY TYPE -->
-
-                    <select
-                        name="party_type"
-                        id="partyType"
-                        class="h-9 min-w-[110px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 text-[10px] font-semibold text-[#153030] outline-none transition hover:border-gray-300 focus:border-[#153030] focus:bg-white focus:ring-2 focus:ring-[#153030]/10 sm:h-10 sm:min-w-[120px] sm:text-[11px]"
-                    >
-
-                        <option value="">
-                            All Types
-                        </option>
-
-                        {% for value, label in party_types %}
-
-                            <option
-                                value="{{ value }}"
-                                {% if party_type == value %}
-                                    selected
-                                {% endif %}
-                            >
-                                {{ label }}
-                            </option>
-
-                        {% endfor %}
-
-                    </select>
-
-
-
-                    <!-- STATUS -->
-
-                    <select
-                        name="status"
-                        id="partyStatus"
-                        class="h-9 min-w-[100px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 text-[10px] font-semibold text-[#153030] outline-none transition hover:border-gray-300 focus:border-[#153030] focus:bg-white focus:ring-2 focus:ring-[#153030]/10 sm:h-10 sm:min-w-[110px] sm:text-[11px]"
-                    >
-
-                        <option value="">
-                            All Status
-                        </option>
-
-                        <option
-                            value="active"
-                            {% if status == "active" %}
-                                selected
-                            {% endif %}
-                        >
-                            Active
-                        </option>
-
-                        <option
-                            value="inactive"
-                            {% if status == "inactive" %}
-                                selected
-                            {% endif %}
-                        >
-                            Inactive
-                        </option>
-
-                    </select>
-
-
-
-                    <!-- GST -->
-
-                    <select
-                        name="gst"
-                        id="gstStatus"
-                        class="h-9 min-w-[95px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 text-[10px] font-semibold text-[#153030] outline-none transition hover:border-gray-300 focus:border-[#153030] focus:bg-white focus:ring-2 focus:ring-[#153030]/10 sm:h-10 sm:min-w-[105px] sm:text-[11px]"
-                    >
-
-                        <option value="">
-                            All GST
-                        </option>
-
-                        <option
-                            value="available"
-                            {% if gst == "available" %}
-                                selected
-                            {% endif %}
-                        >
-                            GST Available
-                        </option>
-
-                        <option
-                            value="missing"
-                            {% if gst == "missing" %}
-                                selected
-                            {% endif %}
-                        >
-                            GST Missing
-                        </option>
-
-                    </select>
-
-
-
-                    <!-- BANK -->
-
-                    <select
-                        name="bank"
-                        id="bankStatus"
-                        class="h-9 min-w-[100px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 text-[10px] font-semibold text-[#153030] outline-none transition hover:border-gray-300 focus:border-[#153030] focus:bg-white focus:ring-2 focus:ring-[#153030]/10 sm:h-10 sm:min-w-[115px] sm:text-[11px]"
-                    >
-
-                        <option value="">
-                            All Bank
-                        </option>
-
-                        <option
-                            value="available"
-                            {% if bank == "available" %}
-                                selected
-                            {% endif %}
-                        >
-                            Bank Available
-                        </option>
-
-                        <option
-                            value="missing"
-                            {% if bank == "missing" %}
-                                selected
-                            {% endif %}
-                        >
-                            Bank Missing
-                        </option>
-
-                    </select>
-
-
-
-                    <!-- CLEAR -->
-
-                    <button
-                        type="button"
-                        id="clearFilters"
-                        title="Clear filters"
-                        class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 sm:h-10 sm:w-10"
-                    >
-
-                        <svg
-                            class="h-3.5 w-3.5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                        >
-
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M6 18L18 6M6 6l12 12"
-                            />
-
-                        </svg>
-
-                    </button>
-
-                </div>
-
-
-            </div>
-
-
-
-            <!-- ================================================= -->
-            <!-- TOOLBAR FOOTER -->
-            <!-- ================================================= -->
-
-            <div class="mt-2.5 flex items-center justify-between border-t border-gray-100 pt-2.5">
-
-                <div class="flex min-w-0 items-center gap-1.5">
-
-                    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
-
-                    <p
-                        id="searchStatus"
-                        class="truncate text-[9px] font-medium text-gray-400 sm:text-[10px]"
-                    >
-                        Showing {{ page_obj.paginator.count }} parties
-                    </p>
-
-                </div>
-
-
-                <span class="hidden text-[8px] font-bold uppercase tracking-[0.15em] text-gray-300 sm:block">
-                    Smart Filter
-                </span>
-
-            </div>
-
-        </div>
-
-    </form>
-
-</div>
-
-
-
-<!-- ========================================================= -->
-<!-- PARTY RESULTS -->
-<!-- ========================================================= -->
-
-<div
-    id="partyTableContainer"
-    class="min-w-0 transition-opacity duration-200"
->
-
-    {% include "dashboard/party_table.html" %}
-
-</div>
-
-
-
-<!-- ========================================================= -->
-<!-- FOOTER -->
-<!-- ========================================================= -->
-
-<div class="mt-4 flex items-center justify-between text-[8px] font-medium uppercase tracking-[0.14em] text-gray-300">
-
-    <span>
-        Party Management
-    </span>
-
-    <span>
-        Yaarlynx
-    </span>
-
-</div>
-
-</div>
-
-<!-- ============================================================= -->
-
-<!-- REAL-TIME SEARCH / FILTER SCRIPT -->
-
-<!-- ============================================================= -->
-
+{{ status_chart|json_script:"party-status-chart-data" }}
+{{ party_type_chart|json_script:"party-type-chart-data" }}
+{{ state_chart|json_script:"party-state-chart-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script>
+(function () {
+    "use strict";
+    const form = document.getElementById("partyFilterForm");
+    if (!form) return;
+    const searchInput = document.getElementById("partySearch");
+    const tableContainer = document.getElementById("partyTableContainer");
+    const searchLoader = document.getElementById("searchLoader");
+    const searchStatus = document.getElementById("searchStatus");
+    const resultCount = document.getElementById("partyResultCount");
+    let debounceTimer = null;
+    let activeController = null;
 
-document.addEventListener("DOMContentLoaded", function () {
+    const controls = ["partyType", "partyStatus", "gstStatus", "bankStatus", "partySort", "partyPerPage"]
+        .map((id) => document.getElementById(id)).filter(Boolean);
 
-    const form =
-        document.getElementById("partyFilterForm");
-
-    const searchInput =
-        document.getElementById("partySearch");
-
-    const partyType =
-        document.getElementById("partyType");
-
-    const partyStatus =
-        document.getElementById("partyStatus");
-
-    const gstStatus =
-        document.getElementById("gstStatus");
-
-    const bankStatus =
-        document.getElementById("bankStatus");
-
-    const clearFilters =
-        document.getElementById("clearFilters");
-
-    const tableContainer =
-        document.getElementById("partyTableContainer");
-
-    const searchStatus =
-        document.getElementById("searchStatus");
-
-    const searchLoader =
-        document.getElementById("searchLoader");
-
-
-    let searchTimer = null;
-
-    let currentRequest = null;
-
-
-
-    /* ========================================================= */
-    /* BUILD URL */
-    /* ========================================================= */
-
-    function getUrl() {
-
-        const params =
-            new URLSearchParams();
-
-
-        const search =
-            searchInput.value.trim();
-
-        const type =
-            partyType.value;
-
-        const status =
-            partyStatus.value;
-
-        const gst =
-            gstStatus.value;
-
-        const bank =
-            bankStatus.value;
-
-
-
-        if (search) {
-
-            params.set(
-                "search",
-                search
-            );
-
+    function buildUrl() {
+        const params = new URLSearchParams(new FormData(form));
+        params.delete("page");
+        for (const [key, value] of [...params.entries()]) {
+            if (!String(value).trim()) params.delete(key);
         }
-
-
-        if (type) {
-
-            params.set(
-                "party_type",
-                type
-            );
-
-        }
-
-
-        if (status) {
-
-            params.set(
-                "status",
-                status
-            );
-
-        }
-
-
-        if (gst) {
-
-            params.set(
-                "gst",
-                gst
-            );
-
-        }
-
-
-        if (bank) {
-
-            params.set(
-                "bank",
-                bank
-            );
-
-        }
-
-
-        const query =
-            params.toString();
-
-
-        return query
-            ? form.action + "?" + query
-            : form.action;
-
+        return form.action + (params.toString() ? "?" + params.toString() : "");
     }
 
+    function setLoading(loading) {
+        tableContainer.classList.toggle("opacity-50", loading);
+        tableContainer.classList.toggle("pointer-events-none", loading);
+        searchLoader.classList.toggle("hidden", !loading);
+        searchLoader.classList.toggle("flex", loading);
+        if (searchStatus) searchStatus.textContent = loading ? "Updating results…" : searchStatus.textContent;
+    }
 
-
-    /* ========================================================= */
-    /* LOAD PARTIES */
-    /* ========================================================= */
-
-    function loadParties(url) {
-
-
-        if (currentRequest) {
-
-            currentRequest.abort();
-
-        }
-
-
-        currentRequest =
-            new AbortController();
-
-
-        tableContainer.classList.add(
-            "opacity-50",
-            "pointer-events-none"
-        );
-
-
-        searchLoader.classList.remove(
-            "hidden"
-        );
-
-        searchLoader.classList.add(
-            "flex"
-        );
-
-
-
-        fetch(
-            url,
-            {
+    async function loadParties(url, updateHistory = true) {
+        if (activeController) activeController.abort();
+        activeController = new AbortController();
+        setLoading(true);
+        try {
+            const response = await fetch(url, {
                 method: "GET",
-
-                headers: {
-                    "X-Requested-With":
-                        "XMLHttpRequest"
-                },
-
-                signal:
-                    currentRequest.signal
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                signal: activeController.signal
+            });
+            if (!response.ok) throw new Error("Unable to load party records.");
+            const html = await response.text();
+            tableContainer.innerHTML = html;
+            const countNode = tableContainer.querySelector("[data-result-count]");
+            if (countNode) {
+                const count = countNode.dataset.resultCount || "0";
+                if (resultCount) resultCount.textContent = count;
+                if (searchStatus) searchStatus.textContent = "Showing " + count + " matching parties";
             }
-        )
-
-        .then(
-            function (response) {
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        "Failed to load parties."
-                    );
-
-                }
-
-
-                return response.text();
-
-            }
-        )
-
-        .then(
-            function (html) {
-
-                tableContainer.innerHTML =
-                    html;
-
-
-                tableContainer.classList.remove(
-                    "opacity-50",
-                    "pointer-events-none"
-                );
-
-
-                searchLoader.classList.add(
-                    "hidden"
-                );
-
-                searchLoader.classList.remove(
-                    "flex"
-                );
-
-
-
-                const countElement =
-                    tableContainer.querySelector(
-                        "[data-result-count]"
-                    );
-
-
-                if (countElement) {
-
-                    searchStatus.textContent =
-                        "Showing " +
-                        countElement.dataset.resultCount +
-                        " parties";
-
-                }
-
-
-
-                history.replaceState(
-                    {},
-                    "",
-                    url
-                );
-
-
-                bindPagination();
-
-            }
-        )
-
-        .catch(
-            function (error) {
-
-                if (
-                    error.name ===
-                    "AbortError"
-                ) {
-
-                    return;
-
-                }
-
-
+            if (updateHistory) history.replaceState({}, "", url);
+            bindPagination();
+        } catch (error) {
+            if (error.name !== "AbortError") {
                 console.error(error);
-
-
-                tableContainer.classList.remove(
-                    "opacity-50",
-                    "pointer-events-none"
-                );
-
-
-                searchLoader.classList.add(
-                    "hidden"
-                );
-
-                searchLoader.classList.remove(
-                    "flex"
-                );
-
+                if (searchStatus) searchStatus.textContent = "Could not refresh the list. Please try again.";
             }
-        );
-
+        } finally {
+            if (activeController && !activeController.signal.aborted) setLoading(false);
+        }
     }
 
-
-
-    /* ========================================================= */
-    /* SEARCH */
-    /* ========================================================= */
-
-    function performSearch() {
-
-        loadParties(
-            getUrl()
-        );
-
+    function scheduleSearch() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => loadParties(buildUrl()), 300);
     }
 
+    searchInput.addEventListener("input", scheduleSearch);
+    controls.forEach((control) => control.addEventListener("change", () => loadParties(buildUrl())));
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        loadParties(buildUrl());
+    });
 
-
-    /* ========================================================= */
-    /* REAL-TIME SEARCH */
-    /* ========================================================= */
-
-    searchInput.addEventListener(
-        "input",
-        function () {
-
-            clearTimeout(
-                searchTimer
-            );
-
-
-            searchTimer =
-                setTimeout(
-                    function () {
-
-                        performSearch();
-
-                    },
-                    350
-                );
-
-        }
-    );
-
-
-
-    /* ========================================================= */
-    /* FILTER EVENTS */
-    /* ========================================================= */
-
-    partyType.addEventListener(
-        "change",
-        performSearch
-    );
-
-
-    partyStatus.addEventListener(
-        "change",
-        performSearch
-    );
-
-
-    gstStatus.addEventListener(
-        "change",
-        performSearch
-    );
-
-
-    bankStatus.addEventListener(
-        "change",
-        performSearch
-    );
-
-
-
-    /* ========================================================= */
-    /* CLEAR FILTERS */
-    /* ========================================================= */
-
-    clearFilters.addEventListener(
-        "click",
-        function () {
-
-            searchInput.value = "";
-
-            partyType.value = "";
-
-            partyStatus.value = "";
-
-            gstStatus.value = "";
-
-            bankStatus.value = "";
-
-
-            performSearch();
-
-        }
-    );
-
-
-
-    /* ========================================================= */
-    /* PAGINATION */
-    /* ========================================================= */
+    document.getElementById("clearFilters").addEventListener("click", () => {
+        form.reset();
+        // Restore the default sorting / page size for a clean directory view.
+        const sort = document.getElementById("partySort");
+        const perPage = document.getElementById("partyPerPage");
+        if (sort) sort.value = "-pk";
+        if (perPage) perPage.value = "15";
+        loadParties(form.action);
+        searchInput.focus();
+    });
 
     function bindPagination() {
-
-        const links =
-            tableContainer.querySelectorAll(
-                "[data-party-page]"
-            );
-
-
-        links.forEach(
-            function (link) {
-
-                link.addEventListener(
-                    "click",
-                    function (event) {
-
-                        event.preventDefault();
-
-
-                        loadParties(
-                            link.getAttribute(
-                                "href"
-                            )
-                        );
-
-                    }
-                );
-
-            }
-        );
-
+        tableContainer.querySelectorAll("[data-party-page]").forEach((link) => {
+            link.addEventListener("click", (event) => {
+                event.preventDefault();
+                loadParties(link.href);
+            });
+        });
     }
-
-
     bindPagination();
 
-});
+    // Export the currently visible, filtered result page to CSV.
+    // For a full-dataset export, implement a dedicated server-side export view.
+    document.getElementById("partyExportButton").addEventListener("click", () => {
+        const table = tableContainer.querySelector("table");
+        if (!table) return;
+        const rows = [...table.querySelectorAll("tr")].map((row) =>
+            [...row.querySelectorAll("th,td")].map((cell) =>
+                '"' + cell.innerText.replace(/\s+/g, " ").trim().replace(/"/g, '""') + '"'
+            ).join(",")
+        );
+        const blob = new Blob(["\uFEFF" + rows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "yaarlynx_visible_parties.csv";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+    });
 
+    // Keep the currently loaded page usable when opened from a copied URL.
+    window.addEventListener("popstate", () => {
+        const params = new URLSearchParams(window.location.search);
+        for (const [key, value] of new FormData(form).entries()) {
+            const control = form.elements.namedItem(key);
+            if (control) control.value = params.get(key) || "";
+        }
+        loadParties(window.location.pathname + window.location.search, false);
+    });
+})();
+
+(function renderPartyCharts() {
+    "use strict";
+    if (typeof Chart === "undefined") return;
+    const read = (id) => {
+        const node = document.getElementById(id);
+        try { return node ? JSON.parse(node.textContent || "{}") : {}; }
+        catch (_error) { return {}; }
+    };
+    const status = read("party-status-chart-data");
+    const types = read("party-type-chart-data");
+    const states = read("party-state-chart-data");
+    const colors = ["#153030", "#26736d", "#42a39a", "#6ca9e8", "#df9a32", "#9a85d8", "#df7d9d", "#81918d", "#6d8eaf"];
+    const numberFormat = new Intl.NumberFormat("en-IN");
+    Chart.defaults.font.family = "Inter, ui-sans-serif, system-ui, sans-serif";
+    Chart.defaults.font.size = 11;
+    Chart.defaults.color = "#71817e";
+    Chart.defaults.plugins.tooltip.backgroundColor = "#102b2b";
+    Chart.defaults.plugins.tooltip.titleColor = "#fff";
+    Chart.defaults.plugins.tooltip.bodyColor = "#e2eeee";
+    Chart.defaults.plugins.tooltip.padding = 11;
+    Chart.defaults.plugins.tooltip.cornerRadius = 9;
+
+    const emptyState = (canvasId, emptyId, hasData) => {
+        const canvas = document.getElementById(canvasId);
+        const empty = document.getElementById(emptyId);
+        if (!canvas || !empty) return false;
+        if (!hasData) { canvas.classList.add("hidden"); empty.classList.remove("hidden"); empty.classList.add("flex"); return false; }
+        return true;
+    };
+
+    const donut = (canvasId, emptyId, data) => {
+        const labels = data.labels || [];
+        const values = data.values || [];
+        const total = values.reduce((a, b) => a + Number(b || 0), 0);
+        if (!emptyState(canvasId, emptyId, labels.length > 0 && total > 0)) return;
+        new Chart(document.getElementById(canvasId), {
+            type: "doughnut",
+            data: { labels, datasets: [{ data: values, backgroundColor: values.map((_, i) => colors[i % colors.length]), borderColor: "#fff", borderWidth: 3, hoverOffset: 9, spacing: 2 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: "67%", plugins: { legend: { position: "bottom", labels: { padding: 16, usePointStyle: true } }, tooltip: { callbacks: { label: (ctx) => { const v = Number(ctx.parsed || 0); const share = total ? (v / total * 100).toFixed(1) : "0.0"; return " " + numberFormat.format(v) + " parties · " + share + "%"; } } } } }
+        });
+    };
+
+    const horizontalBars = (canvasId, emptyId, data) => {
+        const labels = data.labels || [];
+        const values = data.values || [];
+        const total = values.reduce((a, b) => a + Number(b || 0), 0);
+        if (!emptyState(canvasId, emptyId, labels.length > 0 && total > 0)) return;
+        new Chart(document.getElementById(canvasId), {
+            type: "bar",
+            data: { labels, datasets: [{ data: values, backgroundColor: values.map((_, i) => i === 0 ? "#153030" : "#3a8982"), hoverBackgroundColor: "#1e5e59", borderRadius: 7, borderSkipped: false, maxBarThickness: 26 }] },
+            options: { indexAxis: "y", responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => { const v = Number(ctx.parsed.x || 0); const share = total ? (v / total * 100).toFixed(1) : "0.0"; return " " + numberFormat.format(v) + " parties · " + share + "%"; } } } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(148,163,184,.16)" }, border: { display: false } }, y: { grid: { display: false }, border: { display: false }, ticks: { autoSkip: false } } } }
+        });
+    };
+    donut("partyStatusChart", "partyStatusEmpty", status);
+    horizontalBars("partyTypeChart", "partyTypeEmpty", types);
+    horizontalBars("partyStateChart", "partyStateEmpty", states);
+})();
+
+// Export every matching party record to Excel.
+// Keep the currently selected directory filters.
+const exportButton = document.getElementById("partyExportButton");
+
+if (exportButton) {
+    exportButton.addEventListener("click", function (event) {
+        event.preventDefault();
+
+        const params = new URLSearchParams(new FormData(form));
+
+        // Never restrict Excel export to the currently displayed page.
+        params.delete("page");
+        params.delete("per_page");
+
+        const queryString = params.toString();
+
+        const exportUrl = "{% url 'party_export' %}";
+
+        window.location.href = exportUrl + (
+            queryString ? "?" + queryString : ""
+        );
+    });
+}
 </script>
-
 {% endblock %}
