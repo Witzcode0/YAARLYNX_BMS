@@ -1,479 +1,424 @@
 {% extends "dashboard/layout.html" %}
 
-{% block title %}
-Notifications | Yaarlynx
-{% endblock %}
-
-{% block page_heading %}
-Notifications
-{% endblock %}
-
-{% block meta_description %}
-Yaarlynx Management System Notifications
-{% endblock %}
-
+{% block title %}Notifications | Yaarlynx{% endblock %}
+{% block page_heading %}Notifications{% endblock %}
+{% block meta_description %}Yaarlynx Management System Notifications{% endblock %}
 
 {% block content %}
+<style>
+/* ================================================================
+   YAARLYNX NOTIFICATION INBOX
+   Scoped styles; no dashboard shell styles are modified.
+   ================================================================ */
+.yl-notify {
+    --yn-ink: #153030;
+    --yn-ink-2: #244747;
+    --yn-muted: #788787;
+    --yn-line: #e7edeb;
+    --yn-soft: #f5f8f7;
+    --yn-green: #16804a;
+    width: 100%;
+    min-width: 0;
+    color: var(--yn-ink);
+}
+.yl-notify, .yl-notify * { box-sizing: border-box; }
+.yl-notify button, .yl-notify input { font: inherit; }
+.yl-notify [hidden] { display: none !important; }
+.yl-notify button:focus-visible, .yl-notify a:focus-visible, .yl-notify input:focus-visible {
+    outline: 3px solid rgba(21,48,48,.18); outline-offset: 3px;
+}
+.yl-notify .yn-wrap { width: 100%; max-width: 1500px; margin: 0 auto; padding: 20px 16px 34px; }
 
-<div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+/* Header */
+.yl-notify .yn-hero {
+    position: relative; display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; overflow: hidden; padding: 25px 27px; border-radius: 21px;
+    color: #fff; background: linear-gradient(118deg,#153030 0%,#214646 66%,#315c54 100%);
+    box-shadow: 0 14px 32px rgba(21,48,48,.13);
+}
+.yl-notify .yn-hero::after {
+    content: ""; position: absolute; width: 230px; height: 230px; right: 10%; top: -155px;
+    border: 1px solid rgba(255,255,255,.13); border-radius: 50%;
+    box-shadow: 0 0 0 25px rgba(255,255,255,.025),0 0 0 52px rgba(255,255,255,.02); pointer-events: none;
+}
+.yl-notify .yn-hero-main { position: relative; z-index: 1; display: flex; align-items: center; gap: 15px; min-width: 0; }
+.yl-notify .yn-hero-icon { flex: 0 0 auto; width: 52px; height: 52px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.17); border-radius: 16px; color: #fff; background: rgba(255,255,255,.1); }
+.yl-notify .yn-eyebrow { margin: 0 0 6px; color: rgba(255,255,255,.62); font-size: 9px; font-weight: 850; letter-spacing: .15em; text-transform: uppercase; }
+.yl-notify .yn-title { margin: 0; color: #fff; font-size: clamp(22px,2.5vw,30px); line-height: 1.15; font-weight: 850; letter-spacing: -.035em; }
+.yl-notify .yn-subtitle { margin: 7px 0 0; color: rgba(255,255,255,.7); font-size: 12px; line-height: 1.5; }
+.yl-notify .yn-hero-action { position: relative; z-index: 1; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 41px; padding: 10px 14px; border: 1px solid rgba(255,255,255,.22); border-radius: 10px; color: var(--yn-ink); background: #fff; font-size: 11px; font-weight: 850; cursor: pointer; transition: .18s ease; }
+.yl-notify .yn-hero-action:hover { background: #edf4f0; transform: translateY(-1px); }
+.yl-notify .yn-hero-action:disabled { opacity: .6; cursor: wait; transform: none; }
 
-    <!-- ========================================================= -->
-    <!-- HEADER -->
-    <!-- ========================================================= -->
+/* Overview */
+.yl-notify .yn-stats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 17px 0 20px; }
+.yl-notify .yn-stat { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; padding: 15px 17px; border: 1px solid var(--yn-line); border-radius: 14px; background: #fff; box-shadow: 0 4px 15px rgba(21,48,48,.035); }
+.yl-notify .yn-stat-copy { min-width: 0; }
+.yl-notify .yn-stat-label { margin: 0; color: #899696; font-size: 9px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+.yl-notify .yn-stat-value { margin: 5px 0 0; color: var(--yn-ink); font-size: 23px; line-height: 1.1; font-weight: 900; font-variant-numeric: tabular-nums; }
+.yl-notify .yn-stat-note { margin: 4px 0 0; color: #9aa5a5; font-size: 9px; }
+.yl-notify .yn-stat-icon { flex: 0 0 auto; width: 39px; height: 39px; display: grid; place-items: center; border-radius: 12px; color: var(--yn-ink); background: #edf3f1; }
 
-    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+/* Controls */
+.yl-notify .yn-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 13px; margin: 0 0 12px; }
+.yl-notify .yn-toolbar-title { min-width: 0; }
+.yl-notify .yn-section-title { margin: 0; color: var(--yn-ink); font-size: 17px; font-weight: 900; letter-spacing: -.02em; }
+.yl-notify .yn-section-caption { margin: 4px 0 0; color: var(--yn-muted); font-size: 10px; }
+.yl-notify .yn-tools { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+.yl-notify .yn-search { width: min(260px,28vw); min-width: 175px; height: 37px; display: flex; align-items: center; gap: 8px; padding: 0 11px; border: 1px solid #e1e8e6; border-radius: 9px; color: #93a09e; background: #fff; }
+.yl-notify .yn-search input { width: 100%; min-width: 0; padding: 0; border: 0; outline: 0; color: var(--yn-ink); background: transparent; font-size: 10px; }
+.yl-notify .yn-search input::placeholder { color: #a1acab; }
+.yl-notify .yn-filters { display: flex; align-items: center; gap: 5px; padding: 4px; border: 1px solid #e6ecea; border-radius: 10px; background: #fff; }
+.yl-notify .yn-filter { min-height: 28px; padding: 6px 9px; border: 0; border-radius: 7px; color: #748383; background: transparent; font-size: 9px; font-weight: 850; cursor: pointer; white-space: nowrap; transition: .15s ease; }
+.yl-notify .yn-filter:hover { color: var(--yn-ink); background: #f3f7f5; }
+.yl-notify .yn-filter.is-active { color: #fff; background: var(--yn-ink); }
 
-        <div>
+/* Notification feed — continuous rows, not individual cards */
+.yl-notify .yn-feed { overflow: hidden; border: 1px solid var(--yn-line); border-radius: 16px; background: #fff; box-shadow: 0 5px 20px rgba(21,48,48,.04); }
+.yl-notify .yn-feed-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 17px; border-bottom: 1px solid var(--yn-line); background: #fbfcfc; }
+.yl-notify .yn-feed-head-label { color: #778686; font-size: 9px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.yl-notify .yn-feed-count { color: #9aa5a4; font-size: 9px; font-weight: 750; }
+.yl-notify .yn-item { position: relative; display: grid; grid-template-columns: 43px minmax(0,1fr) 18px; align-items: start; gap: 13px; padding: 19px 18px; text-decoration: none; background: #fff; transition: background .16s ease; }
+.yl-notify .yn-item + .yn-item { border-top: 1px solid #edf1f0; }
+.yl-notify .yn-item:hover { background: #f8fbf9; }
+.yl-notify .yn-item.is-unread { background: linear-gradient(90deg,#f2f8f5 0,#fff 23%); }
+.yl-notify .yn-item.is-unread:hover { background: #f1f7f4; }
+.yl-notify .yn-icon-wrap { position: relative; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; color: var(--yn-ink); background: #edf3f1; }
+.yl-notify .yn-icon-wrap.type-festival { color: #b44b78; background: #fff0f6; }
+.yl-notify .yn-icon-wrap.type-system { color: #3268b6; background: #edf4ff; }
+.yl-notify .yn-icon-wrap.type-feature { color: #7650b5; background: #f4efff; }
+.yl-notify .yn-icon-wrap.type-warning { color: #a66a14; background: #fff5e5; }
+.yl-notify .yn-icon-wrap.type-success { color: #16804a; background: #eaf7ef; }
+.yl-notify .yn-unread-dot { position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; border: 2px solid #fff; border-radius: 50%; background: #d84b4b; box-shadow: 0 0 0 2px rgba(216,75,75,.1); }
+.yl-notify .yn-item-main { min-width: 0; }
+.yl-notify .yn-item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-width: 0; }
+.yl-notify .yn-title-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; min-width: 0; }
+.yl-notify .yn-item-title { margin: 0; color: #203b3b; font-size: 12px; line-height: 1.45; font-weight: 750; overflow-wrap: anywhere; }
+.yl-notify .yn-item.is-unread .yn-item-title { color: var(--yn-ink); font-weight: 900; }
+.yl-notify .yn-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 7px; border-radius: 999px; font-size: 8px; line-height: 1; font-weight: 900; white-space: nowrap; }
+.yl-notify .yn-pill-new { color: #fff; background: var(--yn-ink); }
+.yl-notify .yn-pill-pinned { color: #93631f; background: #fff5e4; }
+.yl-notify .yn-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 9px; margin-top: 6px; color: #98a3a2; font-size: 9px; }
+.yl-notify .yn-meta-type { color: #657777; font-weight: 800; }
+.yl-notify .yn-priority { padding: 3px 6px; border-radius: 5px; color: #738282; background: #f1f4f3; font-size: 8px; font-weight: 800; }
+.yl-notify .yn-priority-high { color: #ad4545; background: #fff0ef; }
+.yl-notify .yn-date { flex: 0 0 auto; color: #98a3a2; font-size: 9px; line-height: 1.5; text-align: right; white-space: nowrap; }
+.yl-notify .yn-message { display: -webkit-box; overflow: hidden; margin: 10px 0 0; color: #788686; font-size: 10px; line-height: 1.65; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.yl-notify .yn-action-text { display: inline-flex; align-items: center; gap: 5px; margin-top: 9px; color: var(--yn-ink); font-size: 9px; font-weight: 900; }
+.yl-notify .yn-arrow { display: grid; place-items: center; width: 18px; height: 25px; margin-top: 8px; color: #b1bcba; transition: transform .16s ease,color .16s ease; }
+.yl-notify .yn-item:hover .yn-arrow { color: var(--yn-ink); transform: translateX(3px); }
+.yl-notify .yn-filter-empty { display: none; padding: 36px 18px; color: #879494; font-size: 11px; text-align: center; }
 
-            <div class="flex items-center gap-3">
+/* Empty state */
+.yl-notify .yn-empty { padding: 58px 20px; text-align: center; }
+.yl-notify .yn-empty-icon { width: 58px; height: 58px; display: grid; place-items: center; margin: 0 auto 14px; border-radius: 18px; color: var(--yn-ink); background: #edf3f1; }
+.yl-notify .yn-empty-title { margin: 0; color: var(--yn-ink); font-size: 15px; font-weight: 900; }
+.yl-notify .yn-empty-copy { max-width: 390px; margin: 7px auto 0; color: #879494; font-size: 10px; line-height: 1.65; }
+.yl-notify .yn-footer-note { margin: 12px 2px 0; color: #a0aaa9; font-size: 9px; }
 
-                <div
-                    class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#153030] text-white shadow-sm"
-                >
-                    <i class="ri-notification-3-line text-xl"></i>
+@media (max-width: 900px) {
+    .yl-notify .yn-toolbar { align-items: flex-start; flex-direction: column; }
+    .yl-notify .yn-tools { width: 100%; justify-content: space-between; }
+    .yl-notify .yn-search { width: min(260px,38%); }
+}
+@media (max-width: 640px) {
+    .yl-notify .yn-wrap { padding: 13px 10px 25px; }
+    .yl-notify .yn-hero { align-items: flex-start; flex-direction: column; gap: 15px; padding: 19px 16px; border-radius: 17px; }
+    .yl-notify .yn-hero-main { gap: 11px; }
+    .yl-notify .yn-hero-icon { width: 44px; height: 44px; border-radius: 13px; }
+    .yl-notify .yn-hero-action { width: 100%; }
+    .yl-notify .yn-stats { gap: 7px; margin: 12px 0 17px; }
+    .yl-notify .yn-stat { align-items: flex-start; padding: 11px 9px; border-radius: 11px; }
+    .yl-notify .yn-stat-value { font-size: 19px; }
+    .yl-notify .yn-stat-label { font-size: 7px; letter-spacing: .05em; }
+    .yl-notify .yn-stat-note { font-size: 8px; }
+    .yl-notify .yn-stat-icon { width: 28px; height: 28px; border-radius: 8px; }
+    .yl-notify .yn-tools { align-items: stretch; flex-direction: column; }
+    .yl-notify .yn-search { width: 100%; min-width: 0; }
+    .yl-notify .yn-filters { width: 100%; overflow-x: auto; justify-content: flex-start; }
+    .yl-notify .yn-filter { flex: 0 0 auto; }
+    .yl-notify .yn-item { grid-template-columns: 34px minmax(0,1fr); gap: 10px; padding: 15px 12px; }
+    .yl-notify .yn-icon-wrap { width: 34px; height: 34px; border-radius: 10px; }
+    .yl-notify .yn-icon-wrap i { font-size: 16px !important; }
+    .yl-notify .yn-arrow { display: none; }
+    .yl-notify .yn-item-top { flex-direction: column; gap: 5px; }
+    .yl-notify .yn-date { order: 2; text-align: left; font-size: 8px; }
+    .yl-notify .yn-item-title { font-size: 11px; }
+    .yl-notify .yn-message { margin-top: 8px; font-size: 9px; }
+    .yl-notify .yn-feed-head { padding: 11px 12px; }
+}
+@media (max-width: 360px) {
+    .yl-notify .yn-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .yl-notify .yn-stat:last-child { grid-column: 1 / -1; }
+    .yl-notify .yn-stat:last-child .yn-stat-icon { margin-left: auto; }
+    .yl-notify .yn-title { font-size: 21px; }
+    .yl-notify .yn-meta { gap: 5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .yl-notify *, .yl-notify *::before, .yl-notify *::after { transition: none !important; scroll-behavior: auto !important; }
+}
+</style>
+
+<div class="yl-notify">
+    <div class="yn-wrap">
+        <!-- HERO -->
+        <header class="yn-hero">
+            <div class="yn-hero-main">
+                <div class="yn-hero-icon" aria-hidden="true">
+                    <i class="ri-notification-3-line" style="font-size:24px;"></i>
                 </div>
-
-                <div>
-
-                    <h1 class="text-xl font-bold text-[#153030]">
-                        Notifications
-                    </h1>
-
-                    <p class="mt-1 text-sm text-gray-500">
-                        Stay updated with the latest news and updates.
-                    </p>
-
+                <div class="min-w-0">
+                    <p class="yn-eyebrow">Yaarlynx / Activity centre</p>
+                    <h1 class="yn-title">Notifications</h1>
+                    <p class="yn-subtitle">Important announcements, updates and alerts — all in one place.</p>
                 </div>
-
             </div>
-
-        </div>
-
-
-        {% if unread_count > 0 %}
-
-        <button
-            type="button"
-            onclick="markAllAsRead()"
-            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#153030] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#204747]"
-        >
-
-            <i class="ri-check-double-line"></i>
-
-            Mark all as read
-
-        </button>
-
-        {% endif %}
-
-    </div>
-
-
-    <!-- ========================================================= -->
-    <!-- STAT CARDS -->
-    <!-- ========================================================= -->
-
-    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-
-
-        <!-- TOTAL -->
-
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-
-            <div class="flex items-center justify-between">
-
-                <div>
-
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                        Total Notifications
-                    </p>
-
-                    <p class="mt-2 text-2xl font-bold text-[#153030]">
-                        {{ total_notifications }}
-                    </p>
-
-                </div>
-
-                <div
-                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-600"
-                >
-                    <i class="ri-notification-3-line text-xl"></i>
-                </div>
-
+            {% if unread_count > 0 %}
+            <button type="button" id="markAllReadButton" onclick="markAllAsRead()" class="yn-hero-action">
+                <i class="ri-check-double-line" style="font-size:15px;"></i>
+                Mark all as read
+            </button>
+            {% else %}
+            <div class="yn-hero-action" style="cursor:default;">
+                <i class="ri-checkbox-circle-line" style="font-size:15px;color:#16804a;"></i>
+                You're all caught up
             </div>
+            {% endif %}
+        </header>
 
-        </div>
-
-
-        <!-- UNREAD -->
-
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-
-            <div class="flex items-center justify-between">
-
-                <div>
-
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                        Unread
-                    </p>
-
-                    <p
-                        id="unreadCount"
-                        class="mt-2 text-2xl font-bold text-[#153030]"
-                    >
-                        {{ unread_count }}
-                    </p>
-
+        <!-- OVERVIEW -->
+        <section class="yn-stats" aria-label="Notification overview">
+            <div class="yn-stat">
+                <div class="yn-stat-copy">
+                    <p class="yn-stat-label">Total notifications</p>
+                    <p class="yn-stat-value">{{ total_notifications|default:0 }}</p>
+                    <p class="yn-stat-note">Messages in your inbox</p>
                 </div>
-
-                <div
-                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600"
-                >
-                    <i class="ri-mail-unread-line text-xl"></i>
-                </div>
-
+                <span class="yn-stat-icon"><i class="ri-notification-3-line" style="font-size:18px;"></i></span>
             </div>
-
-        </div>
-
-
-        <!-- STATUS -->
-
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-
-            <div class="flex items-center justify-between">
-
-                <div>
-
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                        Status
-                    </p>
-
+            <div class="yn-stat">
+                <div class="yn-stat-copy">
+                    <p class="yn-stat-label">Unread</p>
+                    <p class="yn-stat-value" id="unreadCount">{{ unread_count|default:0 }}</p>
+                    <p class="yn-stat-note">Waiting for your attention</p>
+                </div>
+                <span class="yn-stat-icon" style="color:#a66a14;background:#fff5e5;"><i class="ri-mail-unread-line" style="font-size:18px;"></i></span>
+            </div>
+            <div class="yn-stat">
+                <div class="yn-stat-copy">
+                    <p class="yn-stat-label">Inbox status</p>
                     {% if unread_count > 0 %}
-
-                        <p class="mt-2 text-lg font-bold text-amber-600">
-                            {{ unread_count }} new
-                        </p>
-
+                        <p class="yn-stat-value" style="font-size:18px;color:#a66a14;">Needs attention</p>
+                        <p class="yn-stat-note">{{ unread_count }} unread notification{{ unread_count|pluralize }}</p>
                     {% else %}
-
-                        <p class="mt-2 text-lg font-bold text-emerald-600">
-                            All caught up
-                        </p>
-
+                        <p class="yn-stat-value" style="font-size:18px;color:#16804a;">All caught up</p>
+                        <p class="yn-stat-note">No unread notifications</p>
                     {% endif %}
-
                 </div>
-
-                <div
-                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"
-                >
-                    <i class="ri-checkbox-circle-line text-xl"></i>
-                </div>
-
+                <span class="yn-stat-icon" style="color:#16804a;background:#eaf7ef;"><i class="ri-checkbox-circle-line" style="font-size:18px;"></i></span>
             </div>
+        </section>
 
+        <!-- TOOLBAR -->
+        <div class="yn-toolbar">
+            <div class="yn-toolbar-title">
+                <h2 class="yn-section-title">Your inbox</h2>
+                <p class="yn-section-caption">Select a notification to view its full details.</p>
+            </div>
+            <div class="yn-tools">
+                <label class="yn-search">
+                    <i class="ri-search-line" aria-hidden="true"></i>
+                    <input type="search" id="notificationSearch" placeholder="Search notifications..." aria-label="Search notifications">
+                </label>
+                <div class="yn-filters" role="group" aria-label="Filter notifications">
+                    <button type="button" class="yn-filter is-active" data-filter="all" aria-pressed="true">All</button>
+                    <button type="button" class="yn-filter" data-filter="unread" aria-pressed="false">Unread</button>
+                    <button type="button" class="yn-filter" data-filter="read" aria-pressed="false">Read</button>
+                    <button type="button" class="yn-filter" data-filter="pinned" aria-pressed="false">Pinned</button>
+                </div>
+            </div>
         </div>
 
-    </div>
+        <!-- FEED -->
+        <section class="yn-feed" aria-label="Notification list">
+            <div class="yn-feed-head">
+                <span class="yn-feed-head-label">Recent activity</span>
+                <span class="yn-feed-count" id="visibleNotificationCount">{{ recipients|length }} notification{{ recipients|length|pluralize }}</span>
+            </div>
 
-
-    <!-- ========================================================= -->
-    <!-- NOTIFICATION LIST -->
-    <!-- ========================================================= -->
-
-    <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-
-        {% if recipients %}
-
-            <div class="divide-y divide-gray-100">
-
-                {% for recipient in recipients %}
-
-                {% with notification=recipient.notification %}
-
-                <a
-                    href="{% url 'notification_detail' notification.notification_id %}"
-                    class="group block transition hover:bg-[#F8FAFA]"
-                >
-
-                    <div class="flex gap-4 p-5 sm:p-6">
-
-
-                        <!-- ICON -->
-
-                        <div class="relative shrink-0">
-
+            {% if recipients %}
+                <div id="notificationList">
+                    {% for recipient in recipients %}
+                    {% with notification=recipient.notification %}
+                    <a
+                        href="{% url 'notification_detail' notification.notification_id %}"
+                        class="yn-item {% if not recipient.is_read %}is-unread{% endif %}"
+                        data-read="{% if recipient.is_read %}read{% else %}unread{% endif %}"
+                        data-pinned="{% if notification.is_pinned %}yes{% else %}no{% endif %}"
+                    >
+                        <span class="yn-icon-wrap
+                            {% if notification.notification_type == 'FESTIVAL' %}type-festival
+                            {% elif notification.notification_type == 'SYSTEM' %}type-system
+                            {% elif notification.notification_type == 'FEATURE' %}type-feature
+                            {% elif notification.notification_type == 'WARNING' %}type-warning
+                            {% elif notification.notification_type == 'SUCCESS' %}type-success
+                            {% endif %}">
                             {% if notification.notification_type == "FESTIVAL" %}
-
-                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-50 text-pink-600">
-                                    <i class="ri-gift-line text-xl"></i>
-                                </div>
-
+                                <i class="ri-gift-line" style="font-size:19px;"></i>
                             {% elif notification.notification_type == "SYSTEM" %}
-
-                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                                    <i class="ri-settings-3-line text-xl"></i>
-                                </div>
-
+                                <i class="ri-settings-3-line" style="font-size:19px;"></i>
                             {% elif notification.notification_type == "FEATURE" %}
-
-                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-600">
-                                    <i class="ri-sparkling-2-line text-xl"></i>
-                                </div>
-
+                                <i class="ri-sparkling-2-line" style="font-size:19px;"></i>
                             {% elif notification.notification_type == "WARNING" %}
-
-                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
-                                    <i class="ri-error-warning-line text-xl"></i>
-                                </div>
-
+                                <i class="ri-error-warning-line" style="font-size:19px;"></i>
                             {% elif notification.notification_type == "SUCCESS" %}
-
-                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                                    <i class="ri-checkbox-circle-line text-xl"></i>
-                                </div>
-
+                                <i class="ri-checkbox-circle-line" style="font-size:19px;"></i>
                             {% else %}
-
-                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F1F5F5] text-[#153030]">
-                                    <i class="{{ notification.icon }} text-xl"></i>
-                                </div>
-
+                                <i class="{{ notification.icon|default:'ri-notification-3-line' }}" style="font-size:19px;"></i>
                             {% endif %}
+                            {% if not recipient.is_read %}<span class="yn-unread-dot" aria-label="Unread"></span>{% endif %}
+                        </span>
 
-
-                            {% if not recipient.is_read %}
-
-                                <span
-                                    class="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-red-500"
-                                ></span>
-
-                            {% endif %}
-
-                        </div>
-
-
-                        <!-- CONTENT -->
-
-                        <div class="min-w-0 flex-1">
-
-                            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-
-                                <div class="min-w-0">
-
-                                    <div class="flex flex-wrap items-center gap-2">
-
-                                        <h3
-                                            class="{% if recipient.is_read %}font-semibold{% else %}font-bold{% endif %} text-sm text-[#153030]"
-                                        >
-                                            {{ notification.title }}
-                                        </h3>
-
-
-                                        {% if not recipient.is_read %}
-
-                                            <span
-                                                class="rounded-full bg-[#153030] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white"
-                                            >
-                                                New
-                                            </span>
-
-                                        {% endif %}
-
-
-                                        {% if notification.is_pinned %}
-
-                                            <span
-                                                class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700"
-                                            >
-                                                <i class="ri-pushpin-2-line"></i>
-                                                Pinned
-                                            </span>
-
-                                        {% endif %}
-
-                                    </div>
-
-
-                                    <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-400">
-
-                                        <span>
-                                            {{ notification.get_notification_type_display }}
-                                        </span>
-
-                                        <span>•</span>
-
-                                        <span>
-                                            {{ notification.get_priority_display }}
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-
-                                <span class="shrink-0 text-xs text-gray-400">
-
-                                    {{ notification.publish_at|date:"d M Y, h:i A" }}
-
+                        <span class="yn-item-main">
+                            <span class="yn-item-top">
+                                <span class="yn-title-line">
+                                    <span class="yn-item-title">{{ notification.title }}</span>
+                                    {% if not recipient.is_read %}<span class="yn-pill yn-pill-new">NEW</span>{% endif %}
+                                    {% if notification.is_pinned %}<span class="yn-pill yn-pill-pinned"><i class="ri-pushpin-2-line"></i> PINNED</span>{% endif %}
                                 </span>
+                                <time class="yn-date" {% if notification.publish_at %}datetime="{{ notification.publish_at|date:'c' }}"{% endif %}>
+                                    {{ notification.publish_at|date:"d M Y, h:i A" }}
+                                </time>
+                            </span>
 
-                            </div>
+                            <span class="yn-meta">
+                                <span class="yn-meta-type">{{ notification.get_notification_type_display }}</span>
+                                <span aria-hidden="true">·</span>
+                                <span class="yn-priority {% if notification.priority == 'HIGH' or notification.priority == 'URGENT' %}yn-priority-high{% endif %}">{{ notification.get_priority_display }}</span>
+                                {% if recipient.is_read %}<span>· Read</span>{% else %}<span>· Unread</span>{% endif %}
+                            </span>
 
-
-                            <p class="mt-3 line-clamp-2 text-sm leading-6 text-gray-500">
-
-                                {{ notification.message }}
-
-                            </p>
-
-
+                            <span class="yn-message">{{ notification.message }}</span>
                             {% if notification.action_text %}
-
-                                <div
-                                    class="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#153030]"
-                                >
-
-                                    {{ notification.action_text }}
-
-                                    <i class="ri-arrow-right-line transition group-hover:translate-x-1"></i>
-
-                                </div>
-
+                                <span class="yn-action-text">{{ notification.action_text }} <i class="ri-arrow-right-line"></i></span>
                             {% endif %}
-
-                        </div>
-
-
-                        <!-- ARROW -->
-
-                        <div class="hidden items-center sm:flex">
-
-                            <i
-                                class="ri-arrow-right-s-line text-xl text-gray-300 transition group-hover:translate-x-1 group-hover:text-[#153030]"
-                            ></i>
-
-                        </div>
-
-                    </div>
-
-                </a>
-
-                {% endwith %}
-
-                {% endfor %}
-
-            </div>
-
-
-        {% else %}
-
-
-            <!-- EMPTY STATE -->
-
-            <div class="px-6 py-20 text-center">
-
-                <div
-                    class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#F1F5F5] text-[#153030]"
-                >
-                    <i class="ri-notification-off-line text-3xl"></i>
+                        </span>
+                        <span class="yn-arrow" aria-hidden="true"><i class="ri-arrow-right-s-line" style="font-size:20px;"></i></span>
+                    </a>
+                    {% endwith %}
+                    {% endfor %}
                 </div>
-
-
-                <h3 class="mt-5 text-base font-bold text-[#153030]">
-                    You're all caught up
-                </h3>
-
-
-                <p class="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-500">
-                    There are no notifications available for you right now.
-                    New announcements and updates will appear here.
-                </p>
-
-            </div>
-
-        {% endif %}
-
+                <div class="yn-filter-empty" id="notificationFilterEmpty">No notifications match your search or selected filter.</div>
+            {% else %}
+                <div class="yn-empty">
+                    <div class="yn-empty-icon"><i class="ri-notification-off-line" style="font-size:27px;"></i></div>
+                    <h3 class="yn-empty-title">You're all caught up</h3>
+                    <p class="yn-empty-copy">There are no notifications available for you right now. New announcements and updates will appear here.</p>
+                </div>
+            {% endif %}
+        </section>
+        <p class="yn-footer-note">Yaarlynx Management System · Notification centre</p>
     </div>
-
 </div>
 
-
-<!-- ========================================================= -->
-<!-- JAVASCRIPT -->
-<!-- ========================================================= -->
-
 <script>
+(function () {
+    "use strict";
 
-function getCookie(name) {
-
-    let cookieValue = null;
-
-    if (document.cookie && document.cookie !== '') {
-
-        const cookies = document.cookie.split(';');
-
-        for (let i = 0; i < cookies.length; i++) {
-
-            const cookie = cookies[i].trim();
-
-            if (
-                cookie.substring(
-                    0,
-                    name.length + 1
-                ) === name + '='
-            ) {
-
-                cookieValue = decodeURIComponent(
-                    cookie.substring(
-                        name.length + 1
-                    )
-                );
-
-                break;
-            }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            document.cookie.split(";").forEach(function (cookie) {
+                const item = cookie.trim();
+                if (item.substring(0, name.length + 1) === name + "=") {
+                    cookieValue = decodeURIComponent(item.substring(name.length + 1));
+                }
+            });
         }
+        return cookieValue;
     }
 
-    return cookieValue;
-}
+    window.markAllAsRead = function () {
+        const button = document.getElementById("markAllReadButton");
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="ri-loader-4-line"></i> Updating…';
+        }
 
-
-function markAllAsRead() {
-
-    fetch(
-        "{% url 'mark_all_notifications_read' %}",
-        {
+        fetch("{% url 'mark_all_notifications_read' %}", {
             method: "POST",
-
             headers: {
                 "X-CSRFToken": getCookie("csrftoken"),
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            credentials: "same-origin"
+        })
+        .then(function (response) {
+            if (!response.ok) throw new Error("Could not update notifications.");
+            return response.json();
+        })
+        .then(function (data) {
+            if (data && data.success) {
+                window.location.reload();
+            } else {
+                throw new Error((data && data.message) || "Could not mark notifications as read.");
             }
+        })
+        .catch(function (error) {
+            console.error("Notification update error:", error);
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="ri-check-double-line"></i> Mark all as read';
+            }
+            window.alert(error.message || "Something went wrong. Please try again.");
+        });
+    };
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const search = document.getElementById("notificationSearch");
+        const filterButtons = Array.from(document.querySelectorAll(".yn-filter"));
+        const items = Array.from(document.querySelectorAll(".yn-item"));
+        const emptyMessage = document.getElementById("notificationFilterEmpty");
+        const count = document.getElementById("visibleNotificationCount");
+        let activeFilter = "all";
+
+        function applyFilters() {
+            const query = search ? search.value.trim().toLowerCase() : "";
+            let visible = 0;
+
+            items.forEach(function (item) {
+                const readState = item.dataset.read;
+                const isPinned = item.dataset.pinned === "yes";
+                const matchesFilter = activeFilter === "all" ||
+                    (activeFilter === "unread" && readState === "unread") ||
+                    (activeFilter === "read" && readState === "read") ||
+                    (activeFilter === "pinned" && isPinned);
+                const matchesSearch = !query || item.textContent.toLowerCase().includes(query);
+                const show = matchesFilter && matchesSearch;
+                item.hidden = !show;
+                if (show) visible += 1;
+            });
+
+            if (emptyMessage) emptyMessage.style.display = items.length && visible === 0 ? "block" : "none";
+            if (count) count.textContent = visible + " notification" + (visible === 1 ? "" : "s");
         }
-    )
-    .then(response => response.json())
-    .then(data => {
 
-        if (data.success) {
+        filterButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                activeFilter = button.dataset.filter || "all";
+                filterButtons.forEach(function (item) {
+                    const active = item === button;
+                    item.classList.toggle("is-active", active);
+                    item.setAttribute("aria-pressed", active ? "true" : "false");
+                });
+                applyFilters();
+            });
+        });
 
-            window.location.reload();
-
-        }
-
-    })
-    .catch(error => {
-
-        console.error(
-            "Notification error:",
-            error
-        );
-
+        if (search) search.addEventListener("input", applyFilters);
+        applyFilters();
     });
-
-}
-
+})();
 </script>
-
 {% endblock %}

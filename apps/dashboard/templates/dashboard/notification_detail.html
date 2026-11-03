@@ -1,184 +1,452 @@
 {% extends "dashboard/layout.html" %}
 
-{% block title %}
-{{ notification.title }} | Yaarlynx
-{% endblock %}
-
-{% block page_heading %}
-Notification
-{% endblock %}
-
-{% block meta_description %}
-Yaarlynx Notification Details
-{% endblock %}
-
+{% block title %}{{ notification.title }} | Yaarlynx{% endblock %}
+{% block page_heading %}Notification{% endblock %}
+{% block meta_description %}Yaarlynx notification details and announcements.{% endblock %}
 
 {% block content %}
+<style>
+/* YAARLYNX — Notification editorial detail page. Scoped to this template. */
+.yl-notice-page {
+    --notice-ink: #153030;
+    --notice-ink-soft: #294747;
+    --notice-muted: #7b8b89;
+    --notice-line: #e6ece9;
+    --notice-paper: #fbfcfa;
+    --notice-copper: #c18b4c;
+    width: 100%;
+    min-width: 0;
+    color: var(--notice-ink);
+}
+.yl-notice-page,
+.yl-notice-page * { box-sizing: border-box; }
+.yl-notice-page .np-wrap {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 22px 18px 38px;
+}
+.yl-notice-page .np-back-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.yl-notice-page .np-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 1px solid var(--notice-line);
+    border-radius: 10px;
+    color: #526664;
+    background: #fff;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 800;
+    transition: .18s ease;
+}
+.yl-notice-page .np-back:hover {
+    color: #fff;
+    border-color: var(--notice-ink);
+    background: var(--notice-ink);
+}
+.yl-notice-page .np-back svg { flex: 0 0 auto; }
+.yl-notice-page .np-top-label {
+    color: #9aa6a3;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+}
 
-<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+/* Editorial masthead */
+.yl-notice-page .np-masthead {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(22px, 4vw, 40px);
+    border-radius: 23px 23px 7px 7px;
+    color: #fff;
+    background: linear-gradient(118deg, #102929 0%, #1d4140 62%, #315650 100%);
+    box-shadow: 0 16px 38px rgba(21,48,48,.12);
+}
+.yl-notice-page .np-masthead::before,
+.yl-notice-page .np-masthead::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 50%;
+}
+.yl-notice-page .np-masthead::before {
+    width: 340px; height: 340px; right: -90px; top: -225px;
+    box-shadow: 0 0 0 24px rgba(255,255,255,.025), 0 0 0 50px rgba(255,255,255,.02);
+}
+.yl-notice-page .np-masthead::after {
+    width: 180px; height: 180px; right: 17%; bottom: -145px;
+}
+.yl-notice-page .np-masthead-inner { position: relative; z-index: 1; }
+.yl-notice-page .np-brandline {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 22px;
+    color: rgba(255,255,255,.62);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+}
+.yl-notice-page .np-brandline::before {
+    content: ""; width: 22px; height: 1px; background: var(--notice-copper);
+}
+.yl-notice-page .np-heading-row {
+    display: grid;
+    grid-template-columns: 66px minmax(0,1fr);
+    align-items: start;
+    gap: 18px;
+}
+.yl-notice-page .np-type-icon {
+    width: 66px; height: 66px;
+    display: grid; place-items: center;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 18px;
+    color: #f4d7ad;
+    background: rgba(255,255,255,.09);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
+}
+.yl-notice-page .np-type-icon i { font-size: 27px; }
+.yl-notice-page .np-kickers {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
+    margin: 1px 0 12px;
+}
+.yl-notice-page .np-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 9px;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 999px;
+    color: rgba(255,255,255,.88);
+    background: rgba(255,255,255,.09);
+    font-size: 9px; line-height: 1.2; font-weight: 850;
+    letter-spacing: .06em; text-transform: uppercase;
+}
+.yl-notice-page .np-pill.is-urgent { color: #ffe2df; border-color: rgba(255,180,172,.25); background: rgba(166,55,49,.25); }
+.yl-notice-page .np-pill.is-high { color: #ffe8c8; border-color: rgba(245,198,133,.25); background: rgba(168,111,34,.23); }
+.yl-notice-page .np-pill.is-pinned { color: #f7dfb8; }
+.yl-notice-page .np-title {
+    max-width: 900px;
+    margin: 0;
+    color: #fff;
+    font-size: clamp(25px, 3.7vw, 43px);
+    line-height: 1.12;
+    font-weight: 850;
+    letter-spacing: -.04em;
+    overflow-wrap: anywhere;
+}
+.yl-notice-page .np-published {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    margin: 15px 0 0;
+    color: rgba(255,255,255,.62);
+    font-size: 10px;
+}
+.yl-notice-page .np-published strong { color: rgba(255,255,255,.9); font-weight: 750; }
+.yl-notice-page .np-published .np-published-dot { color: var(--notice-copper); }
 
+/* Main editorial layout */
+.yl-notice-page .np-content-grid {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 270px;
+    gap: 18px;
+    align-items: start;
+    margin-top: 18px;
+}
+.yl-notice-page .np-article {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--notice-line);
+    border-radius: 7px 7px 18px 18px;
+    background: #fff;
+    box-shadow: 0 7px 23px rgba(21,48,48,.045);
+}
+.yl-notice-page .np-article-top {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 15px 22px;
+    border-bottom: 1px solid #edf1ef;
+    background: linear-gradient(90deg,#fbfcfa,#fff);
+}
+.yl-notice-page .np-article-label {
+    display: flex; align-items: center; gap: 9px;
+    color: #7e8d8a; font-size: 9px; font-weight: 900;
+    letter-spacing: .13em; text-transform: uppercase;
+}
+.yl-notice-page .np-article-label::before { content: ""; width: 17px; height: 2px; background: var(--notice-copper); }
+.yl-notice-page .np-article-number { color: #b3bdb9; font-size: 9px; font-weight: 850; letter-spacing: .1em; }
+.yl-notice-page .np-article-body { padding: clamp(20px,3.2vw,34px); }
+.yl-notice-page .np-artwork {
+    overflow: hidden;
+    margin: 0 0 27px;
+    border: 1px solid #e9eeeb;
+    border-radius: 14px;
+    background: #f7f9f7;
+}
+.yl-notice-page .np-artwork img {
+    display: block;
+    width: 100%;
+    max-height: 490px;
+    object-fit: contain;
+    object-position: center;
+}
+.yl-notice-page .np-message-label {
+    display: flex; align-items: center; gap: 9px;
+    margin: 0 0 13px;
+    color: #9aa5a2; font-size: 9px; font-weight: 900;
+    letter-spacing: .13em; text-transform: uppercase;
+}
+.yl-notice-page .np-message-label::after { content: ""; width: 38px; height: 1px; background: #dce4df; }
+.yl-notice-page .np-message {
+    color: #536461;
+    font-size: 14px;
+    line-height: 1.95;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+.yl-notice-page .np-message p { margin: 0 0 1em; }
+.yl-notice-page .np-action-wrap {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    margin-top: 30px; padding-top: 23px;
+    border-top: 1px solid #edf1ef;
+}
+.yl-notice-page .np-action {
+    min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 11px 17px;
+    border: 1px solid var(--notice-ink);
+    border-radius: 10px;
+    color: #fff; background: var(--notice-ink);
+    text-decoration: none; font-size: 11px; font-weight: 850;
+    box-shadow: 0 5px 12px rgba(21,48,48,.12);
+    transition: .18s ease;
+}
+.yl-notice-page .np-action:hover { color: #fff; background: #28504c; border-color: #28504c; transform: translateY(-1px); }
+.yl-notice-page .np-action-note { color: #9aa5a2; font-size: 9px; line-height: 1.5; }
 
-    <!-- BACK -->
+/* Right information rail */
+.yl-notice-page .np-rail { display: grid; gap: 13px; min-width: 0; }
+.yl-notice-page .np-info-panel {
+    overflow: hidden;
+    border: 1px solid var(--notice-line);
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 6px 19px rgba(21,48,48,.035);
+}
+.yl-notice-page .np-info-head { padding: 15px 16px 12px; border-bottom: 1px solid #edf1ef; }
+.yl-notice-page .np-info-head h2 { margin: 0; color: var(--notice-ink); font-size: 11px; font-weight: 900; }
+.yl-notice-page .np-info-head p { margin: 4px 0 0; color: #98a3a0; font-size: 9px; }
+.yl-notice-page .np-info-body { padding: 5px 16px 12px; }
+.yl-notice-page .np-info-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px 0; }
+.yl-notice-page .np-info-row + .np-info-row { border-top: 1px solid #f0f3f1; }
+.yl-notice-page .np-info-icon {
+    flex: 0 0 auto; width: 29px; height: 29px;
+    display: grid; place-items: center;
+    border-radius: 9px; color: #45615b; background: #eef4f0;
+}
+.yl-notice-page .np-info-copy { min-width: 0; flex: 1; }
+.yl-notice-page .np-info-label { margin: 0; color: #9ba6a3; font-size: 8px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.yl-notice-page .np-info-value { margin: 4px 0 0; color: #435653; font-size: 10px; font-weight: 800; line-height: 1.45; overflow-wrap: anywhere; }
+.yl-notice-page .np-read-panel {
+    display: flex; align-items: flex-start; gap: 11px;
+    padding: 15px;
+    border: 1px solid #dcebe1;
+    border-radius: 13px;
+    background: #f4faf6;
+}
+.yl-notice-page .np-read-icon { flex: 0 0 auto; width: 29px; height: 29px; display: grid; place-items: center; border-radius: 9px; color: #28774a; background: #e3f2e8; }
+.yl-notice-page .np-read-title { margin: 0; color: #23613e; font-size: 10px; font-weight: 900; }
+.yl-notice-page .np-read-copy { margin: 4px 0 0; color: #6d917a; font-size: 9px; line-height: 1.5; }
+.yl-notice-page .np-bottomline {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 16px; padding: 13px 2px 0;
+    border-top: 1px solid var(--notice-line);
+    color: #a0aaa7; font-size: 9px;
+}
+.yl-notice-page .np-bottomline span { overflow-wrap: anywhere; }
 
-    <a
-        href="{% url 'notification_list' %}"
-        class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition hover:text-[#153030]"
-    >
+/* Type accents */
+.yl-notice-page .np-type-festival .np-type-icon { color: #ffd2df; }
+.yl-notice-page .np-type-system .np-type-icon { color: #c9e1ff; }
+.yl-notice-page .np-type-feature .np-type-icon { color: #e0d0ff; }
+.yl-notice-page .np-type-warning .np-type-icon { color: #ffe0a8; }
+.yl-notice-page .np-type-success .np-type-icon { color: #c8f0d5; }
 
-        <i class="ri-arrow-left-line"></i>
+@media (max-width: 980px) {
+    .yl-notice-page .np-content-grid { grid-template-columns: minmax(0,1fr) 235px; gap: 13px; }
+}
+@media (max-width: 760px) {
+    .yl-notice-page .np-content-grid { grid-template-columns: minmax(0,1fr); }
+    .yl-notice-page .np-rail { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
+    .yl-notice-page .np-info-panel { grid-row: span 2; }
+}
+@media (max-width: 560px) {
+    .yl-notice-page .np-wrap { padding: 13px 10px 26px; }
+    .yl-notice-page .np-back-row { align-items: flex-start; }
+    .yl-notice-page .np-top-label { padding-top: 10px; text-align: right; }
+    .yl-notice-page .np-masthead { padding: 21px 17px; border-radius: 17px 17px 6px 6px; }
+    .yl-notice-page .np-brandline { margin-bottom: 17px; font-size: 8px; }
+    .yl-notice-page .np-heading-row { grid-template-columns: 48px minmax(0,1fr); gap: 12px; }
+    .yl-notice-page .np-type-icon { width: 48px; height: 48px; border-radius: 13px; }
+    .yl-notice-page .np-type-icon i { font-size: 21px; }
+    .yl-notice-page .np-kickers { margin-bottom: 9px; }
+    .yl-notice-page .np-title { font-size: clamp(22px,7vw,31px); }
+    .yl-notice-page .np-published { margin-top: 11px; font-size: 9px; }
+    .yl-notice-page .np-article-top { padding: 13px 15px; }
+    .yl-notice-page .np-article-body { padding: 17px 15px 20px; }
+    .yl-notice-page .np-artwork { margin-bottom: 21px; border-radius: 11px; }
+    .yl-notice-page .np-artwork img { max-height: 360px; }
+    .yl-notice-page .np-message { font-size: 13px; line-height: 1.8; }
+    .yl-notice-page .np-action { width: 100%; }
+    .yl-notice-page .np-action-note { width: 100%; }
+    .yl-notice-page .np-rail { grid-template-columns: minmax(0,1fr); }
+    .yl-notice-page .np-info-panel { grid-row: auto; }
+    .yl-notice-page .np-bottomline { align-items: flex-start; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .yl-notice-page *, .yl-notice-page *::before, .yl-notice-page *::after { transition: none !important; }
+}
+</style>
 
-        Back to notifications
+<div class="yl-notice-page">
+    <div class="np-wrap">
+        <div class="np-back-row">
+            <a href="{% url 'notification_list' %}" class="np-back">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7 7-7-7 7-7"/>
+                </svg>
+                Back to notifications
+            </a>
+            <span class="np-top-label">Yaarlynx · Notification centre</span>
+        </div>
 
-    </a>
-
-
-    <!-- MAIN CARD -->
-
-    <div class="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-
-
-        <!-- HEADER -->
-
-        <div class="border-b border-gray-100 p-6 sm:p-8">
-
-            <div class="flex items-start gap-4">
-
-
-                <!-- ICON -->
-
-                <div
-                    class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#153030] text-white shadow-sm"
-                >
-
-                    <i
-                        class="{{ notification.icon|default:'ri-notification-3-line' }} text-2xl"
-                    ></i>
-
-                </div>
-
-
-                <!-- TITLE -->
-
-                <div class="min-w-0 flex-1">
-
-
-                    <div class="flex flex-wrap gap-2">
-
-                        <span
-                            class="rounded-full bg-[#F1F5F5] px-3 py-1 text-xs font-semibold text-[#153030]"
-                        >
-                            {{ notification.get_notification_type_display }}
-                        </span>
-
-
-                        {% if notification.priority == "URGENT" %}
-
-                            <span
-                                class="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600"
-                            >
-                                Urgent
-                            </span>
-
-                        {% elif notification.priority == "HIGH" %}
-
-                            <span
-                                class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-600"
-                            >
-                                High Priority
-                            </span>
-
-                        {% endif %}
-
+        <header class="np-masthead
+            {% if notification.notification_type == 'FESTIVAL' %}np-type-festival
+            {% elif notification.notification_type == 'SYSTEM' %}np-type-system
+            {% elif notification.notification_type == 'FEATURE' %}np-type-feature
+            {% elif notification.notification_type == 'WARNING' %}np-type-warning
+            {% elif notification.notification_type == 'SUCCESS' %}np-type-success{% endif %}">
+            <div class="np-masthead-inner">
+                <p class="np-brandline">Official update · Yaarlynx management system</p>
+                <div class="np-heading-row">
+                    <div class="np-type-icon" aria-hidden="true">
+                        <i class="{{ notification.icon|default:'ri-notification-3-line' }}"></i>
                     </div>
-
-
-                    <h1
-                        class="mt-4 text-2xl font-bold leading-tight text-[#153030] sm:text-3xl"
-                    >
-                        {{ notification.title }}
-                    </h1>
-
-
-                    <p class="mt-2 text-xs text-gray-400">
-
-                        Published
-
-                        {{ notification.publish_at|date:"d F Y, h:i A" }}
-
-                    </p>
-
+                    <div class="min-w-0">
+                        <div class="np-kickers">
+                            <span class="np-pill">{{ notification.get_notification_type_display }}</span>
+                            {% if notification.priority == "URGENT" %}
+                                <span class="np-pill is-urgent">Urgent priority</span>
+                            {% elif notification.priority == "HIGH" %}
+                                <span class="np-pill is-high">High priority</span>
+                            {% else %}
+                                <span class="np-pill">{{ notification.get_priority_display }}</span>
+                            {% endif %}
+                            {% if notification.is_pinned %}
+                                <span class="np-pill is-pinned"><i class="ri-pushpin-2-line"></i> Pinned</span>
+                            {% endif %}
+                        </div>
+                        <h1 class="np-title">{{ notification.title }}</h1>
+                        <p class="np-published">
+                            <span>Published</span>
+                            <span class="np-published-dot">◆</span>
+                            <strong>{{ notification.publish_at|date:"d F Y, h:i A" }}</strong>
+                        </p>
+                    </div>
                 </div>
-
             </div>
+        </header>
 
+        <div class="np-content-grid">
+            <main class="np-article">
+                <div class="np-article-top">
+                    <span class="np-article-label">Notification briefing</span>
+                    <span class="np-article-number">UPDATE / 01</span>
+                </div>
+                <div class="np-article-body">
+                    {% if notification.image %}
+                        <figure class="np-artwork">
+                            <img src="{{ notification.image.url }}" alt="{{ notification.title }}" loading="lazy">
+                        </figure>
+                    {% endif %}
+
+                    <p class="np-message-label">The message</p>
+                    <div class="np-message">{{ notification.message }}</div>
+
+                    {% if notification.action_text and notification.action_url %}
+                        <div class="np-action-wrap">
+                            <a href="{{ notification.action_url }}" class="np-action">
+                                {{ notification.action_text }}
+                                <i class="ri-arrow-right-up-line" aria-hidden="true"></i>
+                            </a>
+                            <span class="np-action-note">Select the link to continue to the related page.</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </main>
+
+            <aside class="np-rail">
+                <section class="np-info-panel">
+                    <div class="np-info-head">
+                        <h2>At a glance</h2>
+                        <p>Key information about this update</p>
+                    </div>
+                    <div class="np-info-body">
+                        <div class="np-info-row">
+                            <span class="np-info-icon"><i class="ri-shapes-line"></i></span>
+                            <div class="np-info-copy">
+                                <p class="np-info-label">Category</p>
+                                <p class="np-info-value">{{ notification.get_notification_type_display }}</p>
+                            </div>
+                        </div>
+                        <div class="np-info-row">
+                            <span class="np-info-icon"><i class="ri-flag-line"></i></span>
+                            <div class="np-info-copy">
+                                <p class="np-info-label">Priority</p>
+                                <p class="np-info-value">{{ notification.get_priority_display }}</p>
+                            </div>
+                        </div>
+                        <div class="np-info-row">
+                            <span class="np-info-icon"><i class="ri-calendar-event-line"></i></span>
+                            <div class="np-info-copy">
+                                <p class="np-info-label">Published on</p>
+                                <p class="np-info-value">{{ notification.publish_at|date:"d M Y" }}</p>
+                            </div>
+                        </div>
+                        {% if notification.is_pinned %}
+                            <div class="np-info-row">
+                                <span class="np-info-icon"><i class="ri-pushpin-2-line"></i></span>
+                                <div class="np-info-copy">
+                                    <p class="np-info-label">Visibility</p>
+                                    <p class="np-info-value">Pinned announcement</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <section class="np-read-panel">
+                    <span class="np-read-icon"><i class="ri-checkbox-circle-line"></i></span>
+                    <div>
+                        <p class="np-read-title">You're all caught up</p>
+                        <p class="np-read-copy">This notification has been marked as read.</p>
+                    </div>
+                </section>
+            </aside>
         </div>
 
-
-        <!-- MESSAGE -->
-
-        <div class="p-6 sm:p-8">
-
-
-            {% if notification.image %}
-
-                <div class="mb-7 overflow-hidden rounded-2xl">
-
-                    <img
-                        src="{{ notification.image.url }}"
-                        alt="{{ notification.title }}"
-                        class="w-full object-cover"
-                    >
-
-                </div>
-
-            {% endif %}
-
-
-            <div
-                class="whitespace-pre-line text-sm leading-7 text-gray-600 sm:text-base"
-            >
-                {{ notification.message }}
-            </div>
-
-
-            {% if notification.action_text and notification.action_url %}
-
-                <div class="mt-8">
-
-                    <a
-                        href="{{ notification.action_url }}"
-                        class="inline-flex items-center gap-2 rounded-xl bg-[#153030] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#204747]"
-                    >
-
-                        {{ notification.action_text }}
-
-                        <i class="ri-arrow-right-line"></i>
-
-                    </a>
-
-                </div>
-
-            {% endif %}
-
-        </div>
-
-
-        <!-- FOOTER -->
-
-        <div class="border-t border-gray-100 bg-[#FAFBFB] px-6 py-4 sm:px-8">
-
-            <div class="flex items-center gap-2 text-xs text-gray-400">
-
-                <i class="ri-checkbox-circle-line text-emerald-500"></i>
-
-                This notification has been marked as read.
-
-            </div>
-
-        </div>
-
+        <footer class="np-bottomline">
+            <span>YAARLYNX · Management System</span>
+            <span>Thank you for staying informed.</span>
+        </footer>
     </div>
-
 </div>
-
 {% endblock %}

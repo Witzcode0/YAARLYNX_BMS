@@ -44,7 +44,7 @@
          ======================================================== -->
 
     <div class="hidden overflow-x-auto md:block">
-        <table class="w-full min-w-[1050px]">
+        <table class="w-full min-w-[1160px]">
             <thead class="bg-[#f7f9f8]">
                 <tr class="text-left text-[10px] font-extrabold uppercase tracking-[.13em] text-slate-500">
                     <th scope="col" class="px-5 py-4">Party</th>
@@ -54,6 +54,7 @@
                     <th scope="col" class="px-5 py-4">GST profile</th>
                     <th scope="col" class="px-5 py-4">Payment profile</th>
                     <th scope="col" class="px-5 py-4">Status</th>
+                    <th scope="col" class="px-5 py-4 text-right">Actions</th>
                 </tr>
             </thead>
 
@@ -63,26 +64,28 @@
                     <tr class="transition-colors duration-150 hover:bg-teal-50/40">
 
                         <!-- PARTY NAME -->
-                        <td class="px-5 py-4">
-                            <div class="flex items-center gap-3">
-                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#153030]">
-                                    <i class="ri-building-2-line text-lg"></i>
-                                </span>
+<td class="px-5 py-4">
+    <div class="flex items-center gap-3">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#153030]">
+            <i class="ri-building-2-line text-lg"></i>
+        </span>
 
-                                <div class="min-w-0">
-                                    <p
-                                        class="max-w-[220px] truncate text-sm font-extrabold text-slate-900"
-                                        title="{{ party.name }}"
-                                    >
-                                        {{ party.name|default:"Unnamed party" }}
-                                    </p>
+        <div class="min-w-0">
+            <!-- Click to view party details -->
+            <a
+                href="{% url 'party_detail' party.pk %}"
+                class="block max-w-[220px] truncate text-sm font-extrabold text-slate-900 transition hover:text-teal-700 hover:underline"
+                title="View details of {{ party.name }}"
+            >
+                {{ party.name|upper|default:"Unnamed party" }}
+            </a>
 
-                                    <p class="mt-1 max-w-[220px] truncate text-[11px] text-slate-400">
-                                        {{ party.contact_person|default:"Contact person not set" }}
-                                    </p>
-                                </div>
-                            </div>
-                        </td>
+            <p class="mt-1 max-w-[220px] truncate text-[11px] text-slate-400">
+                {{ party.contact_person|title|default:"Contact person not set" }}
+            </p>
+        </div>
+    </div>
+</td>
 
                         <!-- PARTY TYPE -->
                         <td class="px-5 py-4">
@@ -196,12 +199,40 @@
                             {% endif %}
                         </td>
 
+                        <!-- PARTY ACTIONS -->
+                        <td class="px-5 py-4">
+                            <div class="flex items-center justify-end gap-2">
+
+                                <!-- View Party Details -->
+                                <a
+                                    href="{% url 'party_detail' party.pk %}"
+                                    title="View Party Details"
+                                    aria-label="View Party Details"
+                                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white"
+                                >
+                                    <i class="ri-eye-line text-base"></i>
+                                </a>
+
+                                <!-- View All Orders for This Party -->
+                                <a
+                                    href="{% url 'party_orders' party.pk %}"
+                                    title="View Party Orders"
+                                    aria-label="View Party Orders"
+                                    class="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white"
+                                >
+                                    <i class="ri-shopping-bag-3-line text-base"></i>
+                                    <span>Orders</span>
+                                </a>
+
+                            </div>
+                        </td>
+
                     </tr>
 
                 {% empty %}
 
                     <tr>
-                        <td colspan="7" class="px-5 py-16 text-center">
+                        <td colspan="8" class="px-5 py-16 text-center">
                             <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
                                 <i class="ri-search-eye-line text-2xl"></i>
                             </span>
@@ -249,9 +280,13 @@
                     <div class="min-w-0 flex-1">
 
                         <div class="flex flex-wrap items-center gap-2">
-                            <h3 class="break-words text-sm font-extrabold text-slate-900">
+                            <a
+                                href="{% url 'party_detail' party.pk %}"
+                                class="break-words text-sm font-extrabold text-slate-900 transition hover:text-teal-700 hover:underline"
+                                title="View details of {{ party.name|upper }}"
+                            >
                                 {{ party.name|default:"Unnamed party" }}
-                            </h3>
+                            </a>
 
                             {% if party.is_active %}
                                 <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
@@ -376,8 +411,27 @@
                         </p>
                     </div>
 
-                </div>
-            </article>
+                    <!-- MOBILE PARTY ACTIONS -->
+                    <div class="col-span-2 mt-2 grid grid-cols-2 gap-2">
+
+                        <a
+                            href="{% url 'party_detail' party.pk %}"
+                            class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition hover:border-[#153030] hover:bg-slate-50 hover:text-[#153030]"
+                        >
+                            <i class="ri-eye-line text-base"></i>
+                            View Details
+                        </a>
+
+                        <a
+                            href="{% url 'party_orders' party.pk %}"
+                            class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#153030] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#214747]"
+                        >
+                            <i class="ri-shopping-bag-3-line text-base"></i>
+                            Party Orders
+                        </a>
+
+                    </div>
+                </article>
 
         {% empty %}
 

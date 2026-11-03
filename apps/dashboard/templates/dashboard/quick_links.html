@@ -1,1266 +1,1011 @@
 {% extends "dashboard/layout.html" %}
 
-{% block title %}
-    Quick Links | Yaarlynx
-{% endblock %}
-
-{% block page_heading %}
-    Quick Links
-{% endblock %}
-
-{% block meta_description %}
-    Quick access to important Yaarlynx management tools
-{% endblock %}
-
+{% block title %}Quick Links | Yaarlynx{% endblock %}
+{% block page_heading %}Quick Links{% endblock %}
+{% block meta_description %}A smart launchpad for frequently used Yaarlynx management tools.{% endblock %}
 
 {% block content %}
 
-<div class="px-4 py-5 sm:px-6 lg:px-8">
-
-    <!-- =========================================================
-         PAGE HEADER
-    ========================================================== -->
-
-    <div class="mb-7">
-
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-            <div class="min-w-0">
-
-                <div class="flex flex-wrap items-center gap-2">
-
-                    <h2 class="text-xl font-semibold tracking-tight text-gray-900">
-                        Quick Links
-                    </h2>
-
-                    <span
-                        class="rounded-full bg-[#153030]/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#153030]">
-
-                        Tools
-
-                    </span>
-
-                </div>
-
-                <p class="mt-1 text-sm text-gray-500">
-                    Access frequently used management tools from one place.
-                </p>
-
-            </div>
-
-
-            {% if categories %}
-
-            <div
-                class="inline-flex w-fit shrink-0 items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-medium text-gray-500 shadow-sm">
-
-                <span class="relative flex h-2 w-2">
-
-                    <span
-                        class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50">
-                    </span>
-
-                    <span
-                        class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500">
-                    </span>
-
-                </span>
-
-                {{ categories|length }}
-                categor{{ categories|length|pluralize:"y,ies" }}
-
-            </div>
-
-            {% endif %}
-
-        </div>
-
-    </div>
-
-
-    {% if categories %}
-
-
-    <!-- =========================================================
-         CATEGORY PILLS
-    ========================================================== -->
-
-    <div class="mb-7">
-
-        <div
-            id="quickLinkCategories"
-            class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-
-            {% for category in categories %}
-
-            <button
-                type="button"
-                data-category="category-{{ forloop.counter }}"
-                data-description="category-description-{{ forloop.counter }}"
-                onclick="selectQuickLinkCategory(this)"
-                class="quick-category-pill {% if forloop.first %}is-active{% endif %} group flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all duration-200">
-
-
-                <!-- Common Category Icon -->
-
-                <span
-                    class="category-icon flex h-7 w-7 items-center justify-center rounded-full">
-
-                    <i
-                        data-lucide="link-2"
-                        class="h-3.5 w-3.5">
-                    </i>
-
-                </span>
-
-
-                <!-- Dynamic Category Name -->
-
-                <span>
-                    {{ category.name }}
-                </span>
-
-
-                <!-- Dynamic Count -->
-
-                <span
-                    class="category-count inline-flex min-w-[21px] items-center justify-center rounded-full px-1.5 py-0.5 text-[9px] font-bold">
-
-                    {{ category.active_quick_links|length }}
-
-                </span>
-
-            </button>
-
-            {% endfor %}
-
-        </div>
-
-
-        <!-- =====================================================
-             CATEGORY DESCRIPTION
-        ====================================================== -->
-
-        {% for category in categories %}
-
-        <div
-            id="category-description-{{ forloop.counter }}"
-            class="quick-category-description {% if not forloop.first %}hidden{% endif %} mt-2.5 pl-1">
-
-            {% if category.description %}
-
-            <p class="text-xs leading-5 text-gray-500">
-                {{ category.description }}
-            </p>
-
-            {% endif %}
-
-        </div>
-
-        {% endfor %}
-
-    </div>
-
-
-    <!-- =========================================================
-         QUICK LINKS
-    ========================================================== -->
-
-    <div>
-
-        {% for category in categories %}
-
-        <section
-            id="category-{{ forloop.counter }}"
-            class="quick-category-section {% if not forloop.first %}hidden{% endif %}">
-
-            {% if category.active_quick_links %}
-
-            <div
-                class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-
-
-                {% for tool in category.active_quick_links %}
-
-
-                <!-- =================================================
-                     QUICK LINK CARD
-                ================================================== -->
-
-                <article
-                    class="quick-link-card group relative flex min-h-[155px] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#153030]/20 hover:shadow-[0_14px_35px_rgba(21,48,48,0.09)]">
-
-
-                    <!-- Top Hover Accent -->
-
-                    <div
-                        class="absolute inset-x-0 top-0 h-[2px] origin-left scale-x-0 bg-[#153030] transition-transform duration-300 group-hover:scale-x-100">
-                    </div>
-
-
-                    <!-- =================================================
-                         TOOL HEADER
-                    ================================================== -->
-
-                    <div class="flex items-start gap-3">
-
-
-                        <!-- Common Link Icon -->
-
-                        <div
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#153030]/10 bg-[#153030]/5 text-[#153030] shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:bg-[#153030] group-hover:text-white">
-
-                            <i
-                                data-lucide="link-2"
-                                class="h-[18px] w-[18px]">
-                            </i>
-
-                        </div>
-
-
-                        <!-- Dynamic Tool Name -->
-
-                        <div class="min-w-0 flex-1 pt-0.5">
-
-                            <h3
-                                class="truncate text-sm font-semibold text-gray-900 transition-colors duration-200 group-hover:text-[#153030]">
-
-                                {{ tool.name }}
-
-                            </h3>
-
-
-                            <!-- Link Type -->
-
-                            {% if tool.url_name|slice:":7" == "http://" or tool.url_name|slice:":8" == "https://" %}
-
-                            <span
-                                class="mt-1 inline-flex items-center gap-1 text-[9px] font-medium uppercase tracking-wider text-gray-400">
-
-                                <i
-                                    data-lucide="globe-2"
-                                    class="h-2.5 w-2.5">
-                                </i>
-
-                                External Link
-
-                            </span>
-
-                            {% else %}
-
-                            <span
-                                class="mt-1 inline-flex items-center gap-1 text-[9px] font-medium uppercase tracking-wider text-gray-400">
-
-                                <i
-                                    data-lucide="link"
-                                    class="h-2.5 w-2.5">
-                                </i>
-
-                                Quick Link
-
-                            </span>
-
-                            {% endif %}
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- =================================================
-                         DESCRIPTION
-                    ================================================== -->
-
-                    <div class="mt-3">
-
-                        {% if tool.description %}
-
-                        <p
-                            class="line-clamp-2 text-xs leading-5 text-gray-500">
-
-                            {{ tool.description }}
-
-                        </p>
-
-                        {% else %}
-
-                        <p
-                            class="text-xs leading-5 text-gray-400">
-
-                            Quickly access this management tool.
-
-                        </p>
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <!-- =================================================
-                         ACTIONS
-                    ================================================== -->
-
-                    <div
-                        class="mt-auto flex items-center justify-end gap-2 pt-4">
-
-
-                        <!-- =================================================
-                             EXTERNAL URL
-                        ================================================== -->
-
-                        {% if tool.url_name|slice:":7" == "http://" or tool.url_name|slice:":8" == "https://" %}
-
-
-                            <!-- Copy -->
-
-                            <button
-                                type="button"
-                                data-url="{{ tool.url_name }}"
-                                onclick="copyToolLink(this)"
-                                title="Copy link"
-                                aria-label="Copy link"
-                                class="copy-btn inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-all duration-200 hover:border-[#153030]/20 hover:bg-[#153030]/5 hover:text-[#153030]">
-
-                                <i
-                                    data-lucide="copy"
-                                    class="h-3.5 w-3.5">
-                                </i>
-
-                            </button>
-
-
-                            <!-- Open External -->
-
-                            <a
-                                href="{{ tool.url_name }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title="Open external link"
-                                class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#153030] px-3.5 text-[11px] font-semibold text-white transition-all duration-200 hover:bg-[#1d4141] hover:shadow-sm">
-
-                                Open
-
-                                <i
-                                    data-lucide="arrow-up-right"
-                                    class="h-3 w-3">
-                                </i>
-
-                            </a>
-
-
-                        <!-- =================================================
-                             RELATIVE URL
-                        ================================================== -->
-
-                        {% elif tool.url_name|slice:":" == "/" %}
-
-
-                            <!-- Copy -->
-
-                            <button
-                                type="button"
-                                data-url="{{ tool.url_name }}"
-                                onclick="copyToolLink(this)"
-                                title="Copy link"
-                                aria-label="Copy link"
-                                class="copy-btn inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-all duration-200 hover:border-[#153030]/20 hover:bg-[#153030]/5 hover:text-[#153030]">
-
-                                <i
-                                    data-lucide="copy"
-                                    class="h-3.5 w-3.5">
-                                </i>
-
-                            </button>
-
-
-                            <!-- Open Internal -->
-
-                            <a
-                                href="{{ tool.url_name }}"
-                                title="Open link"
-                                class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#153030] px-3.5 text-[11px] font-semibold text-white transition-all duration-200 hover:bg-[#1d4141] hover:shadow-sm">
-
-                                Open
-
-                                <i
-                                    data-lucide="arrow-right"
-                                    class="h-3 w-3">
-                                </i>
-
-                            </a>
-
-
-                        <!-- =================================================
-                             DJANGO URL NAME
-                        ================================================== -->
-
-                        {% else %}
-
-                            {% url tool.url_name as resolved_url %}
-
-
-                            <!-- Copy -->
-
-                            <button
-                                type="button"
-                                data-url="{{ resolved_url }}"
-                                onclick="copyToolLink(this)"
-                                title="Copy link"
-                                aria-label="Copy link"
-                                class="copy-btn inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 transition-all duration-200 hover:border-[#153030]/20 hover:bg-[#153030]/5 hover:text-[#153030]">
-
-                                <i
-                                    data-lucide="copy"
-                                    class="h-3.5 w-3.5">
-                                </i>
-
-                            </button>
-
-
-                            <!-- Open Django Link -->
-
-                            <a
-                                href="{{ resolved_url }}"
-                                title="Open link"
-                                class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#153030] px-3.5 text-[11px] font-semibold text-white transition-all duration-200 hover:bg-[#1d4141] hover:shadow-sm">
-
-                                Open
-
-                                <i
-                                    data-lucide="arrow-right"
-                                    class="h-3 w-3">
-                                </i>
-
-                            </a>
-
-                        {% endif %}
-
-
-                    </div>
-
-                </article>
-
-
-                {% endfor %}
-
-            </div>
-
-
-            {% else %}
-
-
-            <!-- =================================================
-                 EMPTY CATEGORY
-            ================================================== -->
-
-            <div
-                class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
-
-                <div
-                    class="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-gray-400">
-
-                    <i
-                        data-lucide="link-2-off"
-                        class="h-5 w-5">
-                    </i>
-
-                </div>
-
-                <p class="mt-3 text-xs font-medium text-gray-500">
-                    No tools available in this category.
-                </p>
-
-            </div>
-
-            {% endif %}
-
-        </section>
-
-        {% endfor %}
-
-    </div>
-
-
-    {% else %}
-
-
-    <!-- =========================================================
-         EMPTY STATE
-    ========================================================== -->
-
-    <div
-        class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
-
-        <div class="mx-auto max-w-sm">
-
-            <div
-                class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#153030]/5 text-[#153030]">
-
-                <i
-                    data-lucide="link-2"
-                    class="h-6 w-6">
-                </i>
-
-            </div>
-
-
-            <h3 class="mt-4 text-sm font-semibold text-gray-900">
-                No quick links available
-            </h3>
-
-
-            <p class="mt-1.5 text-xs leading-5 text-gray-500">
-                Quick links will appear here once they are configured.
-            </p>
-
-        </div>
-
-    </div>
-
-    {% endif %}
-
-</div>
-
-
-<!-- =============================================================
-     COPY SUCCESS TOAST
-============================================================= -->
-
-<div
-    id="copyToast"
-    role="status"
-    aria-live="polite"
-    class="pointer-events-none fixed bottom-5 right-5 z-[9999] flex max-w-[calc(100vw-2rem)] translate-y-4 items-center gap-3 rounded-xl border border-emerald-200 bg-white px-4 py-3 opacity-0 shadow-[0_12px_35px_rgba(0,0,0,0.12)] transition-all duration-300 sm:bottom-6 sm:right-6"
->
-
-    <div
-        id="copyToastIcon"
-        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"
-    >
-        <i
-            data-lucide="check"
-            class="h-4 w-4">
-        </i>
-    </div>
-
-    <div class="min-w-0">
-
-        <p
-            id="copyToastTitle"
-            class="text-xs font-semibold text-gray-900">
-
-            Link copied!
-
-        </p>
-
-        <p
-            id="copyToastMessage"
-            class="mt-0.5 text-[11px] text-gray-500">
-
-            Quick link copied to clipboard.
-
-        </p>
-
-    </div>
-
-</div>
-
-
-<!-- =============================================================
-     LUCIDE ICONS
-============================================================= -->
-
-<script src="https://unpkg.com/lucide@latest"></script>
-
-
-<!-- =============================================================
-     STYLES
-============================================================= -->
-
 <style>
+/* YAARLYNX QUICK LINKS — Command Centre / Launchpad */
+.yl-quicklaunch {
+    --ql-ink: #153030;
+    --ql-ink-2: #244747;
+    --ql-muted: #7a8989;
+    --ql-line: #e7edeb;
+    --ql-soft: #f5f8f6;
+    --ql-copper: #c89a61;
+    width: 100%;
+    min-width: 0;
+    color: var(--ql-ink);
+}
+.yl-quicklaunch, .yl-quicklaunch * { box-sizing: border-box; }
+.yl-quicklaunch button, .yl-quicklaunch input { font: inherit; }
+.yl-quicklaunch button:focus-visible,
+.yl-quicklaunch a:focus-visible,
+.yl-quicklaunch input:focus-visible {
+    outline: 3px solid rgba(21,48,48,.2);
+    outline-offset: 3px;
+}
+.yl-quicklaunch .ql-wrap {
+    width: 100%;
+    max-width: 1580px;
+    margin: 0 auto;
+    padding: 20px 18px 36px;
+}
 
-    /* ============================================================
-       SCROLLBAR
-    ============================================================ */
+/* Hero */
+.yl-quicklaunch .ql-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(280px,390px);
+    align-items: center;
+    gap: 26px;
+    overflow: hidden;
+    padding: 28px 30px;
+    border-radius: 22px;
+    color: #fff;
+    background:
+        radial-gradient(circle at 86% 15%, rgba(200,154,97,.20), transparent 27%),
+        linear-gradient(118deg,#102727 0%,#183838 54%,#2a5150 100%);
+    box-shadow: 0 16px 36px rgba(21,48,48,.13);
+}
+.yl-quicklaunch .ql-hero::before {
+    content: "";
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    right: 22%;
+    bottom: -285px;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 50%;
+    box-shadow: 0 0 0 28px rgba(255,255,255,.025),0 0 0 58px rgba(255,255,255,.02);
+    pointer-events: none;
+}
+.yl-quicklaunch .ql-hero-copy,
+.yl-quicklaunch .ql-search-wrap { position: relative; z-index: 1; min-width: 0; }
+.yl-quicklaunch .ql-kicker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    color: rgba(255,255,255,.62);
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+}
+.yl-quicklaunch .ql-kicker-mark {
+    width: 23px;
+    height: 1px;
+    background: var(--ql-copper);
+}
+.yl-quicklaunch .ql-hero-title {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(27px,3.4vw,42px);
+    line-height: 1.08;
+    font-weight: 850;
+    letter-spacing: -.045em;
+}
+.yl-quicklaunch .ql-hero-subtitle {
+    max-width: 620px;
+    margin: 10px 0 0;
+    color: rgba(255,255,255,.7);
+    font-size: 12px;
+    line-height: 1.65;
+}
+.yl-quicklaunch .ql-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 19px;
+}
+.yl-quicklaunch .ql-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 999px;
+    color: rgba(255,255,255,.84);
+    background: rgba(255,255,255,.07);
+    font-size: 9px;
+    font-weight: 750;
+}
+.yl-quicklaunch .ql-meta-chip strong { color: #fff; font-size: 11px; }
+.yl-quicklaunch .ql-search-box {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 54px;
+    padding: 0 14px;
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 14px;
+    background: rgba(255,255,255,.11);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    backdrop-filter: blur(8px);
+}
+.yl-quicklaunch .ql-search-box > i { flex: 0 0 auto; color: rgba(255,255,255,.7); font-size: 17px; }
+.yl-quicklaunch .ql-search {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    color: #fff;
+    background: transparent;
+    font-size: 12px;
+}
+.yl-quicklaunch .ql-search::placeholder { color: rgba(255,255,255,.58); }
+.yl-quicklaunch .ql-search:focus-visible { outline: 0; }
+.yl-quicklaunch .ql-search-hint {
+    flex: 0 0 auto;
+    padding: 4px 6px;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 6px;
+    color: rgba(255,255,255,.58);
+    font-size: 9px;
+    font-weight: 800;
+}
+.yl-quicklaunch .ql-search-caption {
+    margin: 8px 2px 0;
+    color: rgba(255,255,255,.48);
+    font-size: 9px;
+}
 
-    .scrollbar-hide {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+/* Main workspace */
+.yl-quicklaunch .ql-workspace {
+    display: grid;
+    grid-template-columns: 238px minmax(0,1fr);
+    align-items: start;
+    gap: 19px;
+    margin-top: 21px;
+}
+.yl-quicklaunch .ql-sidebar {
+    position: sticky;
+    top: 18px;
+    min-width: 0;
+    padding: 15px 12px;
+    border: 1px solid var(--ql-line);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 5px 20px rgba(21,48,48,.035);
+}
+.yl-quicklaunch .ql-side-heading {
+    margin: 2px 9px 11px;
+    color: #a0aaaa;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+}
+.yl-quicklaunch .ql-nav-list { display: grid; gap: 4px; }
+.yl-quicklaunch .ql-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: #687878;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: background .18s ease,color .18s ease,border-color .18s ease;
+}
+.yl-quicklaunch .ql-nav-item:hover {
+    color: var(--ql-ink);
+    background: #f5f8f6;
+}
+.yl-quicklaunch .ql-nav-item.is-active {
+    border-color: #dfe9e4;
+    color: var(--ql-ink);
+    background: #edf4f0;
+}
+.yl-quicklaunch .ql-nav-icon {
+    flex: 0 0 auto;
+    width: 29px;
+    height: 29px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    color: #718181;
+    background: #f0f4f2;
+    font-size: 14px;
+}
+.yl-quicklaunch .ql-nav-item.is-active .ql-nav-icon {
+    color: #fff;
+    background: var(--ql-ink);
+}
+.yl-quicklaunch .ql-nav-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 10px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.yl-quicklaunch .ql-nav-count {
+    flex: 0 0 auto;
+    min-width: 21px;
+    padding: 3px 6px;
+    border-radius: 999px;
+    color: #819090;
+    background: #f0f3f2;
+    font-size: 8px;
+    font-weight: 850;
+    text-align: center;
+}
+.yl-quicklaunch .ql-nav-item.is-active .ql-nav-count {
+    color: #fff;
+    background: rgba(21,48,48,.82);
+}
+.yl-quicklaunch .ql-sidebar-note {
+    margin: 14px 4px 1px;
+    padding: 12px 10px;
+    border-top: 1px solid #edf1ef;
+    color: #97a2a1;
+    font-size: 9px;
+    line-height: 1.55;
+}
+
+/* Content */
+.yl-quicklaunch .ql-content { min-width: 0; }
+.yl-quicklaunch .ql-content-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    min-width: 0;
+    margin: 2px 1px 13px;
+}
+.yl-quicklaunch .ql-content-title {
+    margin: 0;
+    color: var(--ql-ink);
+    font-size: 17px;
+    font-weight: 850;
+    letter-spacing: -.025em;
+}
+.yl-quicklaunch .ql-content-description {
+    margin: 4px 0 0;
+    color: #8a9796;
+    font-size: 10px;
+    line-height: 1.5;
+}
+.yl-quicklaunch .ql-results {
+    flex: 0 0 auto;
+    padding: 6px 9px;
+    border: 1px solid var(--ql-line);
+    border-radius: 999px;
+    color: #788787;
+    background: #fff;
+    font-size: 9px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+.yl-quicklaunch .ql-directory {
+    overflow: hidden;
+    border: 1px solid var(--ql-line);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 5px 20px rgba(21,48,48,.035);
+}
+.yl-quicklaunch .ql-category-section + .ql-category-section {
+    border-top: 1px solid var(--ql-line);
+}
+.yl-quicklaunch .ql-category-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 17px 11px;
+    background: linear-gradient(90deg,#f7faf8,#fff);
+}
+.yl-quicklaunch .ql-category-heading-main {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+}
+.yl-quicklaunch .ql-category-marker {
+    width: 3px;
+    height: 18px;
+    flex: 0 0 auto;
+    border-radius: 99px;
+    background: var(--ql-copper);
+}
+.yl-quicklaunch .ql-category-name {
+    overflow: hidden;
+    margin: 0;
+    color: var(--ql-ink);
+    font-size: 11px;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.yl-quicklaunch .ql-category-description {
+    overflow: hidden;
+    margin: 3px 0 0 12px;
+    color: #96a19f;
+    font-size: 9px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.yl-quicklaunch .ql-category-total {
+    flex: 0 0 auto;
+    color: #a2adab;
+    font-size: 8px;
+    font-weight: 850;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+/* Individual launch rows — intentionally not a card grid */
+.yl-quicklaunch .ql-tool-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 42px minmax(0,1fr) auto;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+    padding: 13px 17px;
+    border-top: 1px solid #f0f3f2;
+    text-decoration: none;
+    transition: background .16s ease;
+}
+.yl-quicklaunch .ql-tool-row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 2px;
+    border-radius: 0 3px 3px 0;
+    background: var(--ql-copper);
+    opacity: 0;
+    transition: opacity .16s ease;
+}
+.yl-quicklaunch .ql-tool-row:hover { background: #fafcfb; }
+.yl-quicklaunch .ql-tool-row:hover::before { opacity: 1; }
+.yl-quicklaunch .ql-tool-icon {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #e6eeea;
+    border-radius: 12px;
+    color: var(--ql-ink);
+    background: #f1f6f3;
+    font-size: 17px;
+    transition: background .18s ease,color .18s ease,border-color .18s ease;
+}
+.yl-quicklaunch .ql-tool-row:hover .ql-tool-icon {
+    border-color: var(--ql-ink);
+    color: #fff;
+    background: var(--ql-ink);
+}
+.yl-quicklaunch .ql-tool-copy { min-width: 0; }
+.yl-quicklaunch .ql-tool-titleline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 9px;
+    min-width: 0;
+}
+.yl-quicklaunch .ql-tool-title {
+    overflow: hidden;
+    margin: 0;
+    color: #263e3e;
+    font-size: 11px;
+    line-height: 1.4;
+    font-weight: 850;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.yl-quicklaunch .ql-tool-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+    color: #9aa5a3;
+    font-size: 8px;
+    font-weight: 850;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+.yl-quicklaunch .ql-tool-description {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 4px 0 0;
+    color: #879392;
+    font-size: 9px;
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+.yl-quicklaunch .ql-tool-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.yl-quicklaunch .ql-copy-button {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #e4eae8;
+    border-radius: 9px;
+    color: #81908f;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .16s ease;
+}
+.yl-quicklaunch .ql-copy-button:hover,
+.yl-quicklaunch .ql-copy-button.is-copied {
+    border-color: #c8ddd1;
+    color: #18764a;
+    background: #eef8f1;
+}
+.yl-quicklaunch .ql-open-link {
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 11px;
+    border: 1px solid var(--ql-ink);
+    border-radius: 9px;
+    color: #fff;
+    background: var(--ql-ink);
+    font-size: 9px;
+    font-weight: 850;
+    text-decoration: none;
+    transition: background .16s ease,border-color .16s ease,transform .16s ease;
+}
+.yl-quicklaunch .ql-open-link:hover {
+    border-color: #2c5653;
+    background: #2c5653;
+    transform: translateY(-1px);
+}
+.yl-quicklaunch .ql-tool-row[hidden],
+.yl-quicklaunch .ql-category-section[hidden],
+.yl-quicklaunch .ql-no-results[hidden] { display: none !important; }
+.yl-quicklaunch .ql-empty-category {
+    padding: 18px;
+    color: #9aa5a4;
+    font-size: 10px;
+}
+
+/* Empty and toast */
+.yl-quicklaunch .ql-no-results {
+    padding: 54px 20px;
+    text-align: center;
+}
+.yl-quicklaunch .ql-empty-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 12px;
+    border-radius: 15px;
+    color: #788c88;
+    background: #eff4f1;
+    font-size: 20px;
+}
+.yl-quicklaunch .ql-empty-title {
+    margin: 0;
+    color: var(--ql-ink);
+    font-size: 13px;
+    font-weight: 850;
+}
+.yl-quicklaunch .ql-empty-copy {
+    max-width: 340px;
+    margin: 5px auto 0;
+    color: #8d9998;
+    font-size: 10px;
+    line-height: 1.6;
+}
+.yl-quicklaunch .ql-toast {
+    position: fixed;
+    z-index: 9999;
+    right: 22px;
+    bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(350px,calc(100vw - 28px));
+    padding: 12px 14px;
+    border: 1px solid #dce8e1;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 14px 38px rgba(0,0,0,.14);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity .2s ease,transform .2s ease;
+}
+.yl-quicklaunch .ql-toast.is-visible { opacity: 1; transform: translateY(0); }
+.yl-quicklaunch .ql-toast-icon {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    color: #18764a;
+    background: #edf8f1;
+}
+.yl-quicklaunch .ql-toast-title { margin: 0; color: #263b3b; font-size: 10px; font-weight: 850; }
+.yl-quicklaunch .ql-toast-copy { margin: 3px 0 0; color: #879392; font-size: 9px; }
+
+@media (max-width: 980px) {
+    .yl-quicklaunch .ql-workspace { grid-template-columns: 200px minmax(0,1fr); gap: 13px; }
+    .yl-quicklaunch .ql-hero { grid-template-columns: minmax(0,1fr) minmax(245px,330px); padding: 24px; }
+}
+@media (max-width: 760px) {
+    .yl-quicklaunch .ql-wrap { padding: 15px 12px 28px; }
+    .yl-quicklaunch .ql-hero { grid-template-columns: minmax(0,1fr); gap: 18px; padding: 22px; border-radius: 18px; }
+    .yl-quicklaunch .ql-search-wrap { max-width: none; }
+    .yl-quicklaunch .ql-workspace { grid-template-columns: minmax(0,1fr); gap: 12px; }
+    .yl-quicklaunch .ql-sidebar { position: static; padding: 11px; }
+    .yl-quicklaunch .ql-side-heading { margin-bottom: 8px; }
+    .yl-quicklaunch .ql-nav-list { display: flex; gap: 7px; overflow-x: auto; padding: 1px 1px 5px; scrollbar-width: none; }
+    .yl-quicklaunch .ql-nav-list::-webkit-scrollbar { display: none; }
+    .yl-quicklaunch .ql-nav-item { flex: 0 0 auto; width: auto; gap: 7px; padding: 7px 9px; border-color: #edf1ef; }
+    .yl-quicklaunch .ql-nav-icon { width: 25px; height: 25px; border-radius: 8px; font-size: 12px; }
+    .yl-quicklaunch .ql-nav-name { max-width: 130px; font-size: 9px; }
+    .yl-quicklaunch .ql-sidebar-note { display: none; }
+}
+@media (max-width: 520px) {
+    .yl-quicklaunch .ql-wrap { padding: 11px 9px 22px; }
+    .yl-quicklaunch .ql-hero { padding: 18px 16px; gap: 15px; }
+    .yl-quicklaunch .ql-hero-title { font-size: 29px; }
+    .yl-quicklaunch .ql-hero-subtitle { font-size: 10px; }
+    .yl-quicklaunch .ql-hero-meta { margin-top: 13px; }
+    .yl-quicklaunch .ql-search-box { min-height: 48px; padding: 0 11px; }
+    .yl-quicklaunch .ql-search-hint { display: none; }
+    .yl-quicklaunch .ql-content-head { align-items: flex-start; flex-direction: column; gap: 7px; }
+    .yl-quicklaunch .ql-category-heading { padding: 12px 12px 9px; }
+    .yl-quicklaunch .ql-tool-row { grid-template-columns: 35px minmax(0,1fr); gap: 9px; padding: 12px; }
+    .yl-quicklaunch .ql-tool-icon { width: 34px; height: 34px; border-radius: 10px; font-size: 14px; }
+    .yl-quicklaunch .ql-tool-title { font-size: 10px; }
+    .yl-quicklaunch .ql-tool-actions { grid-column: 2; justify-content: flex-start; margin-top: 2px; }
+    .yl-quicklaunch .ql-copy-button { width: 30px; height: 30px; }
+    .yl-quicklaunch .ql-open-link { min-height: 30px; }
+    .yl-quicklaunch .ql-toast { right: 10px; bottom: 10px; left: 10px; width: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .yl-quicklaunch *, .yl-quicklaunch *::before, .yl-quicklaunch *::after {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
     }
-
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-    }
-
-
-    /* ============================================================
-       CATEGORY PILLS
-    ============================================================ */
-
-    .quick-category-pill {
-        border-color: #e5e7eb;
-        background: #ffffff;
-        color: #6b7280;
-    }
-
-
-    .quick-category-pill .category-icon {
-        background: #f3f4f6;
-        color: #6b7280;
-    }
-
-
-    .quick-category-pill .category-count {
-        background: #f3f4f6;
-        color: #6b7280;
-    }
-
-
-    /* Active */
-
-    .quick-category-pill.is-active {
-        border-color: #153030;
-        background: #153030;
-        color: #ffffff;
-        box-shadow: 0 5px 16px rgba(21, 48, 48, 0.16);
-    }
-
-
-    .quick-category-pill.is-active .category-icon {
-        background: rgba(255, 255, 255, 0.13);
-        color: #ffffff;
-    }
-
-
-    .quick-category-pill.is-active .category-count {
-        background: rgba(255, 255, 255, 0.13);
-        color: #ffffff;
-    }
-
-
-    /* Hover */
-
-    .quick-category-pill:not(.is-active):hover {
-        border-color: rgba(21, 48, 48, 0.22);
-        background: rgba(21, 48, 48, 0.035);
-        color: #153030;
-        transform: translateY(-1px);
-    }
-
-
-    /* ============================================================
-       QUICK LINK CARD
-    ============================================================ */
-
-    .quick-link-card {
-        isolation: isolate;
-    }
-
-
-    /* ============================================================
-       COPY BUTTON
-    ============================================================ */
-
-    .copy-btn.copied {
-        border-color: #a7f3d0;
-        background: #ecfdf5;
-        color: #059669;
-    }
-
-
-    /* ============================================================
-       COPY TOAST
-    ============================================================ */
-
-    #copyToast {
-        will-change: transform, opacity;
-    }
-
-
-    /* ============================================================
-       MOBILE
-    ============================================================ */
-
-    @media (max-width: 640px) {
-
-        .quick-category-pill {
-            padding-left: 0.7rem;
-            padding-right: 0.7rem;
-        }
-
-
-        #copyToast {
-            bottom: 1rem;
-            right: 1rem;
-            left: 1rem;
-            max-width: none;
-        }
-
-    }
-
+}
 </style>
 
+<div class="yl-quicklaunch">
+    <div class="ql-wrap">
 
-<!-- =============================================================
-     JAVASCRIPT
-============================================================= -->
+        <!-- HERO / COMMAND SEARCH -->
+        <header class="ql-hero">
+            <div class="ql-hero-copy">
+                <p class="ql-kicker"><span class="ql-kicker-mark"></span> Yaarlynx workspace / launchpad</p>
+                <h1 class="ql-hero-title">Your tools.<br>One command centre.</h1>
+                <p class="ql-hero-subtitle">
+                    A focused space for the pages, services and management tools you use most.
+                    Choose a category or search directly to get moving.
+                </p>
+                <div class="ql-hero-meta">
+                    <span class="ql-meta-chip"><strong id="qlTotalTools">0</strong> active tools</span>
+                    <span class="ql-meta-chip"><strong>{{ categories|length }}</strong> categories</span>
+                    <span class="ql-meta-chip"><i class="ri-flashlight-line"></i> Fast access</span>
+                </div>
+            </div>
+
+            <div class="ql-search-wrap">
+                <label class="ql-search-box" for="quickLinkSearch">
+                    <i class="ri-search-2-line" aria-hidden="true"></i>
+                    <input
+                        id="quickLinkSearch"
+                        class="ql-search"
+                        type="search"
+                        placeholder="Search tools, pages or services..."
+                        autocomplete="off"
+                        aria-label="Search quick links"
+                    >
+                    <span class="ql-search-hint">/</span>
+                </label>
+                <p class="ql-search-caption">Search by tool name, description or category.</p>
+            </div>
+        </header>
+
+        {% if categories %}
+
+        <div class="ql-workspace">
+
+            <!-- CATEGORY NAVIGATION -->
+            <aside class="ql-sidebar" aria-label="Quick link categories">
+                <p class="ql-side-heading">Browse workspace</p>
+                <nav class="ql-nav-list" id="quickLinkNavigation">
+                    <button
+                        type="button"
+                        class="ql-nav-item is-active"
+                        data-category-filter="all"
+                        aria-pressed="true"
+                    >
+                        <span class="ql-nav-icon"><i class="ri-apps-2-line"></i></span>
+                        <span class="ql-nav-name">All tools</span>
+                        <span class="ql-nav-count" id="qlAllCount">0</span>
+                    </button>
+
+                    {% for category in categories %}
+                    <button
+                        type="button"
+                        class="ql-nav-item"
+                        data-category-filter="category-{{ forloop.counter }}"
+                        data-category-name="{{ category.name|escape }}"
+                        data-category-description="{{ category.description|default_if_none:''|escape }}"
+                        aria-pressed="false"
+                    >
+                        <span class="ql-nav-icon"><i class="ri-folder-3-line"></i></span>
+                        <span class="ql-nav-name">{{ category.name }}</span>
+                        <span class="ql-nav-count">{{ category.active_quick_links|length }}</span>
+                    </button>
+                    {% endfor %}
+                </nav>
+                <p class="ql-sidebar-note">
+                    Tip: use the search bar to find an internal page or an external service without browsing every category.
+                </p>
+            </aside>
+
+            <!-- TOOL DIRECTORY -->
+            <main class="ql-content">
+                <div class="ql-content-head">
+                    <div class="min-w-0">
+                        <h2 class="ql-content-title" id="qlContentTitle">All tools</h2>
+                        <p class="ql-content-description" id="qlContentDescription">
+                            Browse every available shortcut in your workspace.
+                        </p>
+                    </div>
+                    <span class="ql-results" id="qlResultsCount">0 tools</span>
+                </div>
+
+                <div class="ql-directory" id="quickLinkDirectory">
+                    {% for category in categories %}
+                    <section
+                        class="ql-category-section"
+                        data-category-section="category-{{ forloop.counter }}"
+                        data-category-name="{{ category.name|escape }}"
+                    >
+                        <div class="ql-category-heading">
+                            <div class="ql-category-heading-main">
+                                <span class="ql-category-marker"></span>
+                                <div class="min-w-0">
+                                    <h3 class="ql-category-name">{{ category.name }}</h3>
+                                    {% if category.description %}
+                                    <p class="ql-category-description">{{ category.description }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <span class="ql-category-total">{{ category.active_quick_links|length }} shortcuts</span>
+                        </div>
+
+                        {% if category.active_quick_links %}
+                            {% for tool in category.active_quick_links %}
+                            <div
+                                class="ql-tool-row"
+                                data-tool-item
+                                data-search="{{ tool.name|lower }} {{ tool.description|default_if_none:''|lower }} {{ category.name|lower }}"
+                            >
+                                <span class="ql-tool-icon" aria-hidden="true"><i class="ri-links-line"></i></span>
+
+                                <div class="ql-tool-copy">
+                                    <div class="ql-tool-titleline">
+                                        <h4 class="ql-tool-title">{{ tool.name }}</h4>
+
+                                        {% if tool.url_name|slice:":7" == "http://" or tool.url_name|slice:":8" == "https://" %}
+                                        <span class="ql-tool-type"><i class="ri-global-line"></i> External service</span>
+                                        {% else %}
+                                        <span class="ql-tool-type"><i class="ri-layout-line"></i> Workspace page</span>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if tool.description %}
+                                    <p class="ql-tool-description">{{ tool.description }}</p>
+                                    {% else %}
+                                    <p class="ql-tool-description">Quickly access this management tool.</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="ql-tool-actions">
+                                    {% if tool.url_name|slice:":7" == "http://" or tool.url_name|slice:":8" == "https://" %}
+                                        <button
+                                            type="button"
+                                            class="ql-copy-button"
+                                            data-copy-url="{{ tool.url_name|escape }}"
+                                            onclick="copyQuickLaunchLink(this)"
+                                            title="Copy link"
+                                            aria-label="Copy {{ tool.name }} link"
+                                        ><i class="ri-file-copy-line"></i></button>
+
+                                        <a
+                                            href="{{ tool.url_name }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="ql-open-link"
+                                        >Open <i class="ri-arrow-up-right-line"></i></a>
+
+                                    {% elif tool.url_name|slice:":1" == "/" %}
+                                        <button
+                                            type="button"
+                                            class="ql-copy-button"
+                                            data-copy-url="{{ tool.url_name|escape }}"
+                                            onclick="copyQuickLaunchLink(this)"
+                                            title="Copy link"
+                                            aria-label="Copy {{ tool.name }} link"
+                                        ><i class="ri-file-copy-line"></i></button>
+
+                                        <a href="{{ tool.url_name }}" class="ql-open-link">
+                                            Open <i class="ri-arrow-right-line"></i>
+                                        </a>
+
+                                    {% else %}
+                                        {% url tool.url_name as resolved_url %}
+                                        <button
+                                            type="button"
+                                            class="ql-copy-button"
+                                            data-copy-url="{{ resolved_url|escape }}"
+                                            onclick="copyQuickLaunchLink(this)"
+                                            title="Copy link"
+                                            aria-label="Copy {{ tool.name }} link"
+                                        ><i class="ri-file-copy-line"></i></button>
+
+                                        <a href="{{ resolved_url }}" class="ql-open-link">
+                                            Open <i class="ri-arrow-right-line"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="ql-empty-category">No active tools in this category yet.</p>
+                        {% endif %}
+                    </section>
+                    {% endfor %}
+
+                    <div class="ql-no-results" id="quickLinkNoResults" hidden>
+                        <div class="ql-empty-icon"><i class="ri-search-eye-line"></i></div>
+                        <h3 class="ql-empty-title">No matching tools found</h3>
+                        <p class="ql-empty-copy">Try another search term or choose a different category to explore your workspace.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        {% else %}
+
+        <section class="ql-directory ql-no-results" style="margin-top:21px;">
+            <div class="ql-empty-icon"><i class="ri-links-line"></i></div>
+            <h3 class="ql-empty-title">Your launchpad is ready</h3>
+            <p class="ql-empty-copy">Quick links will appear here once categories and active tools have been configured.</p>
+        </section>
+
+        {% endif %}
+
+    </div>
+
+    <!-- COPY FEEDBACK -->
+    <div id="quickLinkToast" class="ql-toast" role="status" aria-live="polite">
+        <span class="ql-toast-icon" id="quickLinkToastIcon"><i class="ri-check-line"></i></span>
+        <span class="min-w-0">
+            <span class="ql-toast-title" id="quickLinkToastTitle">Link copied</span>
+            <span class="ql-toast-copy" id="quickLinkToastMessage">The shortcut is ready to paste.</span>
+        </span>
+    </div>
+</div>
 
 <script>
+(function () {
+    "use strict";
 
-    let copyToastTimer = null;
+    const root = document.querySelector(".yl-quicklaunch");
+    if (!root) return;
 
+    const searchInput = root.querySelector("#quickLinkSearch");
+    const navButtons = Array.from(root.querySelectorAll("[data-category-filter]"));
+    const sections = Array.from(root.querySelectorAll("[data-category-section]"));
+    const toolRows = Array.from(root.querySelectorAll("[data-tool-item]"));
+    const noResults = root.querySelector("#quickLinkNoResults");
+    const title = root.querySelector("#qlContentTitle");
+    const description = root.querySelector("#qlContentDescription");
+    const resultCount = root.querySelector("#qlResultsCount");
+    const totalTools = root.querySelector("#qlTotalTools");
+    const allCount = root.querySelector("#qlAllCount");
+    const toast = root.querySelector("#quickLinkToast");
+    const toastIcon = root.querySelector("#quickLinkToastIcon");
+    const toastTitle = root.querySelector("#quickLinkToastTitle");
+    const toastMessage = root.querySelector("#quickLinkToastMessage");
 
-    /* =========================================================
-       CATEGORY SWITCHER
-    ========================================================== */
+    let activeCategory = "all";
+    let toastTimer = null;
 
-    function selectQuickLinkCategory(button) {
+    const initialToolCount = toolRows.length;
+    if (totalTools) totalTools.textContent = String(initialToolCount);
+    if (allCount) allCount.textContent = String(initialToolCount);
 
-        const categoryId =
-            button.dataset.category;
-
-        const descriptionId =
-            button.dataset.description;
-
-
-        if (!categoryId) {
-            return;
-        }
-
-
-        /*
-         * Remove active state from all pills.
-         */
-
-        document
-            .querySelectorAll(".quick-category-pill")
-            .forEach((pill) => {
-
-                pill.classList.remove("is-active");
-
-            });
-
-
-        /*
-         * Activate selected pill.
-         */
-
-        button.classList.add("is-active");
-
-
-        /*
-         * Hide all category sections.
-         */
-
-        document
-            .querySelectorAll(".quick-category-section")
-            .forEach((section) => {
-
-                section.classList.add("hidden");
-
-            });
-
-
-        /*
-         * Show selected category.
-         */
-
-        const selectedSection =
-            document.getElementById(categoryId);
-
-        if (selectedSection) {
-
-            selectedSection.classList.remove("hidden");
-
-        }
-
-
-        /*
-         * Hide all descriptions.
-         */
-
-        document
-            .querySelectorAll(".quick-category-description")
-            .forEach((description) => {
-
-                description.classList.add("hidden");
-
-            });
-
-
-        /*
-         * Show selected description.
-         */
-
-        if (descriptionId) {
-
-            const description =
-                document.getElementById(descriptionId);
-
-            if (description) {
-
-                description.classList.remove("hidden");
-
-            }
-
-        }
-
+    function pluralTools(count) {
+        return count === 1 ? "1 tool" : count + " tools";
     }
 
+    function renderDirectory() {
+        const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
+        let visibleTotal = 0;
 
-    /* =========================================================
-       COPY QUICK LINK
-    ========================================================== */
+        sections.forEach(function (section) {
+            const categoryMatches = activeCategory === "all" ||
+                section.dataset.categorySection === activeCategory;
+            const rows = Array.from(section.querySelectorAll("[data-tool-item]"));
+            let categoryVisible = 0;
 
-    async function copyToolLink(button) {
+            rows.forEach(function (row) {
+                const searchable = (row.dataset.search || row.textContent || "").toLowerCase();
+                const matches = categoryMatches && (!query || searchable.includes(query));
+                row.hidden = !matches;
+                if (matches) {
+                    categoryVisible += 1;
+                    visibleTotal += 1;
+                }
+            });
 
-        const url =
-            button.dataset.url;
+            const hasRows = rows.length > 0;
+            const showEmptyCategory = !hasRows && categoryMatches && !query;
+            section.hidden = !(categoryMatches && (categoryVisible > 0 || showEmptyCategory));
+        });
 
+        if (noResults) noResults.hidden = visibleTotal !== 0;
 
-        if (!url) {
+        if (resultCount) resultCount.textContent = pluralTools(visibleTotal);
+
+        const activeButton = navButtons.find(function (button) {
+            return button.dataset.categoryFilter === activeCategory;
+        });
+
+        if (activeCategory === "all") {
+            title.textContent = "All tools";
+            description.textContent = query
+                ? "Search results from every available category."
+                : "Browse every available shortcut in your workspace.";
+        } else if (activeButton) {
+            title.textContent = activeButton.dataset.categoryName || "Selected category";
+            description.textContent = activeButton.dataset.categoryDescription ||
+                "Shortcuts available in this category.";
+        }
+    }
+
+    navButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            activeCategory = button.dataset.categoryFilter || "all";
+
+            navButtons.forEach(function (item) {
+                const isActive = item === button;
+                item.classList.toggle("is-active", isActive);
+                item.setAttribute("aria-pressed", isActive ? "true" : "false");
+            });
+
+            renderDirectory();
+        });
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener("input", renderDirectory);
+
+        // Press "/" anywhere outside another input to focus the launchpad search.
+        document.addEventListener("keydown", function (event) {
+            const target = event.target;
+            const isTyping = target && (
+                target.tagName === "INPUT" ||
+                target.tagName === "TEXTAREA" ||
+                target.isContentEditable
+            );
+            if (event.key === "/" && !isTyping && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                event.preventDefault();
+                searchInput.focus();
+            }
+            if (event.key === "Escape" && document.activeElement === searchInput) {
+                searchInput.value = "";
+                renderDirectory();
+                searchInput.blur();
+            }
+        });
+    }
+
+    function showToast(success) {
+        if (!toast) return;
+        window.clearTimeout(toastTimer);
+
+        if (toastIcon) {
+            toastIcon.innerHTML = success
+                ? '<i class="ri-check-line"></i>'
+                : '<i class="ri-error-warning-line"></i>';
+            toastIcon.style.color = success ? "#18764a" : "#b33d42";
+            toastIcon.style.background = success ? "#edf8f1" : "#fff0f0";
+        }
+        if (toastTitle) toastTitle.textContent = success ? "Link copied" : "Copy unavailable";
+        if (toastMessage) toastMessage.textContent = success
+            ? "The shortcut is ready to paste."
+            : "Your browser could not copy the link. Please open the tool and copy its address.";
+
+        toast.classList.add("is-visible");
+        toastTimer = window.setTimeout(function () {
+            toast.classList.remove("is-visible");
+        }, 2600);
+    }
+
+    async function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
             return;
         }
 
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        textarea.style.top = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
 
-        /*
-         * Convert relative URL into an absolute URL.
-         *
-         * External:
-         * https://image.pi7.org/compress-image-to-50kb
-         *
-         * Relative:
-         * /payments/
-         *
-         * Django resolved:
-         * /payments/
-         */
+        let copied = false;
+        try {
+            copied = document.execCommand("copy");
+        } finally {
+            textarea.remove();
+        }
+        if (!copied) throw new Error("Clipboard copy failed");
+    }
 
-        const fullUrl =
-            url.startsWith("http://") ||
-            url.startsWith("https://")
-                ? url
-                : new URL(
-                    url,
-                    window.location.origin
-                ).href;
-
+    window.copyQuickLaunchLink = async function (button) {
+        const rawUrl = button && button.dataset.copyUrl;
+        if (!rawUrl) {
+            showToast(false);
+            return;
+        }
 
         try {
+            const fullUrl = /^https?:\/\//i.test(rawUrl)
+                ? rawUrl
+                : new URL(rawUrl, window.location.origin).href;
 
-            /*
-             * =====================================================
-             * MODERN CLIPBOARD API
-             * =====================================================
-             */
+            await copyText(fullUrl);
 
-            if (
-                navigator.clipboard &&
-                window.isSecureContext
-            ) {
+            button.classList.add("is-copied");
+            button.innerHTML = '<i class="ri-check-line"></i>';
+            button.title = "Copied";
+            button.setAttribute("aria-label", "Link copied");
 
-                await navigator.clipboard.writeText(
-                    fullUrl
-                );
+            showToast(true);
 
-            } else {
-
-                /*
-                 * =================================================
-                 * FALLBACK
-                 * Works on localhost / HTTP.
-                 * =================================================
-                 */
-
-                const textarea =
-                    document.createElement("textarea");
-
-                textarea.value =
-                    fullUrl;
-
-                textarea.setAttribute(
-                    "readonly",
-                    ""
-                );
-
-                textarea.style.position =
-                    "fixed";
-
-                textarea.style.left =
-                    "-9999px";
-
-                textarea.style.top =
-                    "0";
-
-                textarea.style.opacity =
-                    "0";
-
-                document.body.appendChild(
-                    textarea
-                );
-
-                textarea.focus();
-
-                textarea.select();
-
-                textarea.setSelectionRange(
-                    0,
-                    textarea.value.length
-                );
-
-
-                const copied =
-                    document.execCommand(
-                        "copy"
-                    );
-
-
-                textarea.remove();
-
-
-                if (!copied) {
-
-                    throw new Error(
-                        "Clipboard copy failed"
-                    );
-
-                }
-
-            }
-
-
-            /*
-             * =====================================================
-             * COPY BUTTON SUCCESS STATE
-             * =====================================================
-             */
-
-            button.classList.add(
-                "copied"
-            );
-
-            button.setAttribute(
-                "title",
-                "Link copied"
-            );
-
-            button.setAttribute(
-                "aria-label",
-                "Link copied"
-            );
-
-
-            button.innerHTML =
-                '<i data-lucide="check" class="h-3.5 w-3.5"></i>';
-
-
-            if (window.lucide) {
-                lucide.createIcons();
-            }
-
-
-            /*
-             * =====================================================
-             * SHOW SUCCESS TOAST
-             * =====================================================
-             */
-
-            showCopyToast();
-
-
-            /*
-             * =====================================================
-             * RESTORE COPY ICON
-             * =====================================================
-             */
-
-            setTimeout(() => {
-
-                button.classList.remove(
-                    "copied"
-                );
-
-                button.setAttribute(
-                    "title",
-                    "Copy link"
-                );
-
-                button.setAttribute(
-                    "aria-label",
-                    "Copy link"
-                );
-
-
-                button.innerHTML =
-                    '<i data-lucide="copy" class="h-3.5 w-3.5"></i>';
-
-
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
-
+            window.setTimeout(function () {
+                if (!button.isConnected) return;
+                button.classList.remove("is-copied");
+                button.innerHTML = '<i class="ri-file-copy-line"></i>';
+                button.title = "Copy link";
+                button.setAttribute("aria-label", "Copy link");
             }, 1500);
-
-
         } catch (error) {
-
-            console.error(
-                "Unable to copy link:",
-                error
-            );
-
-            showCopyError();
-
+            console.error("Quick link copy failed:", error);
+            showToast(false);
         }
+    };
 
-    }
-
-
-    /* =========================================================
-       SUCCESS TOAST
-    ========================================================== */
-
-    function showCopyToast() {
-
-        const toast =
-            document.getElementById(
-                "copyToast"
-            );
-
-        const icon =
-            document.getElementById(
-                "copyToastIcon"
-            );
-
-        const title =
-            document.getElementById(
-                "copyToastTitle"
-            );
-
-        const message =
-            document.getElementById(
-                "copyToastMessage"
-            );
-
-
-        if (!toast) {
-            return;
-        }
-
-
-        /*
-         * Clear previous toast timer.
-         */
-
-        clearTimeout(
-            copyToastTimer
-        );
-
-
-        /*
-         * Restore success appearance.
-         */
-
-        icon.className =
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600";
-
-
-        icon.innerHTML =
-            '<i data-lucide="check" class="h-4 w-4"></i>';
-
-
-        title.textContent =
-            "Link copied!";
-
-
-        message.textContent =
-            "Quick link copied to clipboard.";
-
-
-        if (window.lucide) {
-            lucide.createIcons();
-        }
-
-
-        /*
-         * Show toast.
-         */
-
-        toast.classList.remove(
-            "opacity-0",
-            "translate-y-4"
-        );
-
-        toast.classList.add(
-            "opacity-100",
-            "translate-y-0"
-        );
-
-
-        /*
-         * Hide after 2.5 seconds.
-         */
-
-        copyToastTimer =
-            setTimeout(() => {
-
-                toast.classList.remove(
-                    "opacity-100",
-                    "translate-y-0"
-                );
-
-                toast.classList.add(
-                    "opacity-0",
-                    "translate-y-4"
-                );
-
-            }, 2500);
-
-    }
-
-
-    /* =========================================================
-       ERROR TOAST
-    ========================================================== */
-
-    function showCopyError() {
-
-        const toast =
-            document.getElementById(
-                "copyToast"
-            );
-
-        const icon =
-            document.getElementById(
-                "copyToastIcon"
-            );
-
-        const title =
-            document.getElementById(
-                "copyToastTitle"
-            );
-
-        const message =
-            document.getElementById(
-                "copyToastMessage"
-            );
-
-
-        if (!toast) {
-            return;
-        }
-
-
-        clearTimeout(
-            copyToastTimer
-        );
-
-
-        /*
-         * Error appearance.
-         */
-
-        icon.className =
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600";
-
-
-        icon.innerHTML =
-            '<i data-lucide="x" class="h-4 w-4"></i>';
-
-
-        title.textContent =
-            "Copy failed";
-
-
-        message.textContent =
-            "Please try copying the link again.";
-
-
-        if (window.lucide) {
-            lucide.createIcons();
-        }
-
-
-        /*
-         * Show.
-         */
-
-        toast.classList.remove(
-            "opacity-0",
-            "translate-y-4"
-        );
-
-        toast.classList.add(
-            "opacity-100",
-            "translate-y-0"
-        );
-
-
-        /*
-         * Hide.
-         */
-
-        copyToastTimer =
-            setTimeout(() => {
-
-                toast.classList.remove(
-                    "opacity-100",
-                    "translate-y-0"
-                );
-
-                toast.classList.add(
-                    "opacity-0",
-                    "translate-y-4"
-                );
-
-
-                /*
-                 * Restore success appearance.
-                 */
-
-                icon.className =
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600";
-
-
-                icon.innerHTML =
-                    '<i data-lucide="check" class="h-4 w-4"></i>';
-
-
-                title.textContent =
-                    "Link copied!";
-
-
-                message.textContent =
-                    "Quick link copied to clipboard.";
-
-
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
-
-            }, 2500);
-
-    }
-
-
-    /* =========================================================
-       INITIALIZE LUCIDE
-    ========================================================== */
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-            if (window.lucide) {
-
-                lucide.createIcons();
-
-            }
-
-        }
-    );
-
+    renderDirectory();
+})();
 </script>
-
 
 {% endblock %}

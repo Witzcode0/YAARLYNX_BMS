@@ -1,586 +1,477 @@
 {% extends "dashboard/layout.html" %}
 
-{% block title %}{{ party.name }} | Party Details | Yaarlynx{% endblock %}
+{% block title %}{{ party.name }} | Party Details | YAARLYNX{% endblock %}
 
-{% block page_heading %}
-    Party Details
-{% endblock %}
+{% block page_heading %}Party Details{% endblock %}
 
 {% block meta_description %}
-    View complete party and supplier details for {{ party.name }}
+Complete business, contact, GST, bank and payment details for {{ party.name }}.
 {% endblock %}
 
 {% block content %}
 
-<div class="mx-auto w-full max-w-[1600px] space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+{% with payment_qrs=party.payment_qrs.all %}
 
-    <!-- =========================================================
-         PAGE HEADER
-    ========================================================== -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+<div class="mx-auto w-full max-w-[1600px] space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
 
-        <div class="flex items-center gap-4">
+    <!-- =====================================================
+         HERO / PROFILE HEADER
+    ====================================================== -->
 
-            <!-- Back Button -->
-            <a
-                href="{% url 'party_list' %}"
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-[#153030] hover:bg-[#F7F9F9] hover:text-[#153030]"
-                title="Back to Parties"
-            >
-                <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M15 19l-7-7 7-7"
-                    />
-                </svg>
-            </a>
+    <section class="relative isolate overflow-hidden rounded-[26px] bg-[#153030] text-white shadow-xl shadow-teal-950/10">
 
-            <div class="min-w-0">
-                <div class="flex flex-wrap items-center gap-3">
+        <!-- Background decoration -->
+        <div class="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border-[42px] border-white/[0.045]"></div>
+        <div class="pointer-events-none absolute -bottom-28 right-[25%] h-64 w-64 rounded-full bg-teal-300/[0.07] blur-3xl"></div>
+        <div class="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-teal-200/30 to-transparent"></div>
 
-                    <h1 class="truncate text-2xl font-bold tracking-tight text-[#153030]">
-                        {{ party.name }}
-                    </h1>
+        <div class="relative p-5 sm:p-7 lg:p-8">
 
-                    {% if party.is_active %}
-                        <span class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                            <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                            Active
-                        </span>
-                    {% else %}
-                        <span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600">
-                            <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                            Inactive
-                        </span>
+            <!-- Breadcrumb -->
+            <div class="mb-6 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-[.15em] text-teal-100/60">
+
+                <a href="{% url 'party_list' %}" class="transition hover:text-white">
+                    Parties
+                </a>
+
+                <i class="ri-arrow-right-s-line text-sm"></i>
+
+                <span class="text-teal-50">
+                    Party Profile
+                </span>
+
+            </div>
+
+            <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+
+                <!-- Party identity -->
+                <div class="flex min-w-0 items-start gap-4 sm:gap-5">
+
+                    <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.09] shadow-inner sm:h-20 sm:w-20">
+                        <i class="ri-building-2-line text-3xl text-teal-100 sm:text-4xl"></i>
+                    </div>
+
+                    <div class="min-w-0">
+
+                        <div class="mb-3 flex flex-wrap items-center gap-2">
+
+                            <span class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.08] px-3 py-1 text-[9px] font-extrabold uppercase tracking-[.15em] text-teal-100">
+                                <i class="ri-shield-check-line"></i>
+                                Business Profile
+                            </span>
+
+                            {% if party.is_active %}
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/15 px-3 py-1 text-[10px] font-bold text-emerald-200">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-300"></span>
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-red-400/15 px-3 py-1 text-[10px] font-bold text-red-200">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-red-300"></span>
+                                    Inactive
+                                </span>
+                            {% endif %}
+
+                        </div>
+
+                        <h1 class="break-words text-2xl font-black tracking-tight sm:text-3xl lg:text-4xl">
+                            {{ party.name|default:"Unnamed Party" }}
+                        </h1>
+
+                        <p class="mt-2 text-xs leading-5 text-teal-100/70 sm:text-sm">
+                            {{ party.contact_person|default:"Business contact not specified" }}
+                        </p>
+
+                        <div class="mt-4 flex flex-wrap items-center gap-2">
+
+                            <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-[11px] font-semibold text-teal-50">
+                                <i class="ri-building-line"></i>
+                                {{ party.get_party_type_display|default:"Party" }}
+                            </span>
+
+                            {% if party.city or party.state %}
+                                <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-[11px] font-semibold text-teal-50">
+                                    <i class="ri-map-pin-line"></i>
+                                    {% if party.city %}{{ party.city }}{% endif %}
+                                    {% if party.city and party.state %}, {% endif %}
+                                    {% if party.state %}{{ party.state }}{% endif %}
+                                </span>
+                            {% endif %}
+
+                            <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-[11px] font-semibold text-teal-50">
+                                <i class="ri-fingerprint-line"></i>
+                                ID: {{ party.pk }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Header actions -->
+                <div class="flex flex-wrap gap-2 lg:shrink-0">
+
+                    <a
+                        href="{% url 'party_list' %}"
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.08] px-4 text-xs font-bold text-white transition hover:bg-white/[0.16]"
+                    >
+                        <i class="ri-arrow-left-line text-base"></i>
+                        Back to Parties
+                    </a>
+
+                    {% if party.phone %}
+                        <a
+                            href="tel:{{ party.phone }}"
+                            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-white px-4 text-xs font-bold text-[#153030] transition hover:bg-teal-50"
+                        >
+                            <i class="ri-phone-line text-base"></i>
+                            Contact
+                        </a>
                     {% endif %}
 
                 </div>
 
-                <p class="mt-1 text-sm text-gray-500">
-                    View complete supplier and payment information
-                </p>
             </div>
 
         </div>
+    </section>
 
 
-        <!-- Actions -->
-        <div class="flex items-center gap-3">
+    <!-- =====================================================
+         PROFILE OVERVIEW
+    ====================================================== -->
 
-            <!-- Edit Button -->
-            <a
-                href="#"
-                class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 text-sm font-semibold text-[#153030] transition hover:border-[#153030] hover:bg-[#F7F9F9]"
-            >
-                <svg
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M12 20h9"
-                    />
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M16.5 3.5a2.121 2.121 0 013 3L8 18l-4 1 1-4L16.5 3.5z"
-                    />
-                </svg>
+    <section class="grid grid-cols-2 gap-3 xl:grid-cols-4">
 
-                Edit Party
-            </a>
+        <!-- Party type -->
+        <article class="group rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
 
-        </div>
+            <div class="flex items-center justify-between gap-2">
 
-    </div>
-
-
-    <!-- =========================================================
-         SUMMARY CARDS
-    ========================================================== -->
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-        <!-- Party Type -->
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-
-            <div class="flex items-center justify-between">
-
-                <div>
-                    <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                <div class="min-w-0">
+                    <p class="text-[9px] font-extrabold uppercase tracking-[.15em] text-slate-400">
                         Party Type
                     </p>
 
-                    <p class="mt-2 text-lg font-bold text-[#153030]">
-                        {{ party.get_party_type_display }}
+                    <p class="mt-2 truncate text-sm font-extrabold text-[#153030] sm:text-base">
+                        {{ party.get_party_type_display|default:"—" }}
                     </p>
                 </div>
 
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                    <svg
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M20 7h-4V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"
-                        />
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M8 7h8"
-                        />
-                    </svg>
-                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#153030] transition group-hover:bg-[#153030] group-hover:text-white">
+                    <i class="ri-building-2-line text-xl"></i>
+                </span>
 
             </div>
 
-        </div>
+            <p class="mt-3 text-[10px] text-slate-400">
+                Business classification
+            </p>
+
+        </article>
 
 
-        <!-- Contact -->
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <!-- Phone -->
+        <article class="group rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
 
                 <div class="min-w-0">
-                    <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                        Contact
+                    <p class="text-[9px] font-extrabold uppercase tracking-[.15em] text-slate-400">
+                        Phone Number
                     </p>
 
-                    <p class="mt-2 truncate text-lg font-bold text-[#153030]">
-                        {% if party.phone %}
-                            {{ party.phone }}
-                        {% else %}
-                            —
-                        {% endif %}
+                    <p class="mt-2 truncate text-sm font-extrabold text-[#153030] sm:text-base">
+                        {{ party.phone|default:"—" }}
                     </p>
                 </div>
 
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                    <svg
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.12.9.33 1.78.62 2.63a2 2 0 01-.45 2.11L8 9.73a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0122 16.92z"
-                        />
-                    </svg>
-                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                    <i class="ri-phone-line text-xl"></i>
+                </span>
 
             </div>
 
-        </div>
+            <p class="mt-3 text-[10px] text-slate-400">
+                Primary contact
+            </p>
+
+        </article>
 
 
         <!-- GST -->
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <article class="group rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
 
                 <div class="min-w-0">
-                    <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                        GST Number
+                    <p class="text-[9px] font-extrabold uppercase tracking-[.15em] text-slate-400">
+                        GST Profile
                     </p>
 
                     {% if party.gst_number %}
-                        <p class="mt-2 truncate text-lg font-bold text-[#153030]">
-                            {{ party.gst_number }}
+                        <p class="mt-2 text-sm font-extrabold text-emerald-700 sm:text-base">
+                            Available
                         </p>
                     {% else %}
-                        <p class="mt-2 text-lg font-bold text-gray-300">
-                            Not Available
+                        <p class="mt-2 text-sm font-extrabold text-slate-400 sm:text-base">
+                            Not Added
                         </p>
                     {% endif %}
                 </div>
 
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                    <svg
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 12h6"
-                        />
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 16h6"
-                        />
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 8h6"
-                        />
-                        <rect
-                            x="4"
-                            y="3"
-                            width="16"
-                            height="18"
-                            rx="2"
-                        />
-                    </svg>
-                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                    <i class="ri-file-shield-2-line text-xl"></i>
+                </span>
 
             </div>
 
-        </div>
+            <p class="mt-3 text-[10px] text-slate-400">
+                Tax registration
+            </p>
+
+        </article>
 
 
-        <!-- QR Codes -->
-        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <!-- QR -->
+        <article class="group rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
 
-                <div>
-                    <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                <div class="min-w-0">
+                    <p class="text-[9px] font-extrabold uppercase tracking-[.15em] text-slate-400">
                         Payment QR
                     </p>
 
-                    <p class="mt-2 text-lg font-bold text-[#153030]">
-                        {{ party.payment_qrs.all|length }}
-                        <span class="text-sm font-medium text-gray-400">
-                            QR Code{{ party.payment_qrs.all|length|pluralize }}
+                    <p class="mt-2 text-sm font-extrabold text-[#153030] sm:text-base">
+                        {{ payment_qrs|length }}
+                        <span class="text-xs font-semibold text-slate-400">
+                            Saved
                         </span>
                     </p>
                 </div>
 
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                    <svg
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                    >
-                        <rect
-                            x="3"
-                            y="3"
-                            width="7"
-                            height="7"
-                        />
-                        <rect
-                            x="14"
-                            y="3"
-                            width="7"
-                            height="7"
-                        />
-                        <rect
-                            x="3"
-                            y="14"
-                            width="7"
-                            height="7"
-                        />
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M14 14h3v3h-3zM18 18h3v3h-3zM14 18h1M18 14h3"
-                        />
-                    </svg>
-                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-700">
+                    <i class="ri-qr-code-line text-xl"></i>
+                </span>
 
             </div>
 
-        </div>
+            <p class="mt-3 text-[10px] text-slate-400">
+                Payment QR collection
+            </p>
 
-    </div>
+        </article>
 
-
-    <!-- =========================================================
-         MAIN CONTENT
-    ========================================================== -->
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    </section>
 
 
-        <!-- =====================================================
-             LEFT / MAIN COLUMN
-        ====================================================== -->
-        <div class="space-y-6 xl:col-span-2">
+    <!-- =====================================================
+         MAIN PROFILE GRID
+    ====================================================== -->
+
+    <div class="grid grid-cols-1 items-start gap-5 xl:grid-cols-12">
+
+        <!-- =================================================
+             LEFT CONTENT
+        ================================================== -->
+
+        <div class="min-w-0 space-y-5 xl:col-span-8">
 
 
-            <!-- =================================================
-                 PARTY INFORMATION
-            ================================================== -->
-            <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+            <!-- BUSINESS INFORMATION -->
 
-                <div class="border-b border-gray-100 px-6 py-5">
+            <section class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+
+                <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
 
                     <div class="flex items-center gap-3">
 
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M20 21a8 8 0 00-16 0"
-                                />
-                                <circle
-                                    cx="12"
-                                    cy="7"
-                                    r="4"
-                                />
-                            </svg>
-                        </div>
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#153030]">
+                            <i class="ri-user-3-line text-xl"></i>
+                        </span>
 
                         <div>
-                            <h2 class="text-base font-bold text-[#153030]">
-                                Party Information
+                            <h2 class="text-sm font-extrabold text-[#153030]">
+                                Business Information
                             </h2>
 
-                            <p class="mt-0.5 text-xs text-gray-400">
-                                Basic supplier information
+                            <p class="mt-0.5 text-[10px] text-slate-400">
+                                Basic party and contact information
                             </p>
                         </div>
 
                     </div>
 
+                    <span class="hidden rounded-lg bg-slate-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400 sm:inline-flex">
+                        Profile 01
+                    </span>
+
                 </div>
 
 
-                <div class="grid grid-cols-1 gap-x-8 gap-y-6 px-6 py-6 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-x-8 gap-y-6 p-4 sm:grid-cols-2 sm:p-6">
 
-                    <!-- Party Name -->
                     <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             Party Name
                         </p>
-
-                        <p class="mt-1.5 text-sm font-semibold text-[#153030]">
-                            {{ party.name }}
+                        <p class="mt-2 break-words text-sm font-bold text-[#153030]">
+                            {{ party.name|default:"—" }}
                         </p>
                     </div>
 
-
-                    <!-- Party Type -->
                     <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             Party Type
                         </p>
-
-                        <p class="mt-1.5 text-sm font-semibold text-[#153030]">
-                            {{ party.get_party_type_display }}
+                        <p class="mt-2 text-sm font-semibold text-slate-700">
+                            {{ party.get_party_type_display|default:"—" }}
                         </p>
                     </div>
 
-
-                    <!-- Contact Person -->
                     <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             Contact Person
                         </p>
-
-                        <p class="mt-1.5 text-sm font-semibold text-[#153030]">
-                            {% if party.contact_person %}
-                                {{ party.contact_person }}
-                            {% else %}
-                                —
-                            {% endif %}
+                        <p class="mt-2 break-words text-sm font-semibold text-slate-700">
+                            {{ party.contact_person|default:"—" }}
                         </p>
                     </div>
 
-
-                    <!-- Email -->
                     <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             Email Address
                         </p>
 
                         {% if party.email %}
                             <a
                                 href="mailto:{{ party.email }}"
-                                class="mt-1.5 block truncate text-sm font-semibold text-[#153030] hover:underline"
+                                class="mt-2 block break-all text-sm font-semibold text-[#26736d] transition hover:underline"
                             >
                                 {{ party.email }}
                             </a>
                         {% else %}
-                            <p class="mt-1.5 text-sm font-semibold text-gray-300">
-                                —
-                            </p>
+                            <p class="mt-2 text-sm text-slate-400">Not provided</p>
                         {% endif %}
                     </div>
 
-
-                    <!-- Phone -->
                     <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                            Phone Number
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Primary Phone
                         </p>
 
                         {% if party.phone %}
-                            <a
-                                href="tel:{{ party.phone }}"
-                                class="mt-1.5 block text-sm font-semibold text-[#153030] hover:underline"
-                            >
-                                {{ party.phone }}
-                            </a>
+                            <div class="mt-2 flex flex-wrap items-center gap-2">
+                                <a
+                                    href="tel:{{ party.phone }}"
+                                    class="text-sm font-semibold text-[#26736d] hover:underline"
+                                >
+                                    {{ party.phone }}
+                                </a>
+
+                                <button
+                                    type="button"
+                                    data-copy-value="{{ party.phone }}"
+                                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 text-slate-400 transition hover:bg-teal-50 hover:text-[#153030]"
+                                    title="Copy phone number"
+                                    aria-label="Copy phone number"
+                                >
+                                    <i class="ri-file-copy-line"></i>
+                                </button>
+                            </div>
                         {% else %}
-                            <p class="mt-1.5 text-sm font-semibold text-gray-300">
-                                —
-                            </p>
+                            <p class="mt-2 text-sm text-slate-400">Not provided</p>
                         {% endif %}
                     </div>
 
-
-                    <!-- Alternate Phone -->
                     <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             Alternate Phone
                         </p>
 
                         {% if party.alternate_phone %}
                             <a
                                 href="tel:{{ party.alternate_phone }}"
-                                class="mt-1.5 block text-sm font-semibold text-[#153030] hover:underline"
+                                class="mt-2 block text-sm font-semibold text-[#26736d] hover:underline"
                             >
                                 {{ party.alternate_phone }}
                             </a>
                         {% else %}
-                            <p class="mt-1.5 text-sm font-semibold text-gray-300">
-                                —
-                            </p>
+                            <p class="mt-2 text-sm text-slate-400">Not provided</p>
                         {% endif %}
                     </div>
 
                 </div>
 
-            </div>
+            </section>
 
 
-            <!-- =================================================
-                 ADDRESS
-            ================================================== -->
-            <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+            <!-- ADDRESS INFORMATION -->
 
-                <div class="border-b border-gray-100 px-6 py-5">
+            <section class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
 
-                    <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
 
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M12 21s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"
-                                />
-                                <circle
-                                    cx="12"
-                                    cy="9"
-                                    r="2.5"
-                                />
-                            </svg>
-                        </div>
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                        <i class="ri-map-pin-line text-xl"></i>
+                    </span>
 
-                        <div>
-                            <h2 class="text-base font-bold text-[#153030]">
-                                Address
-                            </h2>
+                    <div>
+                        <h2 class="text-sm font-extrabold text-[#153030]">
+                            Address Information
+                        </h2>
 
-                            <p class="mt-0.5 text-xs text-gray-400">
-                                Registered party address
-                            </p>
-                        </div>
-
+                        <p class="mt-0.5 text-[10px] text-slate-400">
+                            Registered business address
+                        </p>
                     </div>
 
                 </div>
 
 
-                <div class="px-6 py-6">
+                <div class="space-y-5 p-4 sm:p-6">
 
-                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                    <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
 
-                        <div class="sm:col-span-3">
-                            <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                                Address
-                            </p>
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            Complete Address
+                        </p>
 
-                            <p class="mt-1.5 text-sm font-medium leading-6 text-[#153030]">
-                                {% if party.address %}
-                                    {{ party.address|linebreaksbr }}
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </p>
-                        </div>
+                        <p class="mt-2 whitespace-pre-line break-words text-sm leading-7 text-slate-700">
+                            {{ party.address|default:"Address not provided" }}
+                        </p>
+
+                    </div>
 
 
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+                        <div class="rounded-xl border border-slate-100 p-4">
+                            <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                                 City
                             </p>
-
-                            <p class="mt-1.5 text-sm font-semibold text-[#153030]">
-                                {% if party.city %}
-                                    {{ party.city }}
-                                {% else %}
-                                    —
-                                {% endif %}
+                            <p class="mt-2 break-words text-sm font-bold text-[#153030]">
+                                {{ party.city|default:"—" }}
                             </p>
                         </div>
 
-
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                        <div class="rounded-xl border border-slate-100 p-4">
+                            <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                                 State
                             </p>
-
-                            <p class="mt-1.5 text-sm font-semibold text-[#153030]">
-                                {% if party.state %}
-                                    {{ party.state }}
-                                {% else %}
-                                    —
-                                {% endif %}
+                            <p class="mt-2 break-words text-sm font-bold text-[#153030]">
+                                {{ party.state|default:"—" }}
                             </p>
                         </div>
 
-
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                        <div class="rounded-xl border border-slate-100 p-4">
+                            <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                                 Pincode
                             </p>
-
-                            <p class="mt-1.5 text-sm font-semibold text-[#153030]">
-                                {% if party.pincode %}
-                                    {{ party.pincode }}
-                                {% else %}
-                                    —
-                                {% endif %}
+                            <p class="mt-2 text-sm font-bold text-[#153030]">
+                                {{ party.pincode|default:"—" }}
                             </p>
                         </div>
 
@@ -588,348 +479,387 @@
 
                 </div>
 
-            </div>
+            </section>
 
 
-            <!-- =================================================
-                 GST DETAILS
-            ================================================== -->
-            <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+            <!-- GST INFORMATION -->
 
-                <div class="border-b border-gray-100 px-6 py-5">
+            <section class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
 
-                    <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
 
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"
-                                />
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M8 8h8M8 12h8M8 16h5"
-                                />
-                            </svg>
-                        </div>
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                        <i class="ri-file-shield-2-line text-xl"></i>
+                    </span>
 
-                        <div>
-                            <h2 class="text-base font-bold text-[#153030]">
-                                GST Details
-                            </h2>
+                    <div>
+                        <h2 class="text-sm font-extrabold text-[#153030]">
+                            GST Information
+                        </h2>
 
-                            <p class="mt-0.5 text-xs text-gray-400">
-                                Tax registration information
-                            </p>
-                        </div>
-
+                        <p class="mt-0.5 text-[10px] text-slate-400">
+                            Tax registration information
+                        </p>
                     </div>
 
                 </div>
 
 
-                <div class="px-6 py-6">
+                <div class="p-4 sm:p-6">
 
-                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    {% if party.gst_number %}
 
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                                GST Number
-                            </p>
+                        <div class="flex flex-col gap-3 rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
 
-                            {% if party.gst_number %}
-                                <p class="mt-1.5 font-mono text-sm font-bold uppercase tracking-wide text-[#153030]">
+                            <div class="min-w-0">
+
+                                <p class="text-[9px] font-bold uppercase tracking-wider text-emerald-700">
+                                    Registered GST Number
+                                </p>
+
+                                <p class="mt-2 break-all font-mono text-base font-extrabold uppercase tracking-wide text-[#153030]">
                                     {{ party.gst_number }}
                                 </p>
-                            {% else %}
-                                <p class="mt-1.5 text-sm font-medium text-gray-300">
-                                    GST Number Not Available
+
+                            </div>
+
+                            <div class="flex items-center gap-2">
+
+                                <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-emerald-700">
+                                    <i class="ri-check-double-line"></i>
+                                    Available
+                                </span>
+
+                                <button
+                                    type="button"
+                                    data-copy-value="{{ party.gst_number }}"
+                                    class="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-emerald-700 transition hover:bg-emerald-100"
+                                    title="Copy GST number"
+                                    aria-label="Copy GST number"
+                                >
+                                    <i class="ri-file-copy-line"></i>
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+
+                            <i class="ri-file-warning-line text-2xl text-slate-300"></i>
+
+                            <p class="mt-2 text-sm font-bold text-slate-600">
+                                GST Number Not Added
+                            </p>
+
+                            <p class="mt-1 text-xs text-slate-400">
+                                GST registration details are not available for this party.
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </section>
+
+
+            <!-- BANK INFORMATION -->
+
+            <section class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+
+                <div class="flex items-center gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
+
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+                        <i class="ri-bank-line text-xl"></i>
+                    </span>
+
+                    <div>
+                        <h2 class="text-sm font-extrabold text-[#153030]">
+                            Bank Account Details
+                        </h2>
+
+                        <p class="mt-0.5 text-[10px] text-slate-400">
+                            Registered bank account information
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="p-4 sm:p-6">
+
+                    {% if party.bank_name or party.account_holder_name or party.account_number or party.ifsc_code or party.branch_name %}
+
+                        <div class="mb-5 flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
+
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#153030] shadow-sm">
+                                <i class="ri-bank-card-line text-xl"></i>
+                            </span>
+
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-extrabold text-[#153030]">
+                                    {{ party.bank_name|default:"Bank Account" }}
                                 </p>
-                            {% endif %}
-                        </div>
 
-                    </div>
+                                <p class="mt-1 text-[10px] text-slate-400">
+                                    {{ party.account_holder_name|default:"Account holder not specified" }}
+                                </p>
+                            </div>
 
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 BANK DETAILS
-            ================================================== -->
-            <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-
-                <div class="border-b border-gray-100 px-6 py-5">
-
-                    <div class="flex items-center gap-3">
-
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M3 10l9-6 9 6"
-                                />
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M5 10v8M9 10v8M15 10v8M19 10v8"
-                                />
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M3 20h18"
-                                />
-                            </svg>
-                        </div>
-
-                        <div>
-                            <h2 class="text-base font-bold text-[#153030]">
+                            <span class="ml-auto hidden rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-bold text-emerald-700 sm:inline-flex">
                                 Bank Details
-                            </h2>
+                            </span>
 
-                            <p class="mt-0.5 text-xs text-gray-400">
-                                Party bank account information
-                            </p>
                         </div>
 
-                    </div>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                            <div class="rounded-xl border border-slate-100 p-4">
+                                <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                    Bank Name
+                                </p>
+                                <p class="mt-2 break-words text-sm font-bold text-[#153030]">
+                                    {{ party.bank_name|default:"—" }}
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl border border-slate-100 p-4">
+                                <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                    Account Holder
+                                </p>
+                                <p class="mt-2 break-words text-sm font-bold text-[#153030]">
+                                    {{ party.account_holder_name|default:"—" }}
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl border border-slate-100 p-4">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                        Account Number
+                                    </p>
+
+                                    {% if party.account_number %}
+                                        <button
+                                            type="button"
+                                            data-copy-value="{{ party.account_number }}"
+                                            class="text-slate-400 transition hover:text-[#153030]"
+                                            title="Copy account number"
+                                        >
+                                            <i class="ri-file-copy-line"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+
+                                <p class="mt-2 break-all font-mono text-sm font-bold text-[#153030]">
+                                    {{ party.account_number|default:"—" }}
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl border border-slate-100 p-4">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                        IFSC Code
+                                    </p>
+
+                                    {% if party.ifsc_code %}
+                                        <button
+                                            type="button"
+                                            data-copy-value="{{ party.ifsc_code }}"
+                                            class="text-slate-400 transition hover:text-[#153030]"
+                                            title="Copy IFSC"
+                                        >
+                                            <i class="ri-file-copy-line"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+
+                                <p class="mt-2 break-all font-mono text-sm font-bold uppercase text-[#153030]">
+                                    {{ party.ifsc_code|default:"—" }}
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl border border-slate-100 p-4 sm:col-span-2">
+                                <p class="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                    Branch Name
+                                </p>
+                                <p class="mt-2 break-words text-sm font-bold text-[#153030]">
+                                    {{ party.branch_name|default:"—" }}
+                                </p>
+                            </div>
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+
+                            <i class="ri-bank-card-line text-2xl text-slate-300"></i>
+
+                            <p class="mt-2 text-sm font-bold text-slate-600">
+                                Bank Details Not Added
+                            </p>
+
+                            <p class="mt-1 text-xs text-slate-400">
+                                No bank account information is available.
+                            </p>
+
+                        </div>
+
+                    {% endif %}
 
                 </div>
 
-
-                <div class="grid grid-cols-1 gap-x-8 gap-y-6 px-6 py-6 sm:grid-cols-2">
-
-                    <!-- Bank Name -->
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                            Bank Name
-                        </p>
-
-                        <p class="mt-1.5 text-sm font-semibold text-[#153030]">
-                            {% if party.bank_name %}
-                                {{ party.bank_name }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </p>
-                    </div>
+            </section>
 
 
-                    <!-- Account Holder -->
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                            Account Holder Name
-                        </p>
+            <!-- PAYMENT QR GALLERY -->
 
-                        <p class="mt-1.5 text-sm font-semibold text-[#153030]">
-                            {% if party.account_holder_name %}
-                                {{ party.account_holder_name }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </p>
-                    </div>
+            <section class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
 
-
-                    <!-- Account Number -->
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                            Account Number
-                        </p>
-
-                        <p class="mt-1.5 font-mono text-sm font-semibold tracking-wide text-[#153030]">
-                            {% if party.account_number %}
-                                {{ party.account_number }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </p>
-                    </div>
-
-
-                    <!-- IFSC -->
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                            IFSC Code
-                        </p>
-
-                        <p class="mt-1.5 font-mono text-sm font-semibold uppercase tracking-wide text-[#153030]">
-                            {% if party.ifsc_code %}
-                                {{ party.ifsc_code }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </p>
-                    </div>
-
-
-                    <!-- Branch -->
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                            Branch Name
-                        </p>
-
-                        <p class="mt-1.5 text-sm font-semibold text-[#153030]">
-                            {% if party.branch_name %}
-                                {{ party.branch_name }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </p>
-                    </div>
-
-
-                    <!-- UPI -->
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                            UPI ID
-                        </p>
-
-                        <p class="mt-1.5 font-mono text-sm font-semibold text-[#153030]">
-                            {% if party.upi_id %}
-                                {{ party.upi_id }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </p>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 PAYMENT QR CODES
-            ================================================== -->
-            <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-
-                <div class="flex flex-col gap-3 border-b border-gray-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
 
                     <div class="flex items-center gap-3">
 
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <rect x="3" y="3" width="7" height="7"/>
-                                <rect x="14" y="3" width="7" height="7"/>
-                                <rect x="3" y="14" width="7" height="7"/>
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M14 14h3v3h-3zM18 18h3v3h-3zM14 18h1M18 14h3"
-                                />
-                            </svg>
-                        </div>
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-700">
+                            <i class="ri-qr-code-line text-xl"></i>
+                        </span>
 
                         <div>
-                            <h2 class="text-base font-bold text-[#153030]">
-                                Payment QR Codes
+                            <h2 class="text-sm font-extrabold text-[#153030]">
+                                Payment QR Collection
                             </h2>
 
-                            <p class="mt-0.5 text-xs text-gray-400">
-                                Saved payment QR codes for this party
+                            <p class="mt-0.5 text-[10px] text-slate-400">
+                                Saved payment QR codes and UPI information
                             </p>
                         </div>
 
                     </div>
 
+                    <span class="w-fit rounded-full bg-violet-50 px-3 py-1.5 text-[10px] font-bold text-violet-700">
+                        {{ payment_qrs|length }} QR{{ payment_qrs|length|pluralize }} saved
+                    </span>
+
                 </div>
 
 
-                <div class="p-6">
+                <div class="p-4 sm:p-6">
 
-                    {% if party.payment_qrs.all %}
+                    {% if payment_qrs %}
 
-                        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
-                            {% for qr in party.payment_qrs.all %}
+                            {% for qr in payment_qrs %}
 
-                                <div class="group overflow-hidden rounded-2xl border border-gray-100 bg-[#FAFBFB] transition hover:border-[#D7E0E0] hover:shadow-md">
+                                <article class="group overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 transition duration-200 hover:-translate-y-1 hover:border-teal-200 hover:shadow-lg">
 
-                                    <!-- QR Image -->
-                                    <div class="flex h-56 items-center justify-center bg-white p-5">
+                                    <!-- QR image -->
+                                    <div class="relative flex h-52 items-center justify-center bg-white p-5">
 
                                         {% if qr.qr_image %}
-                                            <img
-                                                src="{{ qr.qr_image.url }}"
-                                                alt="{{ qr.qr_name }}"
-                                                class="h-full max-w-full object-contain"
-                                            >
-                                        {% else %}
-                                            <div class="flex h-full w-full flex-col items-center justify-center text-gray-300">
-                                                <svg
-                                                    class="h-12 w-12"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                    stroke-width="1.5"
-                                                >
-                                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                                    <path d="M8 8h3v3H8zM13 8h3v3h-3zM8 13h3v3H8z"/>
-                                                </svg>
 
-                                                <p class="mt-2 text-xs">
-                                                    QR unavailable
-                                                </p>
+                                            <a
+                                                href="{{ qr.qr_image.url }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="flex h-full w-full items-center justify-center"
+                                                title="Open QR image"
+                                            >
+                                                <img
+                                                    src="{{ qr.qr_image.url }}"
+                                                    alt="{{ qr.qr_name|default:'Payment QR' }}"
+                                                    loading="lazy"
+                                                    class="h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.04]"
+                                                >
+                                            </a>
+
+                                        {% else %}
+
+                                            <div class="text-center text-slate-300">
+                                                <i class="ri-qr-code-line text-5xl"></i>
+                                                <p class="mt-2 text-xs">QR image unavailable</p>
                                             </div>
+
+                                        {% endif %}
+
+
+                                        {% if qr.is_primary %}
+                                            <span class="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-[#153030] px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-wider text-white shadow-sm">
+                                                <i class="ri-star-fill"></i>
+                                                Primary
+                                            </span>
                                         {% endif %}
 
                                     </div>
 
 
-                                    <!-- QR Info -->
-                                    <div class="border-t border-gray-100 px-4 py-4">
+                                    <!-- QR information -->
+                                    <div class="border-t border-slate-100 p-4">
 
-                                        <div class="flex items-start justify-between gap-3">
+                                        <div class="flex items-start justify-between gap-2">
 
                                             <div class="min-w-0">
 
-                                                <p class="truncate text-sm font-bold text-[#153030]">
-                                                    {{ qr.qr_name }}
+                                                <p class="truncate text-sm font-extrabold text-[#153030]">
+                                                    {{ qr.qr_name|default:"Payment QR" }}
                                                 </p>
 
-                                                {% if qr.upi_id %}
-                                                    <p class="mt-1 truncate font-mono text-xs text-gray-500">
-                                                        {{ qr.upi_id }}
-                                                    </p>
-                                                {% endif %}
+                                                <p class="mt-1 text-[10px] text-slate-400">
+                                                    Payment QR
+                                                </p>
 
                                             </div>
 
-
                                             {% if qr.is_primary %}
-                                                <span class="shrink-0 rounded-full bg-[#153030] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
-                                                    Primary
+                                                <span class="shrink-0 rounded-md bg-emerald-50 px-2 py-1 text-[9px] font-bold text-emerald-700">
+                                                    Main
                                                 </span>
                                             {% endif %}
 
                                         </div>
 
+
+                                        {% if qr.upi_id %}
+
+                                            <div class="mt-3 flex items-center justify-between gap-2 rounded-lg border border-slate-100 bg-white px-3 py-2">
+
+                                                <p class="min-w-0 break-all font-mono text-[11px] font-semibold text-slate-600">
+                                                    {{ qr.upi_id }}
+                                                </p>
+
+                                                <button
+                                                    type="button"
+                                                    data-copy-value="{{ qr.upi_id }}"
+                                                    class="shrink-0 text-slate-400 transition hover:text-[#153030]"
+                                                    title="Copy UPI ID"
+                                                >
+                                                    <i class="ri-file-copy-line"></i>
+                                                </button>
+
+                                            </div>
+
+                                        {% endif %}
+
+
+                                        {% if qr.qr_image %}
+                                            <a
+                                                href="{{ qr.qr_image.url }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold text-[#26736d] transition hover:text-[#153030]"
+                                            >
+                                                View QR image
+                                                <i class="ri-external-link-line"></i>
+                                            </a>
+                                        {% endif %}
+
                                     </div>
 
-                                </div>
+                                </article>
 
                             {% endfor %}
 
@@ -937,27 +867,18 @@
 
                     {% else %}
 
-                        <div class="rounded-xl border border-dashed border-gray-200 bg-[#FAFBFB] px-6 py-12 text-center">
+                        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-12 text-center">
 
-                            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-gray-400">
-                                <svg
-                                    class="h-6 w-6"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="1.6"
-                                >
-                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                    <path d="M8 8h3v3H8zM13 8h3v3h-3zM8 13h3v3H8z"/>
-                                </svg>
+                            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-slate-300 shadow-sm">
+                                <i class="ri-qr-code-line text-3xl"></i>
                             </div>
 
-                            <h3 class="mt-4 text-sm font-semibold text-[#153030]">
+                            <h3 class="mt-4 text-sm font-extrabold text-[#153030]">
                                 No Payment QR Codes
                             </h3>
 
-                            <p class="mx-auto mt-1 max-w-sm text-xs leading-5 text-gray-400">
-                                No payment QR code has been added for this party yet.
+                            <p class="mx-auto mt-1 max-w-sm text-xs leading-5 text-slate-400">
+                                No payment QR code has been added to this party profile yet.
                             </p>
 
                         </div>
@@ -966,96 +887,82 @@
 
                 </div>
 
-            </div>
+            </section>
 
         </div>
 
 
-        <!-- =====================================================
+        <!-- =================================================
              RIGHT SIDEBAR
-        ====================================================== -->
-        <div class="space-y-6">
+        ================================================== -->
+
+        <aside class="min-w-0 space-y-5 xl:col-span-4">
 
 
-            <!-- =================================================
-                 PAYMENT INFORMATION
-            ================================================== -->
-            <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+            <!-- DIGITAL PAYMENT DETAILS -->
 
-                <div class="border-b border-gray-100 px-6 py-5">
+            <section class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
 
-                    <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
 
-                        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                            >
-                                <rect
-                                    x="3"
-                                    y="5"
-                                    width="18"
-                                    height="14"
-                                    rx="2"
-                                />
-                                <path d="M3 10h18"/>
-                            </svg>
-                        </div>
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                        <i class="ri-wallet-3-line text-xl"></i>
+                    </span>
 
-                        <div>
-                            <h2 class="text-base font-bold text-[#153030]">
-                                Payment Information
-                            </h2>
+                    <div>
+                        <h2 class="text-sm font-extrabold text-[#153030]">
+                            Digital Payments
+                        </h2>
 
-                            <p class="mt-0.5 text-xs text-gray-400">
-                                Digital payment details
-                            </p>
-                        </div>
-
+                        <p class="mt-0.5 text-[10px] text-slate-400">
+                            UPI and G-Pay information
+                        </p>
                     </div>
 
                 </div>
 
 
-                <div class="divide-y divide-gray-100">
+                <div class="divide-y divide-slate-100">
 
-                    <!-- G-Pay -->
-                    <div class="px-6 py-5">
+                    <!-- GPay -->
+                    <div class="p-4 sm:p-5">
 
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                            G-Pay Number
-                        </p>
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+                                <i class="ri-smartphone-line"></i>
+                            </span>
+
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                G-Pay Number
+                            </p>
+                        </div>
 
                         {% if party.gpay_number %}
 
-                            <a
-                                href="tel:{{ party.gpay_number }}"
-                                class="mt-2 flex items-center gap-2 text-sm font-bold text-[#153030] hover:underline"
-                            >
-                                <svg
-                                    class="h-4 w-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.12.9.33 1.78.62 2.63a2 2 0 01-.45 2.11L8 9.73a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0122 16.92z"
-                                    />
-                                </svg>
+                            <div class="mt-3 flex items-center justify-between gap-2">
 
-                                {{ party.gpay_number }}
-                            </a>
+                                <a
+                                    href="tel:{{ party.gpay_number }}"
+                                    class="break-all text-sm font-extrabold text-[#153030] hover:text-teal-700"
+                                >
+                                    {{ party.gpay_number }}
+                                </a>
+
+                                <button
+                                    type="button"
+                                    data-copy-value="{{ party.gpay_number }}"
+                                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-400 transition hover:bg-teal-50 hover:text-[#153030]"
+                                    title="Copy G-Pay number"
+                                >
+                                    <i class="ri-file-copy-line"></i>
+                                </button>
+
+                            </div>
 
                         {% else %}
 
-                            <p class="mt-2 text-sm font-medium text-gray-300">
-                                Not Available
+                            <p class="mt-3 text-xs text-slate-400">
+                                Not available
                             </p>
 
                         {% endif %}
@@ -1064,22 +971,41 @@
 
 
                     <!-- Main UPI -->
-                    <div class="px-6 py-5">
+                    <div class="p-4 sm:p-5">
 
-                        <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
-                            UPI ID
-                        </p>
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 text-violet-700">
+                                <i class="ri-secure-payment-line"></i>
+                            </span>
+
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                Main UPI ID
+                            </p>
+                        </div>
 
                         {% if party.upi_id %}
 
-                            <p class="mt-2 break-all font-mono text-sm font-bold text-[#153030]">
-                                {{ party.upi_id }}
-                            </p>
+                            <div class="mt-3 flex items-start justify-between gap-2">
+
+                                <p class="min-w-0 break-all font-mono text-sm font-bold text-[#153030]">
+                                    {{ party.upi_id }}
+                                </p>
+
+                                <button
+                                    type="button"
+                                    data-copy-value="{{ party.upi_id }}"
+                                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-400 transition hover:bg-teal-50 hover:text-[#153030]"
+                                    title="Copy UPI ID"
+                                >
+                                    <i class="ri-file-copy-line"></i>
+                                </button>
+
+                            </div>
 
                         {% else %}
 
-                            <p class="mt-2 text-sm font-medium text-gray-300">
-                                Not Available
+                            <p class="mt-3 text-xs text-slate-400">
+                                Not available
                             </p>
 
                         {% endif %}
@@ -1088,126 +1014,155 @@
 
                 </div>
 
-            </div>
+            </section>
 
 
-            <!-- =================================================
-                 NOTES
-            ================================================== -->
-            {% if party.notes %}
+            <!-- NOTES -->
 
-                <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+            <section class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
 
-                    <div class="border-b border-gray-100 px-6 py-5">
+                <div class="flex items-center gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
 
-                        <div class="flex items-center gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+                        <i class="ri-sticky-note-line text-xl"></i>
+                    </span>
 
-                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF3F3] text-[#153030]">
-                                <svg
-                                    class="h-5 w-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="1.8"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V5z"
-                                    />
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M8 8h8M8 12h8M8 16h5"
-                                    />
-                                </svg>
+                    <div>
+                        <h2 class="text-sm font-extrabold text-[#153030]">
+                            Party Notes
+                        </h2>
+
+                        <p class="mt-0.5 text-[10px] text-slate-400">
+                            Additional information
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="p-4 sm:p-5">
+
+                    {% if party.notes %}
+
+                        <div class="rounded-xl border border-amber-100 bg-amber-50/60 p-4">
+
+                            <div class="mb-2 flex items-center gap-2 text-amber-700">
+                                <i class="ri-file-text-line"></i>
+                                <span class="text-[9px] font-extrabold uppercase tracking-wider">
+                                    Internal Note
+                                </span>
                             </div>
 
-                            <div>
-                                <h2 class="text-base font-bold text-[#153030]">
-                                    Notes
-                                </h2>
-
-                                <p class="mt-0.5 text-xs text-gray-400">
-                                    Additional information
-                                </p>
-                            </div>
+                            <p class="whitespace-pre-line break-words text-sm leading-6 text-slate-700">
+                                {{ party.notes }}
+                            </p>
 
                         </div>
 
-                    </div>
+                    {% else %}
+
+                        <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
+
+                            <i class="ri-sticky-note-line text-2xl text-slate-300"></i>
+
+                            <p class="mt-2 text-xs font-semibold text-slate-500">
+                                No notes available
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </section>
 
 
-                    <div class="px-6 py-6">
+            <!-- RECORD INFORMATION -->
 
-                        <p class="whitespace-pre-line text-sm leading-6 text-gray-600">
-                            {{ party.notes }}
+            <section class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+
+                <div class="flex items-center gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
+
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                        <i class="ri-information-line text-xl"></i>
+                    </span>
+
+                    <div>
+                        <h2 class="text-sm font-extrabold text-[#153030]">
+                            Record Information
+                        </h2>
+
+                        <p class="mt-0.5 text-[10px] text-slate-400">
+                            System record details
                         </p>
-
                     </div>
 
                 </div>
 
-            {% endif %}
+
+                <div class="divide-y divide-slate-100">
+
+                    <div class="flex items-start justify-between gap-3 px-4 py-4 sm:px-5">
+
+                        <span class="text-xs font-medium text-slate-400">
+                            Party ID
+                        </span>
+
+                        <span class="max-w-[65%] break-all text-right font-mono text-xs font-bold text-[#153030]">
+                            {{ party.pk }}
+                        </span>
+
+                    </div>
 
 
-            <!-- =================================================
-                 RECORD INFORMATION
-            ================================================== -->
-            <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                    <div class="flex items-start justify-between gap-3 px-4 py-4 sm:px-5">
 
-                <div class="border-b border-gray-100 px-6 py-5">
-
-                    <h2 class="text-base font-bold text-[#153030]">
-                        Record Information
-                    </h2>
-
-                </div>
-
-
-                <div class="divide-y divide-gray-100">
-
-                    <!-- Created -->
-                    <div class="flex items-center justify-between gap-4 px-6 py-4">
-
-                        <span class="text-xs font-medium text-gray-400">
-                            Created
+                        <span class="text-xs font-medium text-slate-400">
+                            Created On
                         </span>
 
                         <span class="text-right text-xs font-semibold text-[#153030]">
-                            {{ party.created_at|date:"d M Y, h:i A" }}
+                            {% if party.created_at %}
+                                {{ party.created_at|date:"d M Y, h:i A" }}
+                            {% else %}
+                                —
+                            {% endif %}
                         </span>
 
                     </div>
 
 
-                    <!-- Updated -->
-                    <div class="flex items-center justify-between gap-4 px-6 py-4">
+                    <div class="flex items-start justify-between gap-3 px-4 py-4 sm:px-5">
 
-                        <span class="text-xs font-medium text-gray-400">
+                        <span class="text-xs font-medium text-slate-400">
                             Last Updated
                         </span>
 
                         <span class="text-right text-xs font-semibold text-[#153030]">
-                            {{ party.updated_at|date:"d M Y, h:i A" }}
+                            {% if party.updated_at %}
+                                {{ party.updated_at|date:"d M Y, h:i A" }}
+                            {% else %}
+                                —
+                            {% endif %}
                         </span>
 
                     </div>
 
 
-                    <!-- Status -->
-                    <div class="flex items-center justify-between gap-4 px-6 py-4">
+                    <div class="flex items-center justify-between gap-3 px-4 py-4 sm:px-5">
 
-                        <span class="text-xs font-medium text-gray-400">
-                            Status
+                        <span class="text-xs font-medium text-slate-400">
+                            Account Status
                         </span>
 
                         {% if party.is_active %}
-                            <span class="rounded-full bg-green-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-green-700">
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                                 Active
                             </span>
                         {% else %}
-                            <span class="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-red-600">
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-bold text-red-600">
+                                <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
                                 Inactive
                             </span>
                         {% endif %}
@@ -1216,45 +1171,185 @@
 
                 </div>
 
-            </div>
+            </section>
 
-        </div>
+
+            <!-- CONTACT ACTIONS -->
+
+            <section class="overflow-hidden rounded-2xl border border-[#dce9e7] bg-[#f5f9f8] p-4 sm:p-5">
+
+                <div class="flex items-center gap-2">
+                    <i class="ri-customer-service-2-line text-lg text-[#153030]"></i>
+
+                    <h2 class="text-xs font-extrabold uppercase tracking-wider text-[#153030]">
+                        Quick Contact
+                    </h2>
+                </div>
+
+                <div class="mt-4 grid grid-cols-2 gap-2">
+
+                    {% if party.phone %}
+                        <a
+                            href="tel:{{ party.phone }}"
+                            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#153030] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#214747]"
+                        >
+                            <i class="ri-phone-line text-base"></i>
+                            Call Party
+                        </a>
+                    {% endif %}
+
+                    {% if party.email %}
+                        <a
+                            href="mailto:{{ party.email }}"
+                            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#dce9e7] bg-white px-3 py-2 text-xs font-bold text-[#153030] transition hover:bg-teal-50"
+                        >
+                            <i class="ri-mail-line text-base"></i>
+                            Send Email
+                        </a>
+                    {% endif %}
+
+                </div>
+
+                {% if not party.phone and not party.email %}
+                    <p class="mt-3 text-xs leading-5 text-slate-400">
+                        No phone number or email is available for this party.
+                    </p>
+                {% endif %}
+
+            </section>
+
+        </aside>
 
     </div>
 
 
-    <!-- =========================================================
-         FOOTER ACTIONS
-    ========================================================== -->
-    <div class="flex flex-col gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
 
-        <p class="text-xs text-gray-400">
-            Party ID:
-            <span class="font-mono text-gray-500">
-                {{ party.id }}
-            </span>
-        </p>
+    <footer class="flex flex-col gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
 
-        <div class="flex items-center gap-3">
+        <div>
+            <p class="text-xs font-extrabold text-[#153030]">
+                {{ party.name|default:"Party Profile" }}
+            </p>
 
-            <a
-                href="{% url 'party_list' %}"
-                class="inline-flex h-10 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-600 transition hover:border-gray-300 hover:bg-gray-50"
-            >
-                Back to Parties
-            </a>
-
-            <a
-                href="#"
-                class="inline-flex h-10 items-center justify-center rounded-xl bg-[#153030] px-5 text-sm font-semibold text-white transition hover:bg-[#0f2424]"
-            >
-                Edit Party
-            </a>
-
+            <p class="mt-1 text-[10px] font-medium uppercase tracking-[.14em] text-slate-400">
+                YAARLYNX · Party Management
+            </p>
         </div>
 
-    </div>
+        <a
+            href="{% url 'party_list' %}"
+            class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-xs font-bold text-slate-600 transition hover:border-[#153030] hover:bg-[#153030] hover:text-white"
+        >
+            <i class="ri-arrow-left-line text-base"></i>
+            Back to Party Directory
+        </a>
+
+    </footer>
 
 </div>
+
+
+<!-- =====================================================
+     COPY TO CLIPBOARD FEEDBACK
+====================================================== -->
+
+<div
+    id="partyCopyToast"
+    class="pointer-events-none fixed bottom-5 right-5 z-[100] hidden items-center gap-2 rounded-xl bg-[#153030] px-4 py-3 text-xs font-bold text-white shadow-xl"
+    role="status"
+    aria-live="polite"
+>
+    <i class="ri-checkbox-circle-fill text-emerald-300"></i>
+    <span id="partyCopyToastText">Copied successfully</span>
+</div>
+
+
+<script>
+(function () {
+    "use strict";
+
+    const copyButtons = document.querySelectorAll("[data-copy-value]");
+    const toast = document.getElementById("partyCopyToast");
+    const toastText = document.getElementById("partyCopyToastText");
+
+    let toastTimer = null;
+
+    async function copyText(value) {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(value);
+            return;
+        }
+
+        const textarea = document.createElement("textarea");
+
+        textarea.value = value;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+
+        document.body.appendChild(textarea);
+
+        textarea.select();
+
+        const copied = document.execCommand("copy");
+
+        textarea.remove();
+
+        if (!copied) {
+            throw new Error("Copy operation failed.");
+        }
+    }
+
+    function showToast(message) {
+        if (!toast || !toastText) return;
+
+        toastText.textContent = message;
+
+        toast.classList.remove("hidden");
+        toast.classList.add("flex");
+
+        clearTimeout(toastTimer);
+
+        toastTimer = setTimeout(function () {
+            toast.classList.add("hidden");
+            toast.classList.remove("flex");
+        }, 2200);
+    }
+
+    copyButtons.forEach(function (button) {
+        button.addEventListener("click", async function () {
+            const value = button.dataset.copyValue;
+
+            if (!value) return;
+
+            try {
+                await copyText(value);
+                showToast("Copied to clipboard");
+
+                const icon = button.querySelector("i");
+
+                if (icon) {
+                    icon.classList.remove("ri-file-copy-line");
+                    icon.classList.add("ri-check-line");
+
+                    setTimeout(function () {
+                        icon.classList.remove("ri-check-line");
+                        icon.classList.add("ri-file-copy-line");
+                    }, 1200);
+                }
+
+            } catch (error) {
+                console.error("Unable to copy value:", error);
+                showToast("Unable to copy. Please copy manually.");
+            }
+        });
+    });
+
+})();
+</script>
+
+{% endwith %}
 
 {% endblock %}

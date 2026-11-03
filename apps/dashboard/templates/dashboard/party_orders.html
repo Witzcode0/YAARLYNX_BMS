@@ -1,1210 +1,806 @@
 {% extends "dashboard/layout.html" %}
 
 {% block title %}Party Orders | Yaarlynx{% endblock %}
-
 {% block page_heading %}Party Orders{% endblock %}
 
 {% block content %}
-
-
 <style>
-/* ================================================================
-   Yaarlynx Party Orders — isolated page styles
-   Everything is scoped to .yl-party-orders so dashboard/layout.html
-   cannot override the card/grid system.
-   ================================================================ */
-
-.yl-party-orders {
-    --yl-brand: #153030;
-    --yl-brand-2: #214646;
-    --yl-bg: #f6f8f8;
-    --yl-card: #ffffff;
-    --yl-line: #e7ecec;
-    --yl-text: #153030;
-    --yl-muted: #718080;
-    --yl-shadow: 0 8px 28px rgba(21, 48, 48, .055);
-    --yl-shadow-hover: 0 16px 40px rgba(21, 48, 48, .10);
+/* =============================================================
+   YAARLYNX | PARTY PURCHASE LEDGER
+   Premium account header + KPI tiles + continuous timeline.
+   Purchase rows are ledger entries, not individual order cards.
+   All styles are isolated under .yl-ledger.
+   ============================================================= */
+.yl-ledger {
+    --ink: #153030;
+    --ink-2: #294747;
+    --muted: #748585;
+    --line: #e7eded;
+    --soft: #f5f8f8;
+    --green: #16804a;
+    --red: #c54149;
+    --amber: #a86c17;
     width: 100%;
     min-width: 0;
-    color: var(--yl-text);
+    color: var(--ink);
 }
-
-.yl-party-orders,
-.yl-party-orders * {
-    box-sizing: border-box;
-}
-
-.yl-party-orders .yl-container {
+.yl-ledger, .yl-ledger * { box-sizing: border-box; }
+.yl-ledger .ledger-wrap {
     width: 100%;
-    max-width: 1600px;
+    max-width: 1580px;
     margin: 0 auto;
-    padding: 20px 16px 32px;
+    padding: 18px 16px 36px;
 }
 
-.yl-party-orders .yl-header {
-    width: 100%;
+/* Premium page masthead */
+.yl-ledger .ledger-hero {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 18px;
-    margin-bottom: 20px;
-    border: 1px solid var(--yl-line);
-    border-radius: 20px;
-    background: rgba(255,255,255,.96);
-    box-shadow: var(--yl-shadow);
-}
-
-.yl-party-orders .yl-header-main {
+    gap: 24px;
     min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 13px;
+    overflow: hidden;
+    padding: 25px 27px;
+    border-radius: 18px;
+    color: #fff;
+    background: linear-gradient(118deg, #102727 0%, #153939 58%, #245252 100%);
+    box-shadow: 0 14px 34px rgba(21, 48, 48, .14);
 }
-
-.yl-party-orders .yl-avatar {
-    flex: 0 0 auto;
-    width: 50px;
-    height: 50px;
-    display: grid;
-    place-items: center;
-    border-radius: 15px;
-    color: var(--yl-brand);
-    background: #edf2f2;
+.yl-ledger .ledger-hero::before,
+.yl-ledger .ledger-hero::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 50%;
 }
-
-.yl-party-orders .yl-title-wrap {
-    min-width: 0;
+.yl-ledger .ledger-hero::before { width: 250px; height: 250px; right: 11%; top: -170px; }
+.yl-ledger .ledger-hero::after { width: 320px; height: 320px; right: 4%; top: -190px; }
+.yl-ledger .hero-copy { position: relative; z-index: 1; min-width: 0; }
+.yl-ledger .hero-eyebrow {
+    margin: 0 0 8px;
+    color: #a9c2c0;
+    font-size: 9px;
+    line-height: 1.3;
+    font-weight: 850;
+    letter-spacing: .16em;
+    text-transform: uppercase;
 }
-
-.yl-party-orders .yl-title {
+.yl-ledger .hero-title {
     margin: 0;
-    color: var(--yl-text);
-    font-size: clamp(20px, 2.2vw, 29px);
-    line-height: 1.2;
-    font-weight: 800;
-    letter-spacing: -.025em;
+    color: #fff;
+    font-size: clamp(23px, 3vw, 34px);
+    line-height: 1.12;
+    font-weight: 850;
+    letter-spacing: -.04em;
     overflow-wrap: anywhere;
 }
-
-.yl-party-orders .yl-subtitle {
-    margin: 5px 0 0;
-    color: var(--yl-muted);
-    font-size: 13px;
-    line-height: 1.4;
+.yl-ledger .hero-description {
+    margin: 8px 0 0;
+    max-width: 620px;
+    color: #c3d2d1;
+    font-size: 12px;
+    line-height: 1.55;
 }
-
-.yl-party-orders .yl-back {
+.yl-ledger .hero-side {
+    position: relative;
+    z-index: 1;
     flex: 0 0 auto;
-    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.yl-ledger .hero-account {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 12px;
+    border: 1px solid rgba(255,255,255,.17);
+    border-radius: 11px;
+    background: rgba(255,255,255,.08);
+    color: #e6efee;
+    font-size: 10px;
+    font-weight: 750;
+    white-space: nowrap;
+}
+.yl-ledger .hero-account-mark {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #7ed4a3; box-shadow: 0 0 0 4px rgba(126,212,163,.13);
+}
+.yl-ledger .hero-back {
+    min-height: 39px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 15px;
-    border: 1px solid #dfe5e5;
-    border-radius: 12px;
-    background: #fff;
-    color: var(--yl-brand);
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: .2s ease;
-}
-
-.yl-party-orders .yl-back:hover {
+    padding: 9px 13px;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 10px;
     color: #fff;
-    background: var(--yl-brand);
-    border-color: var(--yl-brand);
-}
-
-/* Summary */
-.yl-party-orders .yl-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
-    margin-bottom: 26px;
-}
-
-.yl-party-orders .yl-summary-card {
-    min-width: 0;
-    position: relative;
-    overflow: hidden;
-    padding: 17px;
-    border: 1px solid var(--yl-line);
-    border-radius: 18px;
-    background: var(--yl-card);
-    box-shadow: var(--yl-shadow);
-    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-}
-
-.yl-party-orders .yl-summary-card::after {
-    content: "";
-    position: absolute;
-    right: -24px;
-    bottom: -28px;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: var(--yl-brand-soft, rgba(21,48,48,.05));
-    pointer-events: none;
-}
-
-.yl-party-orders .yl-summary-card:hover {
-    transform: translateY(-2px);
-    border-color: #d9e1e1;
-    box-shadow: var(--yl-shadow-hover);
-}
-
-.yl-party-orders .yl-summary-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.yl-party-orders .yl-summary-label {
-    margin: 0;
-    color: #899696;
-    font-size: 10px;
-    line-height: 1.35;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .09em;
-}
-
-.yl-party-orders .yl-summary-value {
-    margin: 7px 0 0;
-    color: var(--yl-brand);
-    font-size: clamp(20px, 2vw, 27px);
-    line-height: 1.15;
-    font-weight: 800;
-    overflow-wrap: anywhere;
-}
-
-.yl-party-orders .yl-summary-note {
-    margin: 5px 0 0;
-    color: #9aa5a5;
+    background: rgba(255,255,255,.10);
     font-size: 11px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: background .18s ease, border-color .18s ease;
 }
+.yl-ledger .hero-back:hover { background: rgba(255,255,255,.19); border-color: rgba(255,255,255,.4); }
 
-.yl-party-orders .yl-summary-icon {
-    flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
-    display: grid;
-    place-items: center;
-    border-radius: 12px;
-}
-
-/* Section heading */
-.yl-party-orders .yl-section-head {
+/* Separate KPI tiles: only the summary is card-based. */
+.yl-ledger .overview-head {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 12px;
+    margin: 23px 0 11px;
 }
-
-.yl-party-orders .yl-section-title {
+.yl-ledger .section-kicker {
+    margin: 0 0 4px;
+    color: #8a9999;
+    font-size: 9px;
+    line-height: 1.3;
+    font-weight: 850;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+}
+.yl-ledger .overview-title,
+.yl-ledger .activity-title {
     margin: 0;
-    color: var(--yl-brand);
-    font-size: 17px;
-    font-weight: 800;
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 850;
+    letter-spacing: -.02em;
 }
-
-.yl-party-orders .yl-section-note {
-    margin: 4px 0 0;
-    color: var(--yl-muted);
-    font-size: 12px;
-}
-
-/* Order grid — explicit CSS, independent of Tailwind */
-.yl-party-orders .yl-orders-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
-    width: 100%;
-}
-
-/* Order card */
-.yl-party-orders .yl-order-card {
-    min-width: 0;
-    width: 100%;
-    overflow: hidden;
-    border: 1px solid var(--yl-line);
-    border-radius: 20px;
-    background: #fff;
-    box-shadow: var(--yl-shadow);
-    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-}
-
-.yl-party-orders .yl-order-card:hover {
-    transform: translateY(-2px);
-    border-color: #d8e0e0;
-    box-shadow: var(--yl-shadow-hover);
-}
-
-.yl-party-orders .yl-order-head {
-    min-width: 0;
-    padding: 16px;
-    border-bottom: 1px solid #eef1f1;
-}
-
-.yl-party-orders .yl-order-head-row {
-    min-width: 0;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.yl-party-orders .yl-order-identity {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 11px;
-}
-
-.yl-party-orders .yl-order-icon {
-    flex: 0 0 auto;
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    border-radius: 13px;
-    background: #edf2f2;
-    color: var(--yl-brand);
-}
-
-.yl-party-orders .yl-order-label {
-    margin: 0 0 3px;
-    color: #96a0a0;
+.yl-ledger .overview-caption {
+    color: #91a0a0;
     font-size: 10px;
-    font-weight: 700;
 }
-
-.yl-party-orders .yl-order-number {
-    margin: 0;
-    color: var(--yl-brand);
-    font-size: 15px;
-    line-height: 1.35;
-    font-weight: 800;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-.yl-party-orders .yl-status {
-    flex: 0 0 auto;
-    max-width: 145px;
-    padding: 5px 9px;
-    border-radius: 999px;
-    font-size: 10px;
-    line-height: 1.2;
-    font-weight: 800;
-    white-space: normal;
-    text-align: center;
-}
-
-.yl-party-orders .yl-order-body {
-    min-width: 0;
-    padding: 16px;
-}
-
-.yl-party-orders .yl-details {
+.yl-ledger .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
 }
-
-.yl-party-orders .yl-detail {
+.yl-ledger .kpi {
+    position: relative;
     min-width: 0;
-    padding: 10px;
-    border: 1px solid #eef1f1;
-    border-radius: 12px;
-    background: #fafcfc;
-}
-
-.yl-party-orders .yl-detail-label {
-    margin: 0;
-    color: #96a0a0;
-    font-size: 9px;
-    line-height: 1.3;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-}
-
-.yl-party-orders .yl-detail-value {
-    min-width: 0;
-    margin: 5px 0 0;
-    color: #364848;
-    font-size: 12px;
-    line-height: 1.4;
-    font-weight: 700;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-/* GST */
-.yl-party-orders .yl-tax {
-    margin-top: 14px;
     overflow: hidden;
-    border: 1px solid #d8eee2;
-    border-radius: 14px;
-    background: #f5fbf7;
+    padding: 15px 16px 14px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(21,48,48,.035);
 }
-
-.yl-party-orders .yl-tax-head {
+.yl-ledger .kpi::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: #9aabab;
+}
+.yl-ledger .kpi.kpi-purchase::before { background: #527979; }
+.yl-ledger .kpi.kpi-paid::before { background: #27945e; }
+.yl-ledger .kpi.kpi-due::before { background: #d35b60; }
+.yl-ledger .kpi-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 11px 13px;
-    border-bottom: 1px solid #dcefe3;
+    gap: 8px;
 }
-
-.yl-party-orders .yl-tax-title {
+.yl-ledger .kpi-label {
     margin: 0;
-    color: #17633f;
-    font-size: 11px;
-    font-weight: 800;
-}
-
-.yl-party-orders .yl-tax-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.yl-party-orders .yl-tax-item {
-    min-width: 0;
-    padding: 12px 13px;
-}
-
-.yl-party-orders .yl-tax-item + .yl-tax-item {
-    border-left: 1px solid #dcefe3;
-}
-
-.yl-party-orders .yl-tax-label {
-    color: #5e9276;
+    color: #839292;
     font-size: 9px;
-    font-weight: 800;
+    line-height: 1.35;
+    font-weight: 850;
+    letter-spacing: .085em;
     text-transform: uppercase;
 }
-
-.yl-party-orders .yl-tax-rate {
-    margin-top: 3px;
-    color: #164c35;
-    font-size: 13px;
-    font-weight: 800;
+.yl-ledger .kpi-icon {
+    flex: 0 0 auto;
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    border-radius: 9px;
+    color: #315656;
+    background: #edf3f3;
 }
-
-.yl-party-orders .yl-tax-amount {
-    margin-top: 1px;
-    color: #4c8067;
-    font-size: 10px;
+.yl-ledger .kpi-purchase .kpi-icon { color: #315eaa; background: #eef4ff; }
+.yl-ledger .kpi-paid .kpi-icon { color: #16804a; background: #eaf7ef; }
+.yl-ledger .kpi-due .kpi-icon { color: #c54149; background: #fff0f0; }
+.yl-ledger .kpi-value {
+    margin: 9px 0 0;
+    color: var(--ink);
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1.15;
+    font-weight: 900;
+    letter-spacing: -.035em;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
 }
-
-.yl-party-orders .yl-nongst {
-    margin-top: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 11px 13px;
-    border: 1px solid #e5e9e9;
-    border-radius: 14px;
-    background: #f8fafa;
-}
-
-.yl-party-orders .yl-nongst-text {
-    min-width: 0;
-}
-
-.yl-party-orders .yl-nongst-title {
-    margin: 0;
-    color: #4b5959;
-    font-size: 11px;
-    font-weight: 800;
-}
-
-.yl-party-orders .yl-nongst-note {
-    margin: 2px 0 0;
-    color: #899494;
-    font-size: 10px;
+.yl-ledger .kpi-paid .kpi-value { color: var(--green); }
+.yl-ledger .kpi-due .kpi-value { color: var(--red); }
+.yl-ledger .kpi-foot {
+    margin: 5px 0 0;
+    color: #9aa6a6;
+    font-size: 9px;
     line-height: 1.4;
 }
 
-/* Finance */
-.yl-party-orders .yl-finance {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: 14px;
-    overflow: hidden;
-    border: 1px solid #e9eeee;
-    border-radius: 14px;
-    background: #fafbfb;
+/* Activity heading */
+.yl-ledger .activity-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 29px 0 10px;
+}
+.yl-ledger .activity-caption {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+.yl-ledger .activity-count {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border: 1px solid #e1e9e9;
+    border-radius: 999px;
+    color: #647575;
+    background: #fff;
+    font-size: 10px;
+    font-weight: 850;
 }
 
-.yl-party-orders .yl-finance-item {
+/* Continuous timeline ledger. No per-order card backgrounds/borders. */
+.yl-ledger .timeline {
+    position: relative;
     min-width: 0;
-    padding: 12px 13px;
+    border-top: 1px solid #dfe8e8;
 }
-
-.yl-party-orders .yl-finance-item + .yl-finance-item {
-    border-left: 1px solid #e9eeee;
+.yl-ledger .timeline-entry {
+    position: relative;
+    display: grid;
+    grid-template-columns: 94px 30px minmax(0, 1fr);
+    min-width: 0;
+    border-bottom: 1px solid var(--line);
 }
-
-.yl-party-orders .yl-finance-label {
-    color: #8b9696;
-    font-size: 9px;
-    font-weight: 800;
+.yl-ledger .timeline-date {
+    padding: 23px 12px 19px 0;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.yl-ledger .date-day {
+    display: block;
+    color: var(--ink);
+    font-size: 21px;
+    line-height: 1;
+    font-weight: 900;
+}
+.yl-ledger .date-month {
+    display: block;
+    margin-top: 5px;
+    color: #607575;
+    font-size: 10px;
+    line-height: 1.2;
+    font-weight: 850;
+    letter-spacing: .08em;
     text-transform: uppercase;
-    letter-spacing: .05em;
 }
-
-.yl-party-orders .yl-finance-value {
+.yl-ledger .date-year {
+    display: block;
     margin-top: 4px;
-    font-size: 14px;
+    color: #a2adad;
+    font-size: 9px;
+}
+.yl-ledger .timeline-rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+.yl-ledger .timeline-rail::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: #e3ebeb;
+}
+.yl-ledger .timeline-entry:first-child .timeline-rail::before { top: 27px; }
+.yl-ledger .timeline-entry:last-child .timeline-rail::before { bottom: calc(100% - 28px); }
+.yl-ledger .timeline-dot {
+    position: relative;
+    z-index: 1;
+    width: 13px; height: 13px;
+    margin-top: 27px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    background: #668484;
+    box-shadow: 0 0 0 2px #dce7e7;
+}
+.yl-ledger .timeline-entry.is-paid .timeline-dot { background: #23945b; box-shadow: 0 0 0 2px #d9eee2; }
+.yl-ledger .timeline-entry.is-partial .timeline-dot { background: #d18a2d; box-shadow: 0 0 0 2px #f2e5d0; }
+.yl-ledger .timeline-entry.is-unpaid .timeline-dot { background: #d35b60; box-shadow: 0 0 0 2px #f5dddd; }
+
+.yl-ledger .entry-main {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 225px;
+    gap: 22px;
+    padding: 19px 5px 18px 12px;
+}
+.yl-ledger .entry-content { min-width: 0; }
+.yl-ledger .entry-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px 9px;
+    min-width: 0;
+}
+.yl-ledger .entry-type {
+    color: #9aa6a6;
+    font-size: 8px;
     line-height: 1.3;
-    font-weight: 800;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+.yl-ledger .entry-number {
+    margin: 0;
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 900;
     overflow-wrap: anywhere;
 }
-
-/* Progress */
-.yl-party-orders .yl-progress {
-    margin-top: 13px;
+.yl-ledger .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 100%;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 8px;
+    line-height: 1.35;
+    font-weight: 900;
+    white-space: normal;
 }
+.yl-ledger .status::before { content: ""; width: 5px; height: 5px; flex: 0 0 auto; border-radius: 50%; background: currentColor; }
+.yl-ledger .s-draft { color: #59636d; background: #eef1f3; }
+.yl-ledger .s-confirmed { color: #245fbd; background: #edf4ff; }
+.yl-ledger .s-received { color: #167447; background: #eaf7ef; }
+.yl-ledger .s-partial { color: #94600d; background: #fff5df; }
+.yl-ledger .s-cancelled { color: #b43139; background: #fff0f0; }
+.yl-ledger .s-other { color: #536767; background: #eff4f4; }
+.yl-ledger .p-paid { color: #167447; background: #eaf7ef; }
+.yl-ledger .p-partial { color: #94600d; background: #fff5df; }
+.yl-ledger .p-unpaid { color: #b43139; background: #fff0f0; }
 
-.yl-party-orders .yl-progress-head {
+.yl-ledger .entry-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 17px;
+    margin-top: 10px;
+    color: #7c8a8a;
+    font-size: 10px;
+    line-height: 1.5;
+}
+.yl-ledger .entry-meta strong { color: #435858; font-weight: 850; }
+.yl-ledger .meta-piece { min-width: 0; overflow-wrap: anywhere; }
+.yl-ledger .tax-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    margin-top: 11px;
+    padding: 8px 10px;
+    border-left: 2px solid #abd4b9;
+    border-radius: 0 7px 7px 0;
+    color: #567b65;
+    background: #f4faf6;
+    font-size: 9px;
+    line-height: 1.5;
+}
+.yl-ledger .tax-summary strong { color: #25583c; font-weight: 900; }
+.yl-ledger .tax-summary.nongst { border-left-color: #d6dfdf; color: #7b8989; background: #f6f8f8; }
+
+/* Right aligned amount column gives ledger/account-statement appearance. */
+.yl-ledger .entry-amounts {
+    min-width: 0;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 18px;
+    border-left: 1px solid #edf1f1;
+}
+.yl-ledger .amount-label {
+    color: #899696;
+    font-size: 8px;
+    line-height: 1.3;
+    font-weight: 900;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+.yl-ledger .grand-total {
+    display: block;
+    margin-top: 5px;
+    color: var(--ink);
+    font-size: 21px;
+    line-height: 1.15;
+    font-weight: 900;
+    letter-spacing: -.035em;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+}
+.yl-ledger .amount-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-top: 12px;
+}
+.yl-ledger .amount-item { min-width: 0; }
+.yl-ledger .amount-item-label {
+    display: block;
+    color: #99a4a4;
+    font-size: 8px;
+    line-height: 1.3;
+    font-weight: 850;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+.yl-ledger .amount-item-value {
+    display: block;
+    margin-top: 4px;
+    color: var(--green);
+    font-size: 11px;
+    line-height: 1.35;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+}
+.yl-ledger .amount-item-value.due { color: var(--red); }
+.yl-ledger .payment-track {
+    height: 5px;
+    margin-top: 11px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: #eaf0f0;
+}
+.yl-ledger .payment-fill { height: 100%; max-width: 100%; border-radius: inherit; background: #27945e; }
+.yl-ledger .payment-progress-label {
     display: flex;
     justify-content: space-between;
     gap: 8px;
-    margin-bottom: 6px;
-}
-
-.yl-party-orders .yl-progress-label,
-.yl-party-orders .yl-progress-percent {
-    font-size: 9px;
+    margin-top: 5px;
+    color: #98a3a3;
+    font-size: 8px;
     font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .06em;
 }
 
-.yl-party-orders .yl-progress-label {
-    color: #99a3a3;
-}
-
-.yl-party-orders .yl-progress-percent {
-    color: var(--yl-brand);
-}
-
-.yl-party-orders .yl-progress-track {
-    width: 100%;
-    height: 7px;
-    overflow: hidden;
-    border-radius: 999px;
-    background: #edf1f1;
-}
-
-.yl-party-orders .yl-progress-bar {
-    height: 100%;
-    min-width: 0;
-    max-width: 100%;
-    border-radius: inherit;
-    background: var(--yl-brand);
-}
-
-/* Footer */
-.yl-party-orders .yl-order-footer {
-    min-width: 0;
+/* Document and actions remain part of the timeline entry. */
+.yl-ledger .entry-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-top: 14px;
-    padding-top: 13px;
-    border-top: 1px solid #eef1f1;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed #e8eeee;
 }
-
-.yl-party-orders .yl-doc {
-    min-width: 0;
-    max-width: 60%;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.yl-party-orders .yl-doc-link {
+.yl-ledger .document-link,
+.yl-ledger .document-missing {
     min-width: 0;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    max-width: 100%;
-    padding: 7px 10px;
-    border: 1px solid #dfe5e5;
-    border-radius: 9px;
-    color: var(--yl-brand);
-    background: #fff;
-    font-size: 10px;
+    gap: 6px;
+    color: #5c7474;
+    font-size: 9px;
+    line-height: 1.4;
     font-weight: 800;
     text-decoration: none;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
-
-.yl-party-orders .yl-doc-link span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.yl-party-orders .yl-doc-empty {
-    padding: 7px 10px;
-    border-radius: 9px;
-    background: #f5f7f7;
-    color: #a0aaaa;
-    font-size: 10px;
-    font-weight: 700;
-}
-
-.yl-party-orders .yl-actions {
-    flex: 0 0 auto;
-    display: flex;
+.yl-ledger .document-link:hover { color: var(--ink); text-decoration: underline; }
+.yl-ledger .document-missing { color: #a0aaaa; font-weight: 650; }
+.yl-ledger .entry-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 7px; }
+.yl-ledger .entry-action {
+    min-height: 30px;
+    display: inline-flex;
     align-items: center;
-    gap: 7px;
-}
-
-.yl-party-orders .yl-action {
-    width: 38px;
-    height: 38px;
-    display: grid;
-    place-items: center;
-    border: 1px solid #e0e6e6;
-    border-radius: 10px;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border: 1px solid #dfe7e7;
+    border-radius: 8px;
+    color: #456060;
     background: #fff;
-    color: #667474;
+    font-size: 9px;
+    line-height: 1;
+    font-weight: 850;
     text-decoration: none;
-    transition: .2s ease;
+    transition: color .18s ease, background .18s ease, border-color .18s ease;
 }
+.yl-ledger .entry-action:hover { color: #fff; border-color: var(--ink); background: var(--ink); }
 
-.yl-party-orders .yl-action:hover {
-    color: #fff;
-    background: var(--yl-brand);
-    border-color: var(--yl-brand);
-}
-
-.yl-party-orders .yl-order-count {
-    color: #9aa4a4;
-    font-size: 10px;
-    font-weight: 700;
-}
-
-/* Empty */
-.yl-party-orders .yl-empty {
-    grid-column: 1 / -1;
-    padding: 54px 20px;
-    border: 1px dashed #dce2e2;
-    border-radius: 20px;
-    background: #fff;
+/* Empty state */
+.yl-ledger .empty-ledger {
+    padding: 58px 20px;
+    border-bottom: 1px solid var(--line);
     text-align: center;
 }
-
-.yl-party-orders .yl-empty-icon {
-    width: 62px;
-    height: 62px;
-    margin: 0 auto;
-    display: grid;
-    place-items: center;
-    border-radius: 18px;
-    background: #f0f3f3;
-    color: #94a0a0;
+.yl-ledger .empty-icon {
+    width: 54px; height: 54px;
+    display: grid; place-items: center;
+    margin: 0 auto 13px;
+    border-radius: 16px;
+    color: #718585;
+    background: #eff4f4;
 }
+.yl-ledger .empty-title { margin: 0; color: var(--ink); font-size: 16px; font-weight: 900; }
+.yl-ledger .empty-text { max-width: 420px; margin: 7px auto 0; color: #879494; font-size: 11px; line-height: 1.6; }
 
-.yl-party-orders .yl-empty-title {
-    margin: 14px 0 0;
-    color: var(--yl-brand);
-    font-size: 17px;
-    font-weight: 800;
+/* Responsive behavior */
+@media (max-width: 1050px) {
+    .yl-ledger .entry-main { grid-template-columns: minmax(0, 1fr) 195px; gap: 15px; }
+    .yl-ledger .entry-amounts { padding-left: 14px; }
 }
-
-.yl-party-orders .yl-empty-note {
-    max-width: 430px;
-    margin: 6px auto 0;
-    color: #879292;
-    font-size: 12px;
-    line-height: 1.5;
+@media (max-width: 760px) {
+    .yl-ledger .ledger-wrap { padding: 14px 12px 28px; }
+    .yl-ledger .ledger-hero { align-items: flex-start; flex-direction: column; padding: 22px 20px; }
+    .yl-ledger .hero-side { width: 100%; justify-content: space-between; }
+    .yl-ledger .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .yl-ledger .entry-main { grid-template-columns: minmax(0, 1fr); gap: 13px; padding: 16px 4px 16px 8px; }
+    .yl-ledger .entry-amounts { padding: 12px 0 0; border-left: 0; border-top: 1px solid #edf1f1; }
+    .yl-ledger .amount-pair { max-width: 340px; }
+    .yl-ledger .payment-track { max-width: 440px; }
 }
-
-/* Tablet */
-@media (max-width: 1100px) {
-    .yl-party-orders .yl-summary-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .yl-party-orders .yl-orders-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .yl-party-orders .yl-order-card {
-        max-width: none;
-    }
-}
-
-/* Small tablet / mobile */
-@media (max-width: 700px) {
-    .yl-party-orders .yl-container {
-        padding: 14px 12px 24px;
-    }
-
-    .yl-party-orders .yl-header {
-        align-items: stretch;
-        flex-direction: column;
-        padding: 14px;
-        border-radius: 17px;
-    }
-
-    .yl-party-orders .yl-back {
-        width: 100%;
-    }
-
-    .yl-party-orders .yl-summary-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .yl-party-orders .yl-summary-card {
-        padding: 13px;
-        border-radius: 15px;
-    }
-
-    .yl-party-orders .yl-summary-icon {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-    }
-
-    .yl-party-orders .yl-details {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .yl-party-orders .yl-order-head,
-    .yl-party-orders .yl-order-body {
-        padding: 14px;
-    }
-
-    .yl-party-orders .yl-order-head-row {
-        gap: 8px;
-    }
-
-    .yl-party-orders .yl-status {
-        max-width: 112px;
-    }
-}
-
-/* Phones */
 @media (max-width: 480px) {
-    .yl-party-orders .yl-summary-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .yl-party-orders .yl-summary-value {
-        font-size: 18px;
-    }
-
-    .yl-party-orders .yl-summary-note {
-        font-size: 10px;
-    }
-
-    .yl-party-orders .yl-order-identity {
-        align-items: flex-start;
-    }
-
-    .yl-party-orders .yl-order-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 11px;
-    }
-
-    .yl-party-orders .yl-order-number {
-        font-size: 13px;
-    }
-
-    .yl-party-orders .yl-details,
-    .yl-party-orders .yl-tax-grid,
-    .yl-party-orders .yl-finance {
-        grid-template-columns: 1fr;
-    }
-
-    .yl-party-orders .yl-tax-item + .yl-tax-item,
-    .yl-party-orders .yl-finance-item + .yl-finance-item {
-        border-left: 0;
-        border-top: 1px solid #dcefe3;
-    }
-
-    .yl-party-orders .yl-finance-item + .yl-finance-item {
-        border-top-color: #e9eeee;
-    }
-
-    .yl-party-orders .yl-order-footer {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .yl-party-orders .yl-doc {
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .yl-party-orders .yl-doc-link,
-    .yl-party-orders .yl-doc-empty {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .yl-party-orders .yl-actions {
-        width: 100%;
-    }
-
-    .yl-party-orders .yl-action {
-        flex: 1;
-        width: auto;
-    }
+    .yl-ledger .ledger-wrap { padding: 11px 9px 22px; }
+    .yl-ledger .ledger-hero { gap: 17px; padding: 19px 16px; border-radius: 14px; }
+    .yl-ledger .hero-title { font-size: 24px; }
+    .yl-ledger .hero-description { font-size: 11px; }
+    .yl-ledger .hero-side { align-items: stretch; flex-direction: column; }
+    .yl-ledger .hero-account, .yl-ledger .hero-back { justify-content: center; width: 100%; }
+    .yl-ledger .overview-head { margin-top: 20px; }
+    .yl-ledger .kpi-grid { gap: 8px; }
+    .yl-ledger .kpi { padding: 12px 11px; border-radius: 11px; }
+    .yl-ledger .kpi-icon { width: 27px; height: 27px; }
+    .yl-ledger .kpi-label { font-size: 8px; }
+    .yl-ledger .kpi-value { font-size: 16px; }
+    .yl-ledger .kpi-foot { font-size: 8px; }
+    .yl-ledger .activity-head { align-items: flex-start; margin-top: 24px; }
+    .yl-ledger .activity-title { font-size: 15px; }
+    .yl-ledger .activity-caption { font-size: 10px; }
+    .yl-ledger .timeline-entry { grid-template-columns: 47px 17px minmax(0, 1fr); }
+    .yl-ledger .timeline-date { padding: 19px 3px 12px 0; }
+    .yl-ledger .date-day { font-size: 15px; }
+    .yl-ledger .date-month, .yl-ledger .date-year { font-size: 8px; }
+    .yl-ledger .timeline-dot { width: 11px; height: 11px; margin-top: 21px; }
+    .yl-ledger .timeline-entry:first-child .timeline-rail::before { top: 21px; }
+    .yl-ledger .timeline-entry:last-child .timeline-rail::before { bottom: calc(100% - 22px); }
+    .yl-ledger .entry-main { padding: 14px 1px 14px 7px; }
+    .yl-ledger .entry-heading { gap: 6px; }
+    .yl-ledger .entry-number { font-size: 12px; }
+    .yl-ledger .entry-meta { gap: 5px 10px; margin-top: 8px; font-size: 9px; }
+    .yl-ledger .tax-summary { gap: 5px 9px; padding: 7px 8px; font-size: 8px; }
+    .yl-ledger .grand-total { font-size: 19px; }
+    .yl-ledger .entry-footer { align-items: flex-start; flex-direction: column; }
+    .yl-ledger .entry-actions { width: 100%; }
+    .yl-ledger .entry-action { flex: 1; }
+    .yl-ledger .activity-count { font-size: 9px; padding: 5px 7px; }
 }
-
-/* Very small phones */
-@media (max-width: 350px) {
-    .yl-party-orders .yl-container {
-        padding-left: 8px;
-        padding-right: 8px;
-    }
-
-    .yl-party-orders .yl-summary-grid {
-        gap: 7px;
-    }
-
-    .yl-party-orders .yl-summary-card {
-        padding: 10px;
-    }
-
-    .yl-party-orders .yl-summary-label {
-        font-size: 8px;
-    }
-
-    .yl-party-orders .yl-summary-value {
-        font-size: 16px;
-    }
+@media (max-width: 340px) {
+    .yl-ledger .timeline-entry { grid-template-columns: 39px 14px minmax(0, 1fr); }
+    .yl-ledger .kpi { padding-left: 8px; padding-right: 8px; }
+    .yl-ledger .kpi-icon { display: none; }
+    .yl-ledger .kpi-value { font-size: 14px; }
+    .yl-ledger .entry-action { padding-left: 6px; padding-right: 6px; font-size: 8px; }
 }
-
 @media (prefers-reduced-motion: reduce) {
-    .yl-party-orders *,
-    .yl-party-orders *::before,
-    .yl-party-orders *::after {
-        transition: none !important;
-        scroll-behavior: auto !important;
-    }
+    .yl-ledger *, .yl-ledger *::before, .yl-ledger *::after { transition: none !important; }
 }
 </style>
 
+<div class="yl-ledger">
+    <div class="ledger-wrap">
 
-<div class="yl-party-orders">
-    <div class="yl-container">
-
-        <!-- HEADER -->
-        <header class="yl-header">
-            <div class="yl-header-main">
-                <div class="yl-avatar" aria-hidden="true">
-                    <svg width="23" height="23" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M22 21v-2a4 4 0 00-3-3.87"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 3.13a4 4 0 010 7.75"/>
-                    </svg>
-                </div>
-
-                <div class="yl-title-wrap">
-                    <h1 class="yl-title">{{ party.name }}</h1>
-                    <p class="yl-subtitle">Purchase orders and payment history</p>
-                </div>
+        <!-- PARTY ACCOUNT HEADER -->
+        <header class="ledger-hero">
+            <div class="hero-copy">
+                <p class="hero-eyebrow">Yaarlynx / Supplier account / Purchase ledger</p>
+                <h1 class="hero-title">{{ party.name }}</h1>
+                <p class="hero-description">A clear view of purchase activity, supplier invoices and outstanding payments.</p>
             </div>
-
-            <a href="{% url 'party_list' %}" class="yl-back">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7 7-7"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18"/>
-                </svg>
-                Back to Parties
-            </a>
+            <div class="hero-side">
+                <span class="hero-account"><span class="hero-account-mark"></span> Party purchase account</span>
+                <a href="{% url 'party_list' %}" class="hero-back">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7 7-7-7 7-7"/></svg>
+                    Back to Parties
+                </a>
+            </div>
         </header>
 
-        <!-- SUMMARY -->
-        <section class="yl-summary-grid">
-
-            <div class="yl-summary-card">
-                <div class="yl-summary-top">
-                    <div>
-                        <p class="yl-summary-label">Total Purchase Orders</p>
-                        <p class="yl-summary-value">{{ total_orders }}</p>
-                        <p class="yl-summary-note">Total orders</p>
-                    </div>
-                    <div class="yl-summary-icon" style="background:#edf2f2;color:#153030;">
-                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 7l1 13h12l1-13"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V5a4 4 0 018 0v2"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <div class="yl-summary-card">
-                <div class="yl-summary-top">
-                    <div>
-                        <p class="yl-summary-label">Total Purchase</p>
-                        <p class="yl-summary-value">₹ {{ total_purchase|floatformat:2 }}</p>
-                        <p class="yl-summary-note">Total order value</p>
-                    </div>
-                    <div class="yl-summary-icon" style="background:#eff6ff;color:#2563eb;">
-                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                            <circle cx="12" cy="12" r="9"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v10M9 10h4a2 2 0 010 4H9"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <div class="yl-summary-card">
-                <div class="yl-summary-top">
-                    <div>
-                        <p class="yl-summary-label">Total Paid</p>
-                        <p class="yl-summary-value" style="color:#15803d;">₹ {{ total_paid|floatformat:2 }}</p>
-                        <p class="yl-summary-note">Total paid amount</p>
-                    </div>
-                    <div class="yl-summary-icon" style="background:#f0fdf4;color:#16a34a;">
-                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <div class="yl-summary-card">
-                <div class="yl-summary-top">
-                    <div>
-                        <p class="yl-summary-label">Total Due</p>
-                        <p class="yl-summary-value" style="color:#dc2626;">₹ {{ total_due|floatformat:2 }}</p>
-                        <p class="yl-summary-note">Outstanding amount</p>
-                    </div>
-                    <div class="yl-summary-icon" style="background:#fef2f2;color:#ef4444;">
-                        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.3 3.8L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- SECTION -->
-        <div class="yl-section-head">
+        <!-- KPI SUMMARY -->
+        <div class="overview-head">
             <div>
-                <h2 class="yl-section-title">Purchase Orders</h2>
-                <p class="yl-section-note">
-                    {{ total_orders }} purchase order{{ total_orders|pluralize }} found
-                </p>
+                <p class="section-kicker">Account snapshot</p>
+                <h2 class="overview-title">Purchase & payment overview</h2>
             </div>
+            <span class="overview-caption">All recorded orders for this party</span>
         </div>
 
-        <!-- ORDERS -->
-        <section class="yl-orders-grid">
-
-            {% for order in orders %}
-
-            <article class="yl-order-card">
-
-                <!-- CARD HEADER -->
-                <div class="yl-order-head">
-                    <div class="yl-order-head-row">
-
-                        <div class="yl-order-identity">
-                            <div class="yl-order-icon">
-                                <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 2h9l5 5v15H6V2z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6M9 17h4"/>
-                                </svg>
-                            </div>
-
-                            <div style="min-width:0;">
-                                <p class="yl-order-label">Purchase Order</p>
-                                <h3 class="yl-order-number">
-                                    {{ order.purchase_number }}
-                                </h3>
-                            </div>
-                        </div>
-
-                        {% if order.status == "DRAFT" %}
-                            <span class="yl-status" style="background:#f3f4f6;color:#4b5563;">Draft</span>
-                        {% elif order.status == "CONFIRMED" %}
-                            <span class="yl-status" style="background:#eff6ff;color:#2563eb;">Confirmed</span>
-                        {% elif order.status == "RECEIVED" %}
-                            <span class="yl-status" style="background:#f0fdf4;color:#15803d;">Received</span>
-                        {% elif order.status == "PARTIAL" %}
-                            <span class="yl-status" style="background:#fffbeb;color:#b45309;">Partially Received</span>
-                        {% elif order.status == "CANCELLED" %}
-                            <span class="yl-status" style="background:#fef2f2;color:#dc2626;">Cancelled</span>
-                        {% endif %}
-
-                    </div>
+        <section class="kpi-grid" aria-label="Party purchase statistics">
+            <article class="kpi">
+                <div class="kpi-top">
+                    <p class="kpi-label">Total orders</p>
+                    <span class="kpi-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M6 7l1 13h10l1-13M9 7V5a3 3 0 016 0v2"/></svg></span>
                 </div>
-
-                <!-- BODY -->
-                <div class="yl-order-body">
-
-                    <!-- DETAILS -->
-                    <div class="yl-details">
-
-                        <div class="yl-detail">
-                            <p class="yl-detail-label">Purchase Date</p>
-                            <p class="yl-detail-value">{{ order.purchase_date|date:"d M Y" }}</p>
-                        </div>
-
-                        <div class="yl-detail">
-                            <p class="yl-detail-label">Invoice</p>
-                            <p class="yl-detail-value">{{ order.invoice_number|default:"—" }}</p>
-                        </div>
-
-                        <div class="yl-detail">
-                            <p class="yl-detail-label">Payment</p>
-                            <p class="yl-detail-value">
-                                {% if order.payment_status == "PAID" %}
-                                    <span style="color:#15803d;">● Paid</span>
-                                {% elif order.payment_status == "PARTIAL" %}
-                                    <span style="color:#b45309;">● Partial</span>
-                                {% else %}
-                                    <span style="color:#dc2626;">● Unpaid</span>
-                                {% endif %}
-                            </p>
-                        </div>
-
-                        <div class="yl-detail">
-                            <p class="yl-detail-label">Invoice Date</p>
-                            <p class="yl-detail-value">
-                                {% if order.invoice_date %}
-                                    {{ order.invoice_date|date:"d M Y" }}
-                                {% else %}
-                                    —
-                                {% endif %}
-                            </p>
-                        </div>
-
-                        <div class="yl-detail">
-                            <p class="yl-detail-label">Bill Type</p>
-                            <p class="yl-detail-value">
-                                {% if order.bill_type == "GST" %}
-                                    <span style="color:#15803d;">● GST Bill</span>
-                                {% else %}
-                                    <span style="color:#64748b;">● Non-GST Bill</span>
-                                {% endif %}
-                            </p>
-                        </div>
-
-                        <div class="yl-detail">
-                            <p class="yl-detail-label">Supplier Document</p>
-                            <p class="yl-detail-value">
-                                {% if order.invoice_document %}
-                                    Available
-                                {% else %}
-                                    Not uploaded
-                                {% endif %}
-                            </p>
-                        </div>
-
-                    </div>
-
-                    <!-- TAX -->
-                    {% if order.bill_type == "GST" %}
-
-                    <div class="yl-tax">
-                        <div class="yl-tax-head">
-                            <p class="yl-tax-title">GST / Tax Summary</p>
-                            <span style="padding:4px 7px;border-radius:999px;background:#fff;color:#17633f;font-size:8px;font-weight:800;">GST</span>
-                        </div>
-
-                        <div class="yl-tax-grid">
-                            <div class="yl-tax-item">
-                                <div class="yl-tax-label">CGST</div>
-                                <div class="yl-tax-rate">{{ order.cgst_percent|floatformat:2 }}%</div>
-                                <div class="yl-tax-amount">₹ {{ order.cgst_amount|floatformat:2 }}</div>
-                            </div>
-
-                            <div class="yl-tax-item">
-                                <div class="yl-tax-label">SGST</div>
-                                <div class="yl-tax-rate">{{ order.sgst_percent|floatformat:2 }}%</div>
-                                <div class="yl-tax-amount">₹ {{ order.sgst_amount|floatformat:2 }}</div>
-                            </div>
-
-                            <div class="yl-tax-item">
-                                <div class="yl-tax-label">IGST</div>
-                                <div class="yl-tax-rate">{{ order.igst_percent|floatformat:2 }}%</div>
-                                <div class="yl-tax-amount">₹ {{ order.igst_amount|floatformat:2 }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {% else %}
-
-                    <div class="yl-nongst">
-                        <div style="flex:0 0 auto;width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:#e9eeee;color:#657272;">
-                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <circle cx="12" cy="12" r="9"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l2.5 2.5"/>
-                            </svg>
-                        </div>
-                        <div class="yl-nongst-text">
-                            <p class="yl-nongst-title">Non-GST Purchase</p>
-                            <p class="yl-nongst-note">No GST / CGST / SGST / IGST applied.</p>
-                        </div>
-                    </div>
-
-                    {% endif %}
-
-                    <!-- FINANCIAL -->
-                    <div class="yl-finance">
-
-                        <div class="yl-finance-item">
-                            <div class="yl-finance-label">Grand Total</div>
-                            <div class="yl-finance-value" style="color:#153030;">
-                                ₹ {{ order.grand_total|floatformat:2 }}
-                            </div>
-                        </div>
-
-                        <div class="yl-finance-item">
-                            <div class="yl-finance-label">Paid Amount</div>
-                            <div class="yl-finance-value" style="color:#15803d;">
-                                ₹ {{ order.paid_amount|floatformat:2 }}
-                            </div>
-                        </div>
-
-                        <div class="yl-finance-item">
-                            <div class="yl-finance-label">Due Amount</div>
-                            <div class="yl-finance-value" style="color:#dc2626;">
-                                ₹ {{ order.due_amount|floatformat:2 }}
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- PAYMENT PROGRESS -->
-                    <div class="yl-progress">
-                        <div class="yl-progress-head">
-                            <span class="yl-progress-label">Payment Progress</span>
-                            <span class="yl-progress-percent">
-                                {% if order.grand_total %}
-                                    {% widthratio order.paid_amount order.grand_total 100 %}%
-                                {% else %}
-                                    0%
-                                {% endif %}
-                            </span>
-                        </div>
-
-                        <div class="yl-progress-track">
-                            <div class="yl-progress-bar"
-                                 style="width:{% if order.grand_total %}{% widthratio order.paid_amount order.grand_total 100 %}{% else %}0{% endif %}%;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- FOOTER -->
-                    <div class="yl-order-footer">
-
-                        <div class="yl-doc">
-                            {% if order.invoice_document %}
-
-                                <a href="{{ order.invoice_document.url }}"
-                                   target="_blank"
-                                   rel="noopener"
-                                   class="yl-doc-link"
-                                   title="Open supplier document">
-
-                                    {% if ".pdf" in order.invoice_document.name|lower %}
-                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6"/>
-                                        </svg>
-                                        <span>View PDF</span>
-                                    {% else %}
-                                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                            <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                            <circle cx="8.5" cy="8.5" r="1.5"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 15l-5-5L5 21"/>
-                                        </svg>
-                                        <span>View Document</span>
-                                    {% endif %}
-
-                                </a>
-
-                            {% else %}
-                                <span class="yl-doc-empty">No document</span>
-                            {% endif %}
-                        </div>
-
-                        <div class="yl-actions">
-
-                            <span class="yl-order-count">#{{ forloop.counter }}</span>
-
-                            <a href="{% url 'party_purchase_detail' order.pk %}"
-                               class="yl-action"
-                               title="View Order"
-                               aria-label="View Order">
-
-                                <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.75-6 9.75-6 9.75 6 9.75 6-3.75 6-9.75 6-9.75-6-9.75-6z"/>
-                                    <circle cx="12" cy="12" r="2.5"/>
-                                </svg>
-                            </a>
-
-                            <a href="{% url 'purchase_installments' order.pk %}"
-                               class="yl-action"
-                               title="View Installments"
-                               aria-label="View Installments">
-
-                                <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5A2.5 2.5 0 015.5 5h13A2.5 2.5 0 0121 7.5v10A2.5 2.5 0 0118.5 20h-13A2.5 2.5 0 013 17.5v-10z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8h15.5A2.5 2.5 0 0121 10.5v1.5h-4a2 2 0 010-4h4"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 12h.01"/>
-                                </svg>
-                            </a>
-
-                        </div>
-                    </div>
-
-                </div>
+                <p class="kpi-value">{{ total_orders|default:0 }}</p>
+                <p class="kpi-foot">Purchase records</p>
             </article>
-
-            {% empty %}
-
-            <div class="yl-empty">
-                <div class="yl-empty-icon">
-                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 7l1 13h12l1-13"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V5a4 4 0 018 0v2"/>
-                    </svg>
+            <article class="kpi kpi-purchase">
+                <div class="kpi-top">
+                    <p class="kpi-label">Total purchase</p>
+                    <span class="kpi-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v10m-3-7h4a2 2 0 010 4H9"/></svg></span>
                 </div>
-
-                <h3 class="yl-empty-title">No Purchase Orders</h3>
-
-                <p class="yl-empty-note">
-                    There are no purchase orders available for this party yet.
-                </p>
-            </div>
-
-            {% endfor %}
-
+                <p class="kpi-value">₹ {{ total_purchase|default:0|floatformat:2 }}</p>
+                <p class="kpi-foot">Combined order value</p>
+            </article>
+            <article class="kpi kpi-paid">
+                <div class="kpi-top">
+                    <p class="kpi-label">Total paid</p>
+                    <span class="kpi-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"/></svg></span>
+                </div>
+                <p class="kpi-value">₹ {{ total_paid|default:0|floatformat:2 }}</p>
+                <p class="kpi-foot">Payments recorded</p>
+            </article>
+            <article class="kpi kpi-due">
+                <div class="kpi-top">
+                    <p class="kpi-label">Outstanding due</p>
+                    <span class="kpi-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M10.3 3.8 2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/></svg></span>
+                </div>
+                <p class="kpi-value">₹ {{ total_due|default:0|floatformat:2 }}</p>
+                <p class="kpi-foot">Remaining balance</p>
+            </article>
         </section>
 
+        <!-- CHRONOLOGICAL PURCHASE LEDGER -->
+        <div class="activity-head">
+            <div>
+                <p class="section-kicker">Transaction history</p>
+                <h2 class="activity-title">Purchase timeline</h2>
+                <p class="activity-caption">Latest purchases first. Follow the vertical line to review older transactions.</p>
+            </div>
+            <span class="activity-count">{{ total_orders|default:0 }} order{{ total_orders|pluralize }}</span>
+        </div>
+
+        <section class="timeline" aria-label="Chronological purchase order timeline">
+            {% for order in orders %}
+                <article class="timeline-entry {% if order.payment_status == 'PAID' %}is-paid{% elif order.payment_status == 'PARTIAL' %}is-partial{% else %}is-unpaid{% endif %}">
+                    <time class="timeline-date" {% if order.purchase_date %}datetime="{{ order.purchase_date|date:'Y-m-d' }}"{% endif %}>
+                        {% if order.purchase_date %}
+                            <span class="date-day">{{ order.purchase_date|date:"d" }}</span>
+                            <span class="date-month">{{ order.purchase_date|date:"M" }}</span>
+                            <span class="date-year">{{ order.purchase_date|date:"Y" }}</span>
+                        {% else %}
+                            <span class="date-month">No date</span>
+                        {% endif %}
+                    </time>
+
+                    <div class="timeline-rail" aria-hidden="true"><span class="timeline-dot"></span></div>
+
+                    <div class="entry-main">
+                        <div class="entry-content">
+                            <div class="entry-heading">
+                                <span class="entry-type">Purchase order</span>
+                                <h3 class="entry-number">{{ order.purchase_number|default:"Order reference unavailable" }}</h3>
+
+                                {% if order.status == "DRAFT" %}
+                                    <span class="status s-draft">Draft</span>
+                                {% elif order.status == "CONFIRMED" %}
+                                    <span class="status s-confirmed">Confirmed</span>
+                                {% elif order.status == "RECEIVED" %}
+                                    <span class="status s-received">Received</span>
+                                {% elif order.status == "PARTIAL" %}
+                                    <span class="status s-partial">Partially received</span>
+                                {% elif order.status == "CANCELLED" %}
+                                    <span class="status s-cancelled">Cancelled</span>
+                                {% else %}
+                                    <span class="status s-other">{{ order.get_status_display|default:order.status|default:"Status unavailable" }}</span>
+                                {% endif %}
+
+                                {% if order.payment_status == "PAID" %}
+                                    <span class="status p-paid">Paid</span>
+                                {% elif order.payment_status == "PARTIAL" %}
+                                    <span class="status p-partial">Partially paid</span>
+                                {% else %}
+                                    <span class="status p-unpaid">Unpaid</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="entry-meta">
+                                <span class="meta-piece"><strong>Invoice:</strong> {{ order.invoice_number|default:"—" }}</span>
+                                <span class="meta-piece"><strong>Invoice date:</strong> {% if order.invoice_date %}{{ order.invoice_date|date:"d M Y" }}{% else %}—{% endif %}</span>
+                                <span class="meta-piece"><strong>Bill type:</strong> {% if order.bill_type == "GST" %}GST{% else %}Non-GST{% endif %}</span>
+                                <span class="meta-piece"><strong>Supplier file:</strong> {% if order.invoice_document %}Attached{% else %}Not attached{% endif %}</span>
+                            </div>
+
+                            {% if order.bill_type == "GST" %}
+                                <div class="tax-summary">
+                                    <strong>GST breakdown</strong>
+                                    <span>CGST {{ order.cgst_percent|floatformat:2 }}% · ₹{{ order.cgst_amount|floatformat:2 }}</span>
+                                    <span>SGST {{ order.sgst_percent|floatformat:2 }}% · ₹{{ order.sgst_amount|floatformat:2 }}</span>
+                                    <span>IGST {{ order.igst_percent|floatformat:2 }}% · ₹{{ order.igst_amount|floatformat:2 }}</span>
+                                </div>
+                            {% else %}
+                                <div class="tax-summary nongst">
+                                    <strong>Non-GST purchase</strong>
+                                    <span>No GST / CGST / SGST / IGST applied.</span>
+                                </div>
+                            {% endif %}
+
+                            <div class="entry-footer">
+                                <div>
+                                    {% if order.invoice_document %}
+                                        <a href="{{ order.invoice_document.url }}" target="_blank" rel="noopener" class="document-link">
+                                            {% if ".pdf" in order.invoice_document.name|lower %}
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/></svg>
+                                                Open supplier PDF
+                                            {% else %}
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 15-5-5L5 21"/></svg>
+                                                Open supplier document
+                                            {% endif %}
+                                        </a>
+                                    {% else %}
+                                        <span class="document-missing">No supplier document attached</span>
+                                    {% endif %}
+                                </div>
+                                <div class="entry-actions">
+                                    <a href="{% url 'party_purchase_detail' order.pk %}" class="entry-action" title="View purchase order details">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.75-6 9.75-6 9.75 6 9.75 6-3.75 6-9.75 6-9.75-6-9.75-6z"/><circle cx="12" cy="12" r="2.5"/></svg>
+                                        Order details
+                                    </a>
+                                    <a href="{% url 'purchase_installments' order.pk %}" class="entry-action" title="View payment installments">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18m-5 5h2"/></svg>
+                                        Installments
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <aside class="entry-amounts" aria-label="Purchase order payment summary">
+                            <span class="amount-label">Grand total</span>
+                            <strong class="grand-total">₹ {{ order.grand_total|default:0|floatformat:2 }}</strong>
+                            <div class="amount-pair">
+                                <div class="amount-item">
+                                    <span class="amount-item-label">Amount paid</span>
+                                    <span class="amount-item-value">₹ {{ order.paid_amount|default:0|floatformat:2 }}</span>
+                                </div>
+                                <div class="amount-item">
+                                    <span class="amount-item-label">Balance due</span>
+                                    <span class="amount-item-value due">₹ {{ order.due_amount|default:0|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                            <div class="payment-track" role="progressbar" aria-label="Payment progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{% if order.grand_total %}{% widthratio order.paid_amount order.grand_total 100 %}{% else %}0{% endif %}">
+                                <div class="payment-fill" style="width:{% if order.grand_total %}{% widthratio order.paid_amount order.grand_total 100 %}{% else %}0{% endif %}%;"></div>
+                            </div>
+                            <div class="payment-progress-label">
+                                <span>Payment collected</span>
+                                <strong>{% if order.grand_total %}{% widthratio order.paid_amount order.grand_total 100 %}{% else %}0{% endif %}%</strong>
+                            </div>
+                        </aside>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="empty-ledger">
+                    <div class="empty-icon" aria-hidden="true">
+                        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M6 7l1 13h10l1-13M9 7V5a3 3 0 016 0v2"/></svg>
+                    </div>
+                    <h3 class="empty-title">No purchase activity yet</h3>
+                    <p class="empty-text">Purchase orders for {{ party.name }} will appear here once they have been recorded.</p>
+                </div>
+            {% endfor %}
+        </section>
     </div>
 </div>
-
 {% endblock %}

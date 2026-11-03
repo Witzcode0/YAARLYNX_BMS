@@ -1,1589 +1,778 @@
 {% extends "dashboard/layout.html" %}
 
-{% block title %}
-    PDF Overlay | Yaarlynx
-{% endblock %}
-
-{% block page_heading %}
-    PDF Overlay
-{% endblock %}
-
-{% block meta_description %}
-    Upload a PDF, select an overlay image, choose its position and create the final PDF.
-{% endblock %}
+{% block title %}PDF Overlay Studio | Yaarlynx{% endblock %}
+{% block page_heading %}PDF Overlay Studio{% endblock %}
+{% block meta_description %}Upload a PDF, choose a saved overlay image, set its position and download the finished PDF.{% endblock %}
 
 {% block content %}
-
-<div class="mx-auto max-w-7xl  px-4 py-6 sm:px-6 lg:px-8">
-
-    <!-- ===================================================== -->
-    <!-- PAGE HEADER -->
-    <!-- ===================================================== -->
-
-    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-        <div>
-            <div class="flex items-center gap-2">
-
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#153030] text-white">
-                    <i class="ri-file-pdf-2-line text-xl"></i>
-                </div>
-
-                <div>
-                    <h1 class="text-xl font-semibold text-[#153030]">
-                        PDF Overlay
-                    </h1>
-
-                    <p class="text-xs text-gray-500">
-                        Add an overlay image to your PDF
-                    </p>
-                </div>
-
-            </div>
-        </div>
-
-    </div>
-
-
-    <!-- ===================================================== -->
-    <!-- ERROR -->
-    <!-- ===================================================== -->
-
-    {% if error %}
-
-    <div class="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
-
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600">
-            <i class="ri-error-warning-line"></i>
-        </div>
-
-        <div>
-            <p class="text-sm font-semibold text-red-800">
-                Unable to process PDF
-            </p>
-
-            <p class="mt-1 text-sm text-red-700">
-                {{ error }}
-            </p>
-        </div>
-
-    </div>
-
-    {% endif %}
-
-
-    <!-- ===================================================== -->
-    <!-- FORM -->
-    <!-- ===================================================== -->
-
-    <form
-        id="pdfOverlayForm"
-        method="POST"
-        enctype="multipart/form-data"
-        action="{% url 'pdf_overlay' %}"
-    >
-
-        {% csrf_token %}
-
-
-        <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-
-
-            <!-- ================================================= -->
-            <!-- LEFT SIDE -->
-            <!-- ================================================= -->
-
-            <div class="space-y-6 xl:col-span-2">
-
-
-                <!-- ============================================= -->
-                <!-- 01. UPLOAD PDF -->
-                <!-- ============================================= -->
-
-                <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-
-                    <div class="border-b border-gray-100 px-5 py-4">
-
-                        <div class="flex items-center gap-3">
-
-                            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#153030]/10 text-sm font-bold text-[#153030]">
-                                01
-                            </div>
-
-                            <div>
-
-                                <h2 class="text-sm font-semibold text-[#153030]">
-                                    Upload PDF
-                                </h2>
-
-                                <p class="mt-0.5 text-xs text-gray-500">
-                                    Select the PDF you want to process.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="p-5">
-
-                        <label
-                            id="pdfDropZone"
-                            for="pdf_file"
-                            class="group flex min-h-[210px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-8 text-center transition hover:border-[#153030] hover:bg-[#153030]/[0.02]"
-                        >
-
-                            <input
-                                type="file"
-                                id="pdf_file"
-                                name="pdf_file"
-                                accept=".pdf,application/pdf"
-                                required
-                                class="hidden"
-                            >
-
-
-                            <!-- Upload State -->
-
-                            <div
-                                id="pdfUploadState"
-                                class="flex flex-col items-center"
-                            >
-
-                                <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-600 transition group-hover:scale-105">
-
-                                    <i class="ri-file-pdf-2-line text-3xl"></i>
-
-                                </div>
-
-                                <p class="text-sm font-semibold text-[#153030]">
-                                    Drop your PDF here
-                                </p>
-
-                                <p class="mt-1 text-sm text-gray-500">
-                                    or
-                                    <span class="font-semibold text-[#153030]">
-                                        browse files
-                                    </span>
-                                </p>
-
-                                <p class="mt-3 text-xs text-gray-400">
-                                    Supported format: PDF
-                                </p>
-
-                            </div>
-
-
-                            <!-- Selected PDF -->
-
-                            <div
-                                id="pdfSelectedState"
-                                class="hidden w-full max-w-lg"
-                            >
-
-                                <div class="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 text-left shadow-sm">
-
-                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
-                                        <i class="ri-file-pdf-2-fill text-2xl"></i>
-                                    </div>
-
-
-                                    <div class="min-w-0 flex-1">
-
-                                        <p
-                                            id="pdfFileName"
-                                            class="truncate text-sm font-semibold text-[#153030]"
-                                        >
-                                            file.pdf
-                                        </p>
-
-                                        <p
-                                            id="pdfFileSize"
-                                            class="mt-1 text-xs text-gray-500"
-                                        >
-                                            0 KB
-                                        </p>
-
-                                    </div>
-
-
-                                    <button
-                                        type="button"
-                                        id="removePdf"
-                                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-                                    >
-                                        <i class="ri-delete-bin-line"></i>
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </label>
-
-                    </div>
-
-                </div>
-
-
-                <!-- ============================================= -->
-                <!-- 02. OVERLAY IMAGE -->
-                <!-- ============================================= -->
-
-                <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-
-                    <div class="border-b border-gray-100 px-5 py-4">
-
-                        <div class="flex items-center justify-between gap-4">
-
-                            <div class="flex items-center gap-3">
-
-                                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#153030]/10 text-sm font-bold text-[#153030]">
-                                    02
-                                </div>
-
-                                <div>
-
-                                    <h2 class="text-sm font-semibold text-[#153030]">
-                                        Select Overlay Image
-                                    </h2>
-
-                                    <p class="mt-0.5 text-xs text-gray-500">
-                                        Choose the image to add to your PDF.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            {% if overlay_images %}
-
-                            <span class="hidden rounded-full bg-gray-100 px-3 py-1 text-[11px] font-medium text-gray-600 sm:block">
-                                {{ overlay_images|length }} images
-                            </span>
-
-                            {% endif %}
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="p-5">
-
-                        {% if overlay_images %}
-
-                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-
-                            {% for overlay in overlay_images %}
-
-                            <label
-                                data-overlay-card
-                                class="overlay-card group relative cursor-pointer overflow-hidden rounded-xl border-2 bg-white p-2 transition
-                                {% if default_overlay and overlay.id == default_overlay.id %}
-                                    border-[#153030] bg-[#153030]/[0.02]
-                                {% else %}
-                                    border-gray-200 hover:border-[#153030]/40
-                                {% endif %}"
-                            >
-
-                                <input
-                                    type="radio"
-                                    name="overlay_image"
-                                    value="{{ overlay.id }}"
-                                    class="overlay-radio sr-only"
-
-                                    {% if default_overlay and overlay.id == default_overlay.id %}
-                                        checked
-                                    {% endif %}
-                                >
-
-
-                                <div class="relative overflow-hidden rounded-lg bg-gray-50">
-
-                                    <img
-                                        src="{{ overlay.image.url }}"
-                                        alt="{{ overlay.name }}"
-                                        class="h-28 w-full object-contain p-2 transition duration-300 group-hover:scale-105"
-                                    >
-
-
-                                    <!-- Selected -->
-
-                                    <span
-                                        data-overlay-check
-                                        class="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-[#153030] text-white shadow-sm
-                                        {% if not default_overlay or overlay.id != default_overlay.id %}
-                                            opacity-0
-                                        {% endif %}"
-                                    >
-                                        <i class="ri-check-line text-sm"></i>
-                                    </span>
-
-
-                                    <!-- Default -->
-
-                                    {% if overlay.is_default %}
-
-                                    <span class="absolute left-2 top-2 rounded-full bg-[#153030] px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white">
-                                        Default
-                                    </span>
-
-                                    {% endif %}
-
-                                </div>
-
-
-                                <p class="mt-2 truncate px-1 pb-1 text-center text-xs font-semibold text-gray-700">
-                                    {{ overlay.name }}
-                                </p>
-
-                            </label>
-
-                            {% endfor %}
-
-                        </div>
-
-                        {% else %}
-
-                        <div class="rounded-xl border border-dashed border-yellow-300 bg-yellow-50 p-6 text-center">
-
-                            <div class="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-100 text-yellow-700">
-                                <i class="ri-image-line text-xl"></i>
-                            </div>
-
-                            <p class="mt-3 text-sm font-semibold text-yellow-800">
-                                No overlay images available
-                            </p>
-
-                            <p class="mt-1 text-xs text-yellow-700">
-                                Add an overlay image from Django Admin.
-                            </p>
-
-                        </div>
-
-                        {% endif %}
-
-                    </div>
-
-                </div>
-
-
-                <!-- ============================================= -->
-                <!-- 03. POSITION -->
-                <!-- ============================================= -->
-
-                <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-
-                    <div class="border-b border-gray-100 px-5 py-4">
-
-                        <div class="flex items-center gap-3">
-
-                            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#153030]/10 text-sm font-bold text-[#153030]">
-                                03
-                            </div>
-
-                            <div>
-
-                                <h2 class="text-sm font-semibold text-[#153030]">
-                                    Choose Position
-                                </h2>
-
-                                <p class="mt-0.5 text-xs text-gray-500">
-                                    Select where the overlay should appear.
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="p-5">
-
-                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-
-
-                            <!-- Bottom Left -->
-
-                            <label class="position-card cursor-pointer rounded-xl border-2 border-gray-200 p-4 transition hover:border-[#153030]/40">
-
-                                <input
-                                    type="radio"
-                                    name="position"
-                                    value="bottom_left"
-                                    class="position-radio sr-only"
-                                >
-
-                                <div class="flex items-center gap-3">
-
-                                    <div class="position-preview bottom-left">
-                                        <span></span>
-                                    </div>
-
-                                    <div>
-                                        <p class="text-xs font-semibold text-gray-700">
-                                            Bottom Left
-                                        </p>
-
-                                        <p class="mt-1 text-[10px] text-gray-400">
-                                            Left bottom
-                                        </p>
-                                    </div>
-
-                                </div>
-
-                            </label>
-
-
-                            <!-- Bottom Center -->
-
-                            <label class="position-card cursor-pointer rounded-xl border-2 border-[#153030] bg-[#153030]/[0.03] p-4">
-
-                                <input
-                                    type="radio"
-                                    name="position"
-                                    value="bottom_center"
-                                    checked
-                                    class="position-radio sr-only"
-                                >
-
-                                <div class="flex items-center gap-3">
-
-                                    <div class="position-preview bottom-center">
-                                        <span></span>
-                                    </div>
-
-                                    <div>
-                                        <p class="text-xs font-semibold text-[#153030]">
-                                            Bottom Center
-                                        </p>
-
-                                        <p class="mt-1 text-[10px] text-gray-400">
-                                            Center bottom
-                                        </p>
-                                    </div>
-
-                                </div>
-
-                            </label>
-
-
-                            <!-- Bottom Right -->
-
-                            <label class="position-card cursor-pointer rounded-xl border-2 border-gray-200 p-4 transition hover:border-[#153030]/40">
-
-                                <input
-                                    type="radio"
-                                    name="position"
-                                    value="bottom_right"
-                                    class="position-radio sr-only"
-                                >
-
-                                <div class="flex items-center gap-3">
-
-                                    <div class="position-preview bottom-right">
-                                        <span></span>
-                                    </div>
-
-                                    <div>
-                                        <p class="text-xs font-semibold text-gray-700">
-                                            Bottom Right
-                                        </p>
-
-                                        <p class="mt-1 text-[10px] text-gray-400">
-                                            Right bottom
-                                        </p>
-                                    </div>
-
-                                </div>
-
-                            </label>
-
-
-                            <!-- Top Left -->
-
-                            <label class="position-card cursor-pointer rounded-xl border-2 border-gray-200 p-4 transition hover:border-[#153030]/40">
-
-                                <input
-                                    type="radio"
-                                    name="position"
-                                    value="top_left"
-                                    class="position-radio sr-only"
-                                >
-
-                                <div class="flex items-center gap-3">
-
-                                    <div class="position-preview top-left">
-                                        <span></span>
-                                    </div>
-
-                                    <div>
-                                        <p class="text-xs font-semibold text-gray-700">
-                                            Top Left
-                                        </p>
-
-                                        <p class="mt-1 text-[10px] text-gray-400">
-                                            Left top
-                                        </p>
-                                    </div>
-
-                                </div>
-
-                            </label>
-
-
-                            <!-- Top Center -->
-
-                            <label class="position-card cursor-pointer rounded-xl border-2 border-gray-200 p-4 transition hover:border-[#153030]/40">
-
-                                <input
-                                    type="radio"
-                                    name="position"
-                                    value="top_center"
-                                    class="position-radio sr-only"
-                                >
-
-                                <div class="position-preview top-center">
-                                    <span></span>
-                                </div>
-
-                                <div class="mt-2">
-                                    <p class="text-xs font-semibold text-gray-700">
-                                        Top Center
-                                    </p>
-
-                                    <p class="mt-1 text-[10px] text-gray-400">
-                                        Center top
-                                    </p>
-                                </div>
-
-                            </label>
-
-
-                            <!-- Top Right -->
-
-                            <label class="position-card cursor-pointer rounded-xl border-2 border-gray-200 p-4 transition hover:border-[#153030]/40">
-
-                                <input
-                                    type="radio"
-                                    name="position"
-                                    value="top_right"
-                                    class="position-radio sr-only"
-                                >
-
-                                <div class="position-preview top-right">
-                                    <span></span>
-                                </div>
-
-                                <div class="mt-2">
-                                    <p class="text-xs font-semibold text-gray-700">
-                                        Top Right
-                                    </p>
-
-                                    <p class="mt-1 text-[10px] text-gray-400">
-                                        Right top
-                                    </p>
-                                </div>
-
-                            </label>
-
-
-                            <!-- Center -->
-
-                            <label class="position-card cursor-pointer rounded-xl border-2 border-gray-200 p-4 transition hover:border-[#153030]/40 sm:col-span-3">
-
-                                <input
-                                    type="radio"
-                                    name="position"
-                                    value="center"
-                                    class="position-radio sr-only"
-                                >
-
-                                <div class="flex items-center justify-center gap-3">
-
-                                    <div class="position-preview center">
-                                        <span></span>
-                                    </div>
-
-                                    <div>
-                                        <p class="text-xs font-semibold text-gray-700">
-                                            Center
-                                        </p>
-
-                                        <p class="mt-1 text-[10px] text-gray-400">
-                                            Center of page
-                                        </p>
-                                    </div>
-
-                                </div>
-
-                            </label>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================================================= -->
-            <!-- RIGHT SIDE -->
-            <!-- ================================================= -->
-
-            <div class="xl:col-span-1">
-
-                <div class="sticky top-5 space-y-5">
-
-
-                    <!-- SUMMARY -->
-
-                    <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-
-                        <div class="border-b border-gray-100 px-5 py-4">
-
-                            <h2 class="text-sm font-semibold text-[#153030]">
-                                Overlay Summary
-                            </h2>
-
-                            <p class="mt-1 text-xs text-gray-500">
-                                Review your selections.
-                            </p>
-
-                        </div>
-
-
-                        <div class="space-y-4 p-5">
-
-
-                            <!-- PDF -->
-
-                            <div class="flex items-center gap-3">
-
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
-                                    <i class="ri-file-pdf-2-line"></i>
-                                </div>
-
-                                <div class="min-w-0">
-
-                                    <p class="text-[10px] font-medium uppercase tracking-wider text-gray-400">
-                                        PDF
-                                    </p>
-
-                                    <p
-                                        id="summaryPdf"
-                                        class="mt-1 truncate text-xs font-semibold text-gray-700"
-                                    >
-                                        Not selected
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="h-px bg-gray-100"></div>
-
-
-                            <!-- Overlay -->
-
-                            <div class="flex items-center gap-3">
-
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#153030]/10 text-[#153030]">
-                                    <i class="ri-image-line"></i>
-                                </div>
-
-                                <div class="min-w-0">
-
-                                    <p class="text-[10px] font-medium uppercase tracking-wider text-gray-400">
-                                        Overlay
-                                    </p>
-
-                                    <p
-                                        id="summaryOverlay"
-                                        class="mt-1 truncate text-xs font-semibold text-gray-700"
-                                    >
-                                        {% if default_overlay %}
-                                            {{ default_overlay.name }}
-                                        {% else %}
-                                            Not selected
-                                        {% endif %}
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="h-px bg-gray-100"></div>
-
-
-                            <!-- Position -->
-
-                            <div class="flex items-center gap-3">
-
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#153030]/10 text-[#153030]">
-                                    <i class="ri-focus-3-line"></i>
-                                </div>
-
-                                <div>
-
-                                    <p class="text-[10px] font-medium uppercase tracking-wider text-gray-400">
-                                        Position
-                                    </p>
-
-                                    <p
-                                        id="summaryPosition"
-                                        class="mt-1 text-xs font-semibold text-gray-700"
-                                    >
-                                        Bottom Center
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- PROCESS -->
-
-                    <div class="rounded-2xl bg-[#153030] p-5 text-white shadow-sm">
-
-                        <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
-                            <i class="ri-magic-line text-xl"></i>
-                        </div>
-
-                        <h3 class="text-sm font-semibold">
-                            Ready to apply overlay?
-                        </h3>
-
-                        <p class="mt-2 text-xs leading-5 text-white/60">
-                            Your uploaded PDF is processed temporarily.
-                            The original file is not permanently stored.
-                        </p>
-
-
-                        <button
-                            type="submit"
-                            id="processButton"
-                            class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#153030] transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-
-                            <i
-                                id="processIcon"
-                                class="ri-file-edit-line text-lg"
-                            ></i>
-
-                            <span id="processText">
-                                Apply Overlay
-                            </span>
-
-                        </button>
-
-                    </div>
-
-
-                    <!-- INFO -->
-
-                    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-
-                        <div class="flex gap-3">
-
-                            <i class="ri-information-line mt-0.5 text-lg text-[#153030]"></i>
-
-                            <div>
-
-                                <p class="text-xs font-semibold text-[#153030]">
-                                    How it works
-                                </p>
-
-                                <div class="mt-3 space-y-2 text-[11px] leading-5 text-gray-500">
-
-                                    <p>
-                                        <span class="font-semibold text-gray-700">1.</span>
-                                        Upload your PDF.
-                                    </p>
-
-                                    <p>
-                                        <span class="font-semibold text-gray-700">2.</span>
-                                        Select an overlay image.
-                                    </p>
-
-                                    <p>
-                                        <span class="font-semibold text-gray-700">3.</span>
-                                        Choose the position.
-                                    </p>
-
-                                    <p>
-                                        <span class="font-semibold text-gray-700">4.</span>
-                                        Apply the overlay, download the generated PDF automatically, then refresh the page.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </form>
-
-</div>
-
-
-<!-- ========================================================= -->
-<!-- POSITION PREVIEW STYLE -->
-<!-- ========================================================= -->
-
 <style>
-
-.position-preview {
-    position: relative;
-    width: 34px;
-    height: 42px;
-    flex-shrink: 0;
-    border: 1.5px solid #d1d5db;
-    border-radius: 5px;
-    background: #ffffff;
+/* ==============================================================
+   YAARLYNX — DOCUMENT FINISHING DESK
+   Distinct editorial layout, scoped to this page only.
+   ============================================================= */
+.yl-document-desk {
+    --desk-ink: #172d32;
+    --desk-ink-2: #29464b;
+    --desk-copper: #bf8955;
+    --desk-copper-soft: #f5ede4;
+    --desk-paper: #fffefa;
+    --desk-canvas: #f3f2ee;
+    --desk-line: #e8e5df;
+    --desk-muted: #838987;
+    width: 100%; min-width: 0; color: var(--desk-ink);
 }
+.yl-document-desk, .yl-document-desk * { box-sizing: border-box; }
+.yl-document-desk button, .yl-document-desk input { font: inherit; }
+.yl-document-desk [hidden] { display: none !important; }
+.yl-document-desk button:focus-visible,
+.yl-document-desk input:focus-visible,
+.yl-document-desk label:focus-within,
+.yl-document-desk [tabindex]:focus-visible { outline: 3px solid rgba(191,137,85,.28); outline-offset: 3px; }
+.yl-document-desk .ydd-wrap { width: 100%; max-width: 1580px; margin: 0 auto; padding: 22px 18px 36px; }
 
-.position-preview span {
-    position: absolute;
-    width: 8px;
-    height: 5px;
-    border-radius: 2px;
-    background: #153030;
+/* Editorial masthead */
+.yl-document-desk .ydd-masthead {
+    position: relative; overflow: hidden; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
+    padding: 27px 30px; border: 1px solid rgba(255,255,255,.08); border-radius: 20px;
+    color: #fff; background: radial-gradient(circle at 86% 10%, rgba(191,137,85,.25), transparent 28%), linear-gradient(118deg,#172d32 0%,#213d42 58%,#30494a 100%);
+    box-shadow: 0 15px 34px rgba(23,45,50,.12);
 }
+.yl-document-desk .ydd-masthead::after { content:""; position:absolute; width:310px; height:310px; right:8%; bottom:-260px; border:1px solid rgba(255,255,255,.16); border-radius:50%; box-shadow:0 0 0 28px rgba(255,255,255,.025),0 0 0 58px rgba(255,255,255,.02); pointer-events:none; }
+.yl-document-desk .ydd-brandline { display:flex; align-items:center; gap:15px; min-width:0; position:relative; z-index:1; }
+.yl-document-desk .ydd-mark { width:53px; height:53px; flex:0 0 auto; display:grid; place-items:center; border:1px solid rgba(255,255,255,.18); border-radius:15px; color:#f4d8b7; background:rgba(255,255,255,.08); }
+.yl-document-desk .ydd-eyebrow { margin:0 0 6px; color:#d2b89c; font-size:9px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; }
+.yl-document-desk .ydd-title { margin:0; color:#fff; font-size:clamp(23px,2.6vw,33px); line-height:1.1; font-weight:850; letter-spacing:-.04em; }
+.yl-document-desk .ydd-intro { max-width:650px; margin:8px 0 0; color:rgba(255,255,255,.68); font-size:12px; line-height:1.55; }
+.yl-document-desk .ydd-masthead-side { position:relative; z-index:1; flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-end; gap:9px; }
+.yl-document-desk .ydd-secure { display:inline-flex; align-items:center; gap:8px; padding:8px 11px; border:1px solid rgba(255,255,255,.17); border-radius:999px; color:rgba(255,255,255,.84); background:rgba(255,255,255,.07); font-size:9px; font-weight:800; }
+.yl-document-desk .ydd-secure-dot { width:7px; height:7px; border-radius:50%; background:#96c5a1; box-shadow:0 0 0 4px rgba(150,197,161,.13); }
+.yl-document-desk .ydd-kicker { color:rgba(255,255,255,.48); font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
 
-.position-preview.bottom-left span {
-    left: 4px;
-    bottom: 4px;
+/* Horizontal workflow */
+.yl-document-desk .ydd-flow { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; margin:17px 0 20px; overflow:hidden; border:1px solid var(--desk-line); border-radius:13px; background:var(--desk-paper); }
+.yl-document-desk .ydd-flow-step { position:relative; display:flex; align-items:center; gap:11px; min-width:0; padding:13px 17px; }
+.yl-document-desk .ydd-flow-step + .ydd-flow-step { border-left:1px solid var(--desk-line); }
+.yl-document-desk .ydd-flow-num { width:29px; height:29px; flex:0 0 auto; display:grid; place-items:center; border-radius:9px; color:#fff; background:var(--desk-ink); font-size:10px; font-weight:900; }
+.yl-document-desk .ydd-flow-label { color:#3e5558; font-size:10px; font-weight:850; }
+.yl-document-desk .ydd-flow-note { display:block; margin-top:3px; color:#9aa19e; font-size:9px; font-weight:500; }
+
+/* Main grid / panels */
+.yl-document-desk .ydd-layout { display:grid; grid-template-columns:minmax(0,1fr) 350px; align-items:start; gap:20px; }
+.yl-document-desk .ydd-main { display:grid; gap:15px; min-width:0; }
+.yl-document-desk .ydd-panel { min-width:0; overflow:hidden; border:1px solid var(--desk-line); border-radius:16px; background:var(--desk-paper); box-shadow:0 5px 18px rgba(36,45,42,.035); }
+.yl-document-desk .ydd-panel-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 19px; border-bottom:1px solid #efede8; }
+.yl-document-desk .ydd-panel-head-main { display:flex; align-items:center; gap:11px; min-width:0; }
+.yl-document-desk .ydd-panel-icon { width:34px; height:34px; flex:0 0 auto; display:grid; place-items:center; border-radius:10px; color:var(--desk-ink); background:#edf0ed; }
+.yl-document-desk .ydd-panel-title { margin:0; color:var(--desk-ink); font-size:13px; font-weight:900; }
+.yl-document-desk .ydd-panel-subtitle { margin:3px 0 0; color:#929995; font-size:10px; line-height:1.4; }
+.yl-document-desk .ydd-step-label { flex:0 0 auto; color:#b0a79c; font-size:9px; font-weight:900; letter-spacing:.12em; }
+.yl-document-desk .ydd-panel-body { padding:18px; }
+
+/* Upload surface and errors */
+.yl-document-desk .ydd-dropzone { position:relative; display:flex; min-height:188px; align-items:center; justify-content:center; padding:23px; border:1.5px dashed #c9cbc4; border-radius:14px; background:linear-gradient(135deg,#fbfaf7,#f5f4ef); text-align:center; cursor:pointer; transition:border-color .18s ease,background .18s ease,box-shadow .18s ease; }
+.yl-document-desk .ydd-dropzone:hover,.yl-document-desk .ydd-dropzone.is-dragging { border-color:var(--desk-copper); background:#faf4ed; }
+.yl-document-desk .ydd-dropzone.is-dragging { border-style:solid; box-shadow:inset 0 0 0 2px rgba(191,137,85,.1); }
+.yl-document-desk .ydd-dropzone.is-dragging::after { content:"Release to add your PDF"; position:absolute; top:10px; right:10px; padding:6px 9px; border-radius:999px; color:#fff; background:var(--desk-ink); font-size:9px; font-weight:850; pointer-events:none; }
+.yl-document-desk .ydd-upload-empty { display:flex; flex-direction:column; align-items:center; }
+.yl-document-desk .ydd-upload-emblem { width:49px; height:49px; display:grid; place-items:center; margin-bottom:11px; border-radius:14px; color:#a64c43; background:#f8eae6; }
+.yl-document-desk .ydd-upload-title { margin:0; color:var(--desk-ink); font-size:13px; font-weight:900; }
+.yl-document-desk .ydd-upload-desc { margin:5px 0 0; color:#87908b; font-size:10px; }
+.yl-document-desk .ydd-browse { min-height:35px; margin-top:12px; padding:8px 14px; border:0; border-radius:9px; color:#fff; background:var(--desk-ink); font-size:10px; font-weight:850; cursor:pointer; transition:background .18s ease,transform .18s ease; }
+.yl-document-desk .ydd-browse:hover { background:#315258; transform:translateY(-1px); }
+.yl-document-desk .ydd-upload-hint { margin:11px 0 0; color:#a1a49f; font-size:9px; }
+.yl-document-desk #pdf_file { position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none; }
+.yl-document-desk .ydd-selected-file { width:min(100%,600px); display:flex; align-items:center; gap:11px; padding:12px; border:1px solid #e6d9c9; border-radius:12px; background:#fff; text-align:left; box-shadow:0 4px 12px rgba(23,45,50,.04); }
+.yl-document-desk .ydd-file-icon { width:40px; height:40px; flex:0 0 auto; display:grid; place-items:center; border-radius:10px; color:#a64c43; background:#f8eae6; }
+.yl-document-desk .ydd-file-copy { flex:1; min-width:0; }
+.yl-document-desk .ydd-file-name { overflow:hidden; margin:0; color:var(--desk-ink); font-size:11px; font-weight:900; text-overflow:ellipsis; white-space:nowrap; }
+.yl-document-desk .ydd-file-meta { margin:4px 0 0; color:#969d98; font-size:9px; }
+.yl-document-desk .ydd-file-control { min-height:31px; padding:6px 9px; border:1px solid #e8e2d9; border-radius:8px; color:#526467; background:#faf9f6; font-size:9px; font-weight:850; cursor:pointer; }
+.yl-document-desk .ydd-file-control:hover { border-color:#d8b995; background:#faf3ea; }
+.yl-document-desk .ydd-file-remove { width:31px; height:31px; flex:0 0 auto; display:grid; place-items:center; border:0; border-radius:8px; color:#a45a54; background:#fbefed; cursor:pointer; }
+.yl-document-desk .ydd-inline-error { display:flex; align-items:flex-start; gap:9px; margin-top:11px; padding:10px 12px; border:1px solid #f0c8c2; border-radius:10px; color:#9c3933; background:#fff3f0; font-size:10px; line-height:1.45; text-align:left; }
+.yl-document-desk .ydd-inline-error strong { display:block; margin-bottom:2px; font-size:10px; }
+.yl-document-desk .ydd-inline-error p { margin:0; }
+.yl-document-desk .ydd-alert { display:flex; align-items:flex-start; gap:10px; margin-bottom:15px; padding:12px 14px; border:1px solid #f0c8c2; border-radius:12px; color:#963b35; background:#fff4f1; }
+.yl-document-desk .ydd-alert strong { display:block; margin-bottom:3px; font-size:11px; }
+.yl-document-desk .ydd-alert p { margin:0; font-size:10px; line-height:1.5; }
+
+/* Overlay gallery */
+.yl-document-desk .ydd-count { padding:5px 8px; border-radius:999px; color:#786b5d; background:#f4eee6; font-size:9px; font-weight:850; }
+.yl-document-desk .ydd-gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(135px,1fr)); gap:11px; }
+.yl-document-desk .ydd-overlay-option { position:relative; display:block; min-width:0; padding:8px; border:1.5px solid #e9e6df; border-radius:12px; background:#fff; cursor:pointer; transition:border-color .18s ease,background .18s ease,box-shadow .18s ease; }
+.yl-document-desk .ydd-overlay-option:hover { border-color:#cfb18f; box-shadow:0 5px 14px rgba(23,45,50,.05); }
+.yl-document-desk .ydd-overlay-option.is-selected { border-color:var(--desk-copper); background:#fcf8f2; box-shadow:0 0 0 2px rgba(191,137,85,.1); }
+.yl-document-desk .ydd-overlay-radio { position:absolute; width:1px; height:1px; opacity:0; }
+.yl-document-desk .ydd-image-frame { position:relative; height:106px; display:grid; place-items:center; overflow:hidden; border-radius:8px; background:#f4f3ef; }
+.yl-document-desk .ydd-image-frame img { display:block; width:100%; height:100%; padding:7px; object-fit:contain; transition:transform .2s ease; }
+.yl-document-desk .ydd-overlay-option:hover .ydd-image-frame img { transform:scale(1.04); }
+.yl-document-desk .ydd-check { position:absolute; top:7px; right:7px; width:22px; height:22px; display:grid; place-items:center; border:1px solid #e1ded7; border-radius:50%; color:transparent; background:#fff; font-size:12px; }
+.yl-document-desk .ydd-overlay-option.is-selected .ydd-check { border-color:var(--desk-copper); color:#fff; background:var(--desk-copper); }
+.yl-document-desk .ydd-default { position:absolute; top:7px; left:7px; padding:4px 6px; border-radius:5px; color:#fff; background:var(--desk-ink); font-size:7px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+.yl-document-desk .ydd-overlay-name { overflow:hidden; margin:8px 2px 2px; color:#536466; font-size:10px; font-weight:850; text-align:center; text-overflow:ellipsis; white-space:nowrap; }
+.yl-document-desk .ydd-empty-gallery { padding:26px 15px; border:1px dashed #e2d2bd; border-radius:12px; color:#886d4c; background:#fcf7ef; text-align:center; }
+.yl-document-desk .ydd-empty-gallery strong { display:block; margin-top:8px; font-size:11px; }
+.yl-document-desk .ydd-empty-gallery span { display:block; margin-top:4px; color:#9e896b; font-size:9px; }
+
+/* Position controls */
+.yl-document-desk .ydd-position-area { display:grid; grid-template-columns:minmax(0,1fr) minmax(180px,.58fr); align-items:center; gap:18px; }
+.yl-document-desk .ydd-position-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; max-width:500px; }
+.yl-document-desk .ydd-position-option { position:relative; min-width:0; min-height:68px; display:flex; align-items:center; gap:8px; padding:9px; border:1.5px solid #e9e6df; border-radius:10px; background:#fff; cursor:pointer; transition:.18s ease; }
+.yl-document-desk .ydd-position-option:hover { border-color:#cfb18f; }
+.yl-document-desk .ydd-position-option.is-selected { border-color:var(--desk-copper); background:#fcf7f0; box-shadow:inset 0 0 0 1px rgba(191,137,85,.06); }
+.yl-document-desk .ydd-position-radio { position:absolute; width:1px; height:1px; opacity:0; }
+.yl-document-desk .ydd-mini-page { position:relative; width:28px; height:37px; flex:0 0 auto; overflow:hidden; border:1px solid #d4d8d2; border-radius:4px; background:#fff; }
+.yl-document-desk .ydd-mini-page::before { content:""; position:absolute; top:8px; left:5px; width:16px; height:2px; background:#e7e9e4; box-shadow:0 5px 0 #e7e9e4,0 10px 0 #e7e9e4; }
+.yl-document-desk .ydd-mini-page::after { content:""; position:absolute; width:7px; height:5px; border-radius:1px; background:var(--desk-copper); }
+.yl-document-desk .ydd-pos-top_left .ydd-mini-page::after { top:4px; left:4px; }
+.yl-document-desk .ydd-pos-top_center .ydd-mini-page::after { top:4px; left:50%; transform:translateX(-50%); }
+.yl-document-desk .ydd-pos-top_right .ydd-mini-page::after { top:4px; right:4px; }
+.yl-document-desk .ydd-pos-center .ydd-mini-page::after { top:50%; left:50%; transform:translate(-50%,-50%); }
+.yl-document-desk .ydd-pos-bottom_left .ydd-mini-page::after { bottom:4px; left:4px; }
+.yl-document-desk .ydd-pos-bottom_center .ydd-mini-page::after { bottom:4px; left:50%; transform:translateX(-50%); }
+.yl-document-desk .ydd-pos-bottom_right .ydd-mini-page::after { bottom:4px; right:4px; }
+.yl-document-desk .ydd-position-name { color:#627171; font-size:9px; line-height:1.3; font-weight:850; }
+.yl-document-desk .ydd-position-option.is-selected .ydd-position-name { color:var(--desk-ink); }
+.yl-document-desk .ydd-placement-note { padding:14px; border:1px solid #ebe3d8; border-radius:12px; background:#f9f5ef; }
+.yl-document-desk .ydd-placement-note strong { display:block; color:var(--desk-ink); font-size:10px; }
+.yl-document-desk .ydd-placement-note p { margin:5px 0 0; color:#8c8981; font-size:9px; line-height:1.55; }
+
+/* Preview and side rail */
+.yl-document-desk .ydd-side { position:sticky; top:18px; display:grid; gap:13px; min-width:0; }
+.yl-document-desk .ydd-preview { overflow:hidden; border:1px solid var(--desk-line); border-radius:16px; background:var(--desk-paper); box-shadow:0 7px 22px rgba(23,45,50,.055); }
+.yl-document-desk .ydd-preview-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border-bottom:1px solid #efede8; }
+.yl-document-desk .ydd-preview-head strong { color:var(--desk-ink); font-size:12px; }
+.yl-document-desk .ydd-live { display:inline-flex; align-items:center; gap:5px; color:#6b8e70; font-size:8px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+.yl-document-desk .ydd-live::before { content:""; width:6px; height:6px; border-radius:50%; background:#73ad7c; }
+.yl-document-desk .ydd-preview-stage { min-height:245px; display:grid; place-items:center; padding:18px; background:repeating-linear-gradient(135deg,#f4f2ec,#f4f2ec 8px,#eeece5 8px,#eeece5 16px); }
+.yl-document-desk .ydd-paper { position:relative; width:145px; height:194px; overflow:hidden; border:1px solid #e5e3dc; border-radius:4px; background:#fffefa; box-shadow:0 10px 22px rgba(31,41,39,.14); }
+.yl-document-desk .ydd-paper-lines { position:absolute; top:27px; left:17px; right:17px; height:57px; opacity:.9; background:repeating-linear-gradient(to bottom,#e9e8e1 0,#e9e8e1 2px,transparent 2px,transparent 11px); }
+.yl-document-desk .ydd-paper-title { position:absolute; top:13px; left:17px; width:36px; height:4px; border-radius:2px; background:#d9d9d0; }
+.yl-document-desk .ydd-stamp { position:absolute; width:60px; height:39px; display:grid; place-items:center; overflow:hidden; padding:3px; border:1px dashed rgba(191,137,85,.8); border-radius:3px; background:rgba(255,255,255,.9); transition:all .2s ease; }
+.yl-document-desk .ydd-stamp img { display:none; max-width:100%; max-height:100%; object-fit:contain; }
+.yl-document-desk .ydd-stamp span { color:#b1814c; font-size:7px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; }
+.yl-document-desk .ydd-paper.pos-top_left .ydd-stamp { top:10px; left:10px; }
+.yl-document-desk .ydd-paper.pos-top_center .ydd-stamp { top:10px; left:50%; transform:translateX(-50%); }
+.yl-document-desk .ydd-paper.pos-top_right .ydd-stamp { top:10px; right:10px; }
+.yl-document-desk .ydd-paper.pos-center .ydd-stamp { top:50%; left:50%; transform:translate(-50%,-50%); }
+.yl-document-desk .ydd-paper.pos-bottom_left .ydd-stamp { bottom:10px; left:10px; }
+.yl-document-desk .ydd-paper.pos-bottom_center .ydd-stamp { bottom:10px; left:50%; transform:translateX(-50%); }
+.yl-document-desk .ydd-paper.pos-bottom_right .ydd-stamp { bottom:10px; right:10px; }
+.yl-document-desk .ydd-preview-caption { margin:0; padding:0 12px 13px; color:#9b9c95; font-size:9px; text-align:center; }
+.yl-document-desk .ydd-summary { padding:14px 16px; border-top:1px solid #efede8; }
+.yl-document-desk .ydd-summary-title { margin:0 0 9px; color:var(--desk-ink); font-size:10px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; }
+.yl-document-desk .ydd-summary-row { display:flex; align-items:center; gap:9px; min-width:0; padding:8px 0; }
+.yl-document-desk .ydd-summary-row + .ydd-summary-row { border-top:1px solid #f0eee9; }
+.yl-document-desk .ydd-summary-icon { width:28px; height:28px; flex:0 0 auto; display:grid; place-items:center; border-radius:8px; color:var(--desk-ink); background:#f0f1ec; }
+.yl-document-desk .ydd-summary-copy { flex:1; min-width:0; }
+.yl-document-desk .ydd-summary-label { margin:0; color:#a0a39d; font-size:8px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+.yl-document-desk .ydd-summary-value { overflow:hidden; margin:4px 0 0; color:#4b6062; font-size:10px; font-weight:850; text-overflow:ellipsis; white-space:nowrap; }
+.yl-document-desk .ydd-summary-empty { color:#a8aaa3; font-weight:600; }
+.yl-document-desk .ydd-action-panel { padding:17px; border-radius:15px; color:#fff; background:linear-gradient(145deg,#172d32,#29494c); box-shadow:0 10px 24px rgba(23,45,50,.14); }
+.yl-document-desk .ydd-action-icon { width:37px; height:37px; display:grid; place-items:center; margin-bottom:10px; border:1px solid rgba(255,255,255,.16); border-radius:10px; color:#f1d4b1; background:rgba(255,255,255,.08); }
+.yl-document-desk .ydd-action-title { margin:0; color:#fff; font-size:12px; font-weight:900; }
+.yl-document-desk .ydd-action-copy { margin:6px 0 0; color:rgba(255,255,255,.65); font-size:9px; line-height:1.55; }
+.yl-document-desk .ydd-submit { width:100%; min-height:43px; display:inline-flex; align-items:center; justify-content:center; gap:8px; margin-top:14px; padding:10px 14px; border:0; border-radius:9px; color:var(--desk-ink); background:#f1d9bd; font-size:10px; font-weight:950; cursor:pointer; transition:background .18s ease,transform .18s ease; }
+.yl-document-desk .ydd-submit:hover:not(:disabled) { background:#f8e8d5; transform:translateY(-1px); }
+.yl-document-desk .ydd-submit:disabled { opacity:.62; cursor:wait; }
+.yl-document-desk .ydd-submit-error { display:none; margin-top:9px; padding:9px 10px; border:1px solid rgba(255,255,255,.2); border-radius:8px; color:#fff; background:rgba(166,67,58,.25); font-size:9px; line-height:1.45; }
+.yl-document-desk .ydd-guidance { padding:14px 15px; border:1px solid var(--desk-line); border-radius:13px; background:#fffefa; }
+.yl-document-desk .ydd-guidance h3 { margin:0; color:var(--desk-ink); font-size:10px; font-weight:900; }
+.yl-document-desk .ydd-guidance ol { display:grid; gap:7px; margin:9px 0 0; padding:0; list-style:none; }
+.yl-document-desk .ydd-guidance li { display:flex; gap:8px; color:#838b86; font-size:9px; line-height:1.45; }
+.yl-document-desk .ydd-guidance b { color:var(--desk-copper); }
+.yl-document-desk .ydd-footnote { margin:10px 0 0; color:#a0a19a; font-size:8px; line-height:1.5; }
+
+/* Responsive behavior */
+@media (max-width:1120px) {
+    .yl-document-desk .ydd-layout { grid-template-columns:minmax(0,1fr) 310px; gap:14px; }
+    .yl-document-desk .ydd-position-area { grid-template-columns:1fr; }
 }
-
-.position-preview.bottom-center span {
-    left: 50%;
-    bottom: 4px;
-    transform: translateX(-50%);
+@media (max-width:880px) {
+    .yl-document-desk .ydd-layout { grid-template-columns:1fr; }
+    .yl-document-desk .ydd-side { position:static; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; }
+    .yl-document-desk .ydd-preview { grid-row:span 2; }
 }
-
-.position-preview.bottom-right span {
-    right: 4px;
-    bottom: 4px;
+@media (max-width:620px) {
+    .yl-document-desk .ydd-wrap { padding:13px 10px 24px; }
+    .yl-document-desk .ydd-masthead { align-items:flex-start; flex-direction:column; gap:15px; padding:19px 17px; border-radius:16px; }
+    .yl-document-desk .ydd-mark { width:44px; height:44px; border-radius:12px; }
+    .yl-document-desk .ydd-masthead-side { align-items:flex-start; }
+    .yl-document-desk .ydd-flow { gap:0; margin:12px 0 15px; }
+    .yl-document-desk .ydd-flow-step { align-items:flex-start; flex-direction:column; gap:6px; padding:9px 8px; }
+    .yl-document-desk .ydd-flow-step + .ydd-flow-step { border-left:1px solid var(--desk-line); }
+    .yl-document-desk .ydd-flow-label { font-size:8px; }
+    .yl-document-desk .ydd-flow-note { display:none; }
+    .yl-document-desk .ydd-panel-head { padding:13px 14px; }
+    .yl-document-desk .ydd-panel-body { padding:13px; }
+    .yl-document-desk .ydd-dropzone { min-height:185px; padding:18px 10px; }
+    .yl-document-desk .ydd-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .yl-document-desk .ydd-position-grid { gap:6px; }
+    .yl-document-desk .ydd-position-option { min-height:63px; gap:6px; padding:7px; }
+    .yl-document-desk .ydd-position-name { font-size:8px; }
+    .yl-document-desk .ydd-side { grid-template-columns:1fr; }
+    .yl-document-desk .ydd-preview { grid-row:auto; }
+    .yl-document-desk .ydd-preview-stage { min-height:215px; }
+    .yl-document-desk .ydd-selected-file { gap:7px; padding:9px; }
+    .yl-document-desk .ydd-file-control { padding:6px 7px; }
 }
-
-.position-preview.top-left span {
-    left: 4px;
-    top: 4px;
+@media (max-width:370px) {
+    .yl-document-desk .ydd-flow-num { width:23px; height:23px; }
+    .yl-document-desk .ydd-flow-step { padding:7px 5px; }
+    .yl-document-desk .ydd-position-option { flex-direction:column; justify-content:center; text-align:center; }
+    .yl-document-desk .ydd-file-control { font-size:8px; }
+    .yl-document-desk .ydd-file-icon { width:33px; height:33px; }
 }
-
-.position-preview.top-center span {
-    left: 50%;
-    top: 4px;
-    transform: translateX(-50%);
+@media (prefers-reduced-motion:reduce) {
+    .yl-document-desk *, .yl-document-desk *::before, .yl-document-desk *::after { transition:none !important; animation-duration:.01ms !important; }
 }
-
-.position-preview.top-right span {
-    right: 4px;
-    top: 4px;
-}
-
-.position-preview.center span {
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-
+@keyframes ydd-spin { to { transform:rotate(360deg); } }
+.yl-document-desk .ydd-spin { animation:ydd-spin .8s linear infinite; }
 </style>
 
+<div class="yl-document-desk">
+  <div class="ydd-wrap">
+    <header class="ydd-masthead">
+      <div class="ydd-brandline">
+        <div class="ydd-mark" aria-hidden="true">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2.75h8l4 4V21H6a2 2 0 0 1-2-2V4.75a2 2 0 0 1 2-2Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14 3v5h5M8 13h8M8 16.5h6"/></svg>
+        </div>
+        <div>
+          <p class="ydd-eyebrow">YAARLYNX / DOCUMENT WORKSPACE</p>
+          <h1 class="ydd-title">PDF Overlay Studio</h1>
+          <p class="ydd-intro">A refined workspace to place your saved logo, stamp or brand image on a PDF and create a finished document.</p>
+        </div>
+      </div>
+      <div class="ydd-masthead-side">
+        <span class="ydd-secure"><span class="ydd-secure-dot"></span> Temporary file processing</span>
+        <span class="ydd-kicker">Select · Position · Export</span>
+      </div>
+    </header>
 
-<!-- ========================================================= -->
-<!-- JAVASCRIPT -->
-<!-- ========================================================= -->
+    <div class="ydd-flow" aria-label="PDF overlay workflow">
+      <div class="ydd-flow-step"><span class="ydd-flow-num">01</span><span class="ydd-flow-label">Choose document<span class="ydd-flow-note">Upload a PDF file</span></span></div>
+      <div class="ydd-flow-step"><span class="ydd-flow-num">02</span><span class="ydd-flow-label">Choose artwork<span class="ydd-flow-note">Select a saved overlay</span></span></div>
+      <div class="ydd-flow-step"><span class="ydd-flow-num">03</span><span class="ydd-flow-label">Set placement<span class="ydd-flow-note">Choose an anchor point</span></span></div>
+    </div>
+
+    {% if error %}
+    <div class="ydd-alert" role="alert">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M10.3 3.8 2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0Z"/></svg>
+      <div><strong>We couldn't process this PDF</strong><p>{{ error }}</p></div>
+    </div>
+    {% endif %}
+
+    <form id="pdfOverlayForm" method="POST" enctype="multipart/form-data" action="{% url 'pdf_overlay' %}">
+      {% csrf_token %}
+      <div class="ydd-layout">
+        <main class="ydd-main">
+          <!-- STEP 1: PDF -->
+          <section class="ydd-panel" aria-labelledby="yddUploadHeading">
+            <div class="ydd-panel-head">
+              <div class="ydd-panel-head-main">
+                <span class="ydd-panel-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L7 9m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></span>
+                <div><h2 id="yddUploadHeading" class="ydd-panel-title">Source document</h2><p class="ydd-panel-subtitle">Upload the PDF you want to add an overlay to.</p></div>
+              </div>
+              <span class="ydd-step-label">STEP 01</span>
+            </div>
+            <div class="ydd-panel-body">
+              <input type="file" id="pdf_file" name="pdf_file" accept=".pdf,application/pdf" aria-label="Choose PDF file">
+              <div id="pdfDropZone" class="ydd-dropzone" role="button" tabindex="0" aria-label="PDF upload area. Click to browse or drag and drop a PDF here.">
+                <div id="pdfUploadState" class="ydd-upload-empty">
+                  <span class="ydd-upload-emblem" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2.75h8l4 4V21H6a2 2 0 0 1-2-2V4.75a2 2 0 0 1 2-2Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14 3v5h5M8 13h8M8 16.5h5"/></svg></span>
+                  <p class="ydd-upload-title">Drop your PDF here</p>
+                  <p class="ydd-upload-desc">or browse your device to select a document</p>
+                  <button type="button" id="browsePdfButton" class="ydd-browse">Browse files</button>
+                  <p class="ydd-upload-hint">PDF files only · Your original document is not modified</p>
+                </div>
+                <div id="pdfSelectedState" class="ydd-selected-file" hidden>
+                  <span class="ydd-file-icon" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2.75h8l4 4V21H6a2 2 0 0 1-2-2V4.75a2 2 0 0 1 2-2Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M14 3v5h5"/></svg></span>
+                  <span class="ydd-file-copy"><p id="pdfFileName" class="ydd-file-name">file.pdf</p><p id="pdfFileSize" class="ydd-file-meta">0 KB</p></span>
+                  <button type="button" id="replacePdfButton" class="ydd-file-control">Change</button>
+                  <button type="button" id="removePdf" class="ydd-file-remove" aria-label="Remove selected PDF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></button>
+                </div>
+              </div>
+              <!-- Invalid file message appears directly below the drop area. -->
+              <div id="pdfInlineError" class="ydd-inline-error" role="alert" hidden>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M10.3 3.8 2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0Z"/></svg>
+                <div><strong>Invalid file format</strong><p id="pdfInlineErrorText">That file is not a PDF. Please choose a .pdf file.</p></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- STEP 2: OVERLAY LIBRARY -->
+          <section class="ydd-panel" aria-labelledby="yddOverlayHeading">
+            <div class="ydd-panel-head">
+              <div class="ydd-panel-head-main">
+                <span class="ydd-panel-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 15-5-5L5 21"/></svg></span>
+                <div><h2 id="yddOverlayHeading" class="ydd-panel-title">Saved artwork</h2><p class="ydd-panel-subtitle">Choose a logo, stamp or overlay image from your library.</p></div>
+              </div>
+              {% if overlay_images %}<span class="ydd-count">{{ overlay_images|length }} images</span>{% endif %}
+            </div>
+            <div class="ydd-panel-body">
+              {% if overlay_images %}
+              <div class="ydd-gallery">
+                {% for overlay in overlay_images %}
+                <label class="ydd-overlay-option {% if default_overlay and overlay.id == default_overlay.id %}is-selected{% endif %}" data-overlay-card>
+                  <input type="radio" name="overlay_image" value="{{ overlay.id }}" class="ydd-overlay-radio" data-overlay-name="{{ overlay.name|escape }}" data-image-url="{{ overlay.image.url }}" {% if default_overlay and overlay.id == default_overlay.id %}checked{% endif %}>
+                  <span class="ydd-image-frame">
+                    <img src="{{ overlay.image.url }}" alt="{{ overlay.name }}" loading="lazy">
+                    <span class="ydd-check" aria-hidden="true">✓</span>
+                    {% if overlay.is_default %}<span class="ydd-default">Default</span>{% endif %}
+                  </span>
+                  <span class="ydd-overlay-name">{{ overlay.name }}</span>
+                </label>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="ydd-empty-gallery"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 14l2-2 2 2 3-4 3 5H6"/></svg><strong>No overlay images available</strong><span>Add an overlay image from Django Admin before using this tool.</span></div>
+              {% endif %}
+            </div>
+          </section>
+
+          <!-- STEP 3: POSITION -->
+          <section class="ydd-panel" aria-labelledby="yddPositionHeading">
+            <div class="ydd-panel-head">
+              <div class="ydd-panel-head-main">
+                <span class="ydd-panel-icon" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="2.5" width="16" height="19" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8M8 10h5"/></svg></span>
+                <div><h2 id="yddPositionHeading" class="ydd-panel-title">Placement on the page</h2><p class="ydd-panel-subtitle">Choose the anchor point for your overlay on each PDF page.</p></div>
+              </div>
+              <span class="ydd-step-label">STEP 03</span>
+            </div>
+            <div class="ydd-panel-body">
+              <div class="ydd-position-area">
+                <div class="ydd-position-grid" role="radiogroup" aria-label="Overlay position">
+                  <label class="ydd-position-option ydd-pos-top_left" data-position-option><input type="radio" name="position" value="top_left" class="ydd-position-radio"><span class="ydd-mini-page" aria-hidden="true"></span><span class="ydd-position-name">Top left</span></label>
+                  <label class="ydd-position-option ydd-pos-top_center" data-position-option><input type="radio" name="position" value="top_center" class="ydd-position-radio"><span class="ydd-mini-page" aria-hidden="true"></span><span class="ydd-position-name">Top center</span></label>
+                  <label class="ydd-position-option ydd-pos-top_right" data-position-option><input type="radio" name="position" value="top_right" class="ydd-position-radio"><span class="ydd-mini-page" aria-hidden="true"></span><span class="ydd-position-name">Top right</span></label>
+                  <span aria-hidden="true"></span>
+                  <label class="ydd-position-option ydd-pos-center" data-position-option><input type="radio" name="position" value="center" class="ydd-position-radio"><span class="ydd-mini-page" aria-hidden="true"></span><span class="ydd-position-name">Center</span></label>
+                  <span aria-hidden="true"></span>
+                  <label class="ydd-position-option ydd-pos-bottom_left" data-position-option><input type="radio" name="position" value="bottom_left" class="ydd-position-radio"><span class="ydd-mini-page" aria-hidden="true"></span><span class="ydd-position-name">Bottom left</span></label>
+                  <label class="ydd-position-option ydd-pos-bottom_center is-selected" data-position-option><input type="radio" name="position" value="bottom_center" class="ydd-position-radio" checked><span class="ydd-mini-page" aria-hidden="true"></span><span class="ydd-position-name">Bottom center</span></label>
+                  <label class="ydd-position-option ydd-pos-bottom_right" data-position-option><input type="radio" name="position" value="bottom_right" class="ydd-position-radio"><span class="ydd-mini-page" aria-hidden="true"></span><span class="ydd-position-name">Bottom right</span></label>
+                </div>
+                <aside class="ydd-placement-note"><strong>Placement guide</strong><p>The page preview updates with your selected anchor. Final placement and PDF creation are handled by your existing Django view.</p></aside>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <!-- RIGHT RAIL -->
+        <aside class="ydd-side">
+          <section class="ydd-preview" aria-label="Overlay placement preview and selected options">
+            <div class="ydd-preview-head"><strong>Page composition</strong><span class="ydd-live">Live preview</span></div>
+            <div class="ydd-preview-stage">
+              <div id="previewPage" class="ydd-paper pos-bottom_center" aria-label="Illustrative PDF page preview">
+                <span class="ydd-paper-title"></span><div class="ydd-paper-lines"></div>
+                <div class="ydd-stamp" id="previewStamp"><img id="summaryOverlayImage" src="" alt=""><span id="previewStampPlaceholder">Your artwork</span></div>
+              </div>
+            </div>
+            <p class="ydd-preview-caption">Illustrative placement only · not a rendering of your uploaded PDF</p>
+            <div class="ydd-summary">
+              <h3 class="ydd-summary-title">Export selections</h3>
+              <div class="ydd-summary-row"><span class="ydd-summary-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2.75h8l4 4V21H6a2 2 0 0 1-2-2V4.75a2 2 0 0 1 2-2Z"/></svg></span><span class="ydd-summary-copy"><p class="ydd-summary-label">Source PDF</p><p id="summaryPdf" class="ydd-summary-value ydd-summary-empty">Not selected</p></span></div>
+              <div class="ydd-summary-row"><span class="ydd-summary-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/></svg></span><span class="ydd-summary-copy"><p class="ydd-summary-label">Selected artwork</p><p id="summaryOverlay" class="ydd-summary-value ydd-summary-empty">Not selected</p></span></div>
+              <div class="ydd-summary-row"><span class="ydd-summary-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8M8 10h8"/></svg></span><span class="ydd-summary-copy"><p class="ydd-summary-label">Anchor position</p><p id="summaryPosition" class="ydd-summary-value">Bottom center</p></span></div>
+            </div>
+          </section>
+
+          <section class="ydd-action-panel">
+            <span class="ydd-action-icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v3m0 12v3m9-9h-3M6 12H3m15.36-6.36-2.12 2.12M7.76 16.24l-2.12 2.12m12.72 0-2.12-2.12M7.76 7.76 5.64 5.64"/><path stroke-linecap="round" stroke-linejoin="round" d="m9 12 2 2 4-4"/></svg></span>
+            <h3 class="ydd-action-title">Ready to create your document?</h3>
+            <p class="ydd-action-copy">Your selections will be applied to the PDF. The generated document will be downloaded by your browser.</p>
+            <button type="submit" id="processButton" class="ydd-submit"><svg id="processIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 5-5m-5 5-5-5M5 18v3h14v-3"/></svg><span id="processText">Apply overlay & download</span></button>
+            <div id="clientError" class="ydd-submit-error" role="alert"></div>
+          </section>
+
+          <section class="ydd-guidance">
+            <h3>Before you export</h3>
+            <ol><li><b>01</b><span>Choose a PDF from your device or drop it into the upload area.</span></li><li><b>02</b><span>Select one saved image from the overlay library.</span></li><li><b>03</b><span>Choose an anchor position and apply the overlay.</span></li></ol>
+            <p class="ydd-footnote">The visual preview is a placement guide. Actual document rendering is performed by the PDF processing view.</p>
+          </section>
+        </aside>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-
     const form = document.getElementById("pdfOverlayForm");
-    const pdfInput = document.getElementById("pdf_file");
-    const pdfDropZone = document.getElementById("pdfDropZone");
-    const pdfUploadState = document.getElementById("pdfUploadState");
-    const pdfSelectedState = document.getElementById("pdfSelectedState");
-    const pdfFileName = document.getElementById("pdfFileName");
-    const pdfFileSize = document.getElementById("pdfFileSize");
-    const removePdf = document.getElementById("removePdf");
+    if (!form) return;
 
+    const pdfInput = document.getElementById("pdf_file");
+    const dropZone = document.getElementById("pdfDropZone");
+    const browseButton = document.getElementById("browsePdfButton");
+    const replaceButton = document.getElementById("replacePdfButton");
+    const uploadEmpty = document.getElementById("pdfUploadState");
+    const selectedState = document.getElementById("pdfSelectedState");
+    const fileName = document.getElementById("pdfFileName");
+    const fileSize = document.getElementById("pdfFileSize");
+    const removeButton = document.getElementById("removePdf");
+    const inlineError = document.getElementById("pdfInlineError");
+    const inlineErrorText = document.getElementById("pdfInlineErrorText");
     const summaryPdf = document.getElementById("summaryPdf");
     const summaryOverlay = document.getElementById("summaryOverlay");
     const summaryPosition = document.getElementById("summaryPosition");
-
+    const previewPage = document.getElementById("previewPage");
+    const previewImage = document.getElementById("summaryOverlayImage");
+    const previewPlaceholder = document.getElementById("previewStampPlaceholder");
     const processButton = document.getElementById("processButton");
     const processText = document.getElementById("processText");
     const processIcon = document.getElementById("processIcon");
+    const clientError = document.getElementById("clientError");
 
+    if (!pdfInput || !dropZone || !browseButton || !uploadEmpty || !selectedState || !fileName || !fileSize || !removeButton || !processButton) return;
 
-    /* ========================================================
-       FILE SIZE
-    ======================================================== */
+    let selectedPdfFile = null;
+    let dragDepth = 0;
 
     function formatFileSize(bytes) {
-
-        if (bytes === 0) {
-            return "0 Bytes";
-        }
-
+        if (!bytes) return "0 Bytes";
         const units = ["Bytes", "KB", "MB", "GB"];
-
-        const index = Math.floor(
-            Math.log(bytes) / Math.log(1024)
-        );
-
-        return (
-            parseFloat(
-                (
-                    bytes /
-                    Math.pow(1024, index)
-                ).toFixed(2)
-            ) + " " + units[index]
-        );
+        const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+        return (bytes / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 2) + " " + units[index];
     }
 
+    function setSummaryValue(element, value, isEmpty) {
+        if (!element) return;
+        element.textContent = value;
+        element.classList.toggle("ydd-summary-empty", Boolean(isEmpty));
+    }
 
-    /* ========================================================
-       PDF SELECTION
-    ======================================================== */
+    function showInlineFileError(message) {
+        if (!inlineError || !inlineErrorText) return;
+        inlineErrorText.textContent = message;
+        inlineError.hidden = false;
+        inlineError.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
 
-    function handlePdf(file) {
+    function clearInlineFileError() {
+        if (inlineError) inlineError.hidden = true;
+        if (inlineErrorText) inlineErrorText.textContent = "";
+    }
 
-        if (!file) {
-            return;
+    function showClientError(message) {
+        if (!clientError) return;
+        clientError.textContent = message;
+        clientError.style.display = "block";
+    }
+
+    function clearClientError() {
+        if (!clientError) return;
+        clientError.textContent = "";
+        clientError.style.display = "none";
+    }
+
+    function clearPdfDisplay() {
+        uploadEmpty.hidden = false;
+        selectedState.hidden = true;
+        setSummaryValue(summaryPdf, "Not selected", true);
+    }
+
+    function clearPdf() {
+        selectedPdfFile = null;
+        pdfInput.value = "";
+        clearPdfDisplay();
+        clearInlineFileError();
+        clearClientError();
+    }
+
+    async function isPdfFile(file) {
+        if (!file) return false;
+        const nameLooksPdf = /\.pdf$/i.test(file.name || "");
+        const mimeLooksPdf = (file.type || "").toLowerCase() === "application/pdf";
+        if (!nameLooksPdf && !mimeLooksPdf) return false;
+
+        // Check the PDF signature near the beginning so a renamed image/document
+        // is not accepted simply because its filename ends in .pdf.
+        try {
+            const bytes = new Uint8Array(await file.slice(0, 1024).arrayBuffer());
+            const header = Array.from(bytes, byte => String.fromCharCode(byte)).join("");
+            return header.includes("%PDF-");
+        } catch (error) {
+            // If the browser cannot inspect the header, fall back to the extension/MIME check.
+            return nameLooksPdf || mimeLooksPdf;
         }
+    }
 
-        const isPdf =
-            file.type === "application/pdf" ||
-            file.name.toLowerCase().endsWith(".pdf");
+    async function handlePdf(file) {
+        if (!file) return false;
+        clearClientError();
+        clearInlineFileError();
 
-        if (!isPdf) {
-
-            alert("Please select a valid PDF file.");
-
+        const validPdf = await isPdfFile(file);
+        if (!validPdf) {
+            selectedPdfFile = null;
             pdfInput.value = "";
-
-            return;
+            clearPdfDisplay();
+            showInlineFileError("This file is not a valid PDF. Please select a .pdf document and try again.");
+            return false;
         }
 
-        pdfFileName.textContent = file.name;
-        pdfFileSize.textContent = formatFileSize(file.size);
-
-        pdfUploadState.classList.add("hidden");
-        pdfSelectedState.classList.remove("hidden");
-
-        summaryPdf.textContent = file.name;
+        selectedPdfFile = file;
+        fileName.textContent = file.name || "Selected PDF";
+        fileSize.textContent = formatFileSize(file.size || 0);
+        uploadEmpty.hidden = true;
+        selectedState.hidden = false;
+        setSummaryValue(summaryPdf, file.name || "Selected PDF", false);
+        clearInlineFileError();
+        return true;
     }
 
-
-    pdfInput.addEventListener("change", function () {
-
-        if (this.files.length > 0) {
-            handlePdf(this.files[0]);
-        }
-
-    });
-
-
-    /* ========================================================
-       REMOVE PDF
-    ======================================================== */
-
-    removePdf.addEventListener("click", function (event) {
-
+    browseButton.addEventListener("click", function (event) {
         event.preventDefault();
         event.stopPropagation();
-
-        pdfInput.value = "";
-
-        pdfUploadState.classList.remove("hidden");
-        pdfSelectedState.classList.add("hidden");
-
-        summaryPdf.textContent = "Not selected";
+        pdfInput.click();
     });
 
+    if (replaceButton) {
+        replaceButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            pdfInput.click();
+        });
+    }
 
-    /* ========================================================
-       DRAG & DROP
-    ======================================================== */
+    dropZone.addEventListener("click", function (event) {
+        if (event.target.closest("button")) return;
+        pdfInput.click();
+    });
+
+    dropZone.addEventListener("keydown", function (event) {
+        if (event.target !== dropZone) return;
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            pdfInput.click();
+        }
+    });
+
+    pdfInput.addEventListener("change", async function () {
+        const file = this.files && this.files.length ? this.files[0] : null;
+        if (file) await handlePdf(file);
+    });
+
+    removeButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        clearPdf();
+    });
 
     ["dragenter", "dragover"].forEach(function (eventName) {
-
-        pdfDropZone.addEventListener(eventName, function (event) {
-
+        dropZone.addEventListener(eventName, function (event) {
             event.preventDefault();
-
-            pdfDropZone.classList.add(
-                "border-[#153030]",
-                "bg-[#153030]/[0.04]"
-            );
+            event.stopPropagation();
+            if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+            if (eventName === "dragenter") dragDepth += 1;
+            dropZone.classList.add("is-dragging");
         });
     });
 
-
-    ["dragleave", "drop"].forEach(function (eventName) {
-
-        pdfDropZone.addEventListener(eventName, function (event) {
-
-            event.preventDefault();
-
-            pdfDropZone.classList.remove(
-                "border-[#153030]",
-                "bg-[#153030]/[0.04]"
-            );
-        });
+    dropZone.addEventListener("dragleave", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        dragDepth = Math.max(0, dragDepth - 1);
+        if (dragDepth === 0) dropZone.classList.remove("is-dragging");
     });
 
-
-    pdfDropZone.addEventListener("drop", function (event) {
-
-        const files = event.dataTransfer.files;
-
-        if (!files.length) {
+    dropZone.addEventListener("drop", async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        dragDepth = 0;
+        dropZone.classList.remove("is-dragging");
+        const files = event.dataTransfer && event.dataTransfer.files;
+        if (!files || !files.length) {
+            showInlineFileError("No file was detected. Please drop a PDF into this upload area.");
             return;
         }
-
-        const file = files[0];
-
-        try {
-
-            const dataTransfer = new DataTransfer();
-
-            dataTransfer.items.add(file);
-
-            pdfInput.files = dataTransfer.files;
-
-        } catch (error) {
-
-            console.warn(
-                "Could not assign dropped file.",
-                error
-            );
-        }
-
-        handlePdf(file);
+        pdfInput.value = "";
+        await handlePdf(files[0]);
     });
 
+    // Stop the browser from navigating away if a file is dropped outside the zone.
+    window.addEventListener("dragover", function (event) {
+        if (event.dataTransfer && Array.from(event.dataTransfer.types || []).includes("Files")) event.preventDefault();
+    });
+    window.addEventListener("drop", function (event) {
+        if (event.dataTransfer && Array.from(event.dataTransfer.types || []).includes("Files") && !dropZone.contains(event.target)) event.preventDefault();
+    });
 
-    /* ========================================================
-       OVERLAY SELECTION
-    ======================================================== */
-
-    const overlayCards =
-        document.querySelectorAll("[data-overlay-card]");
+    // Saved overlay images: update selected state, summary and visual guide.
+    const overlayCards = Array.from(document.querySelectorAll("[data-overlay-card]"));
+    function updateOverlaySelection(radio) {
+        if (!radio) return;
+        overlayCards.forEach(function (card) {
+            const input = card.querySelector(".ydd-overlay-radio");
+            card.classList.toggle("is-selected", Boolean(input && input.checked));
+        });
+        setSummaryValue(summaryOverlay, radio.dataset.overlayName || "Selected image", false);
+        const imageUrl = radio.dataset.imageUrl || "";
+        if (imageUrl && previewImage) {
+            previewImage.src = imageUrl;
+            previewImage.alt = radio.dataset.overlayName || "Selected overlay";
+            previewImage.style.display = "block";
+            if (previewPlaceholder) previewPlaceholder.style.display = "none";
+        } else if (previewImage) {
+            previewImage.removeAttribute("src");
+            previewImage.style.display = "none";
+            if (previewPlaceholder) previewPlaceholder.style.display = "block";
+        }
+    }
 
     overlayCards.forEach(function (card) {
-
-        const radio = card.querySelector(".overlay-radio");
-
+        const radio = card.querySelector(".ydd-overlay-radio");
+        if (!radio) return;
         radio.addEventListener("change", function () {
-
-            if (!this.checked) {
-                return;
-            }
-
-            overlayCards.forEach(function (item) {
-
-                item.classList.remove(
-                    "border-[#153030]",
-                    "bg-[#153030]/[0.02]"
-                );
-
-                item.classList.add("border-gray-200");
-
-                const check =
-                    item.querySelector("[data-overlay-check]");
-
-                if (check) {
-                    check.classList.add("opacity-0");
-                }
-            });
-
-            card.classList.remove("border-gray-200");
-
-            card.classList.add(
-                "border-[#153030]",
-                "bg-[#153030]/[0.02]"
-            );
-
-            const check =
-                card.querySelector("[data-overlay-check]");
-
-            if (check) {
-                check.classList.remove("opacity-0");
-            }
-
-            const name = card.querySelector("p");
-
-            if (name) {
-                summaryOverlay.textContent =
-                    name.textContent.trim();
-            }
+            if (this.checked) updateOverlaySelection(this);
+            clearClientError();
         });
     });
+    const initialOverlay = document.querySelector('input[name="overlay_image"]:checked');
+    if (initialOverlay) updateOverlaySelection(initialOverlay);
 
-
-    /* ========================================================
-       POSITION SELECTION
-    ======================================================== */
-
-    const positionCards =
-        document.querySelectorAll(".position-card");
-
+    // Position selector and page preview.
+    const positionOptions = Array.from(document.querySelectorAll("[data-position-option]"));
     const positionNames = {
-        bottom_left: "Bottom Left",
-        bottom_center: "Bottom Center",
-        bottom_right: "Bottom Right",
-        top_left: "Top Left",
-        top_center: "Top Center",
-        top_right: "Top Right",
-        center: "Center"
+        bottom_left: "Bottom left", bottom_center: "Bottom center", bottom_right: "Bottom right",
+        top_left: "Top left", top_center: "Top center", top_right: "Top right", center: "Center"
     };
-
-
-    positionCards.forEach(function (card) {
-
-        const radio =
-            card.querySelector(".position-radio");
-
+    function updatePosition(value) {
+        positionOptions.forEach(function (option) {
+            const radio = option.querySelector(".ydd-position-radio");
+            option.classList.toggle("is-selected", Boolean(radio && radio.checked));
+        });
+        if (summaryPosition) summaryPosition.textContent = positionNames[value] || "Bottom center";
+        if (previewPage) previewPage.className = "ydd-paper pos-" + (positionNames[value] ? value : "bottom_center");
+    }
+    positionOptions.forEach(function (option) {
+        const radio = option.querySelector(".ydd-position-radio");
+        if (!radio) return;
         radio.addEventListener("change", function () {
-
-            if (!this.checked) {
-                return;
-            }
-
-            positionCards.forEach(function (item) {
-
-                item.classList.remove(
-                    "border-[#153030]",
-                    "bg-[#153030]/[0.03]"
-                );
-
-                item.classList.add("border-gray-200");
-            });
-
-            card.classList.remove("border-gray-200");
-
-            card.classList.add(
-                "border-[#153030]",
-                "bg-[#153030]/[0.03]"
-            );
-
-            summaryPosition.textContent =
-                positionNames[this.value] ||
-                "Bottom Center";
+            if (this.checked) updatePosition(this.value);
         });
     });
-
-
-    /* ========================================================
-       CSRF
-    ======================================================== */
+    const initialPosition = document.querySelector('input[name="position"]:checked');
+    updatePosition(initialPosition ? initialPosition.value : "bottom_center");
 
     function getCsrfToken() {
-
-        const csrfInput =
-            form.querySelector(
-                'input[name="csrfmiddlewaretoken"]'
-            );
-
-        return csrfInput ? csrfInput.value : "";
+        const input = form.querySelector('input[name="csrfmiddlewaretoken"]');
+        return input ? input.value : "";
     }
-
-
-    /* ========================================================
-       BUTTON STATE
-    ======================================================== */
 
     function setProcessingState() {
-
         processButton.disabled = true;
-
-        processButton.classList.add("cursor-wait");
-
-        processIcon.className =
-            "ri-loader-4-line animate-spin text-lg";
-
-        processText.textContent =
-            "Processing PDF...";
+        processIcon.classList.add("ydd-spin");
+        processIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v4m0 10v4m9-9h-4M7 12H3"/>';
+        processText.textContent = "Creating your PDF…";
+        clearClientError();
     }
-
 
     function resetProcessButton() {
-
         processButton.disabled = false;
-
-        processButton.classList.remove("cursor-wait");
-
-        processIcon.className =
-            "ri-file-edit-line text-lg";
-
-        processText.textContent =
-            "Apply Overlay";
+        processIcon.classList.remove("ydd-spin");
+        processIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 5-5m-5 5-5-5M5 18v3h14v-3"/>';
+        processText.textContent = "Apply overlay & download";
     }
-
-
-    /* ========================================================
-       RESPONSE FILE NAME
-    ======================================================== */
 
     function getFilenameFromResponse(response) {
-
-        const disposition =
-            response.headers.get("Content-Disposition");
-
-        if (!disposition) {
-            return "overlayed_pdf.pdf";
-        }
-
-        const utf8Match =
-            disposition.match(
-                /filename\*=UTF-8''([^;]+)/i
-            );
-
+        const disposition = response.headers.get("Content-Disposition") || "";
+        const utf8Match = disposition.match(/filename\*\s*=\s*UTF-8''([^;]+)/i);
         if (utf8Match && utf8Match[1]) {
-
-            try {
-                return decodeURIComponent(
-                    utf8Match[1]
-                );
-            } catch (error) {
-                console.warn(
-                    "Could not decode filename.",
-                    error
-                );
-            }
+            try { return decodeURIComponent(utf8Match[1].replace(/^"|"$/g, "")); }
+            catch (error) { console.warn("Could not decode download filename.", error); }
         }
-
-        const normalMatch =
-            disposition.match(
-                /filename="?([^"]+)"?/i
-            );
-
-        if (normalMatch && normalMatch[1]) {
-            return normalMatch[1];
-        }
-
-        return "overlayed_pdf.pdf";
+        const normalMatch = disposition.match(/filename\s*=\s*"?([^";]+)"?/i);
+        return normalMatch && normalMatch[1] ? normalMatch[1].trim() : "overlayed_pdf.pdf";
     }
 
-
-    /* ========================================================
-       START BROWSER DOWNLOAD
-    ======================================================== */
-
     function startBrowserDownload(blob, filename) {
-
-        const blobUrl =
-            window.URL.createObjectURL(blob);
-
-        const downloadLink =
-            document.createElement("a");
-
-        downloadLink.href = blobUrl;
-        downloadLink.download = filename;
-
-        downloadLink.style.position = "fixed";
-        downloadLink.style.left = "-9999px";
-        downloadLink.style.top = "-9999px";
-        downloadLink.style.width = "1px";
-        downloadLink.style.height = "1px";
-        downloadLink.style.opacity = "0";
-        downloadLink.style.pointerEvents = "none";
-
-        document.body.appendChild(downloadLink);
-
-        /*
-         * This creates the actual browser download.
-         * Chrome/Edge will show the file in Downloads.
-         */
-        downloadLink.click();
-
-        /*
-         * Do not revoke immediately.
-         * Give the browser enough time to register the download.
-         */
-        setTimeout(function () {
-
-            downloadLink.remove();
-
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = filename;
+        link.style.position = "fixed";
+        link.style.left = "-9999px";
+        document.body.appendChild(link);
+        link.click();
+        window.setTimeout(function () {
+            link.remove();
             window.URL.revokeObjectURL(blobUrl);
-
         }, 5000);
     }
 
-
-    /* ========================================================
-       PROCESS PDF
-    ======================================================== */
+    async function readErrorMessage(response) {
+        const contentType = response.headers.get("Content-Type") || "";
+        if (contentType.includes("application/json")) {
+            try {
+                const data = await response.json();
+                return data.message || data.error || "Unable to process the PDF.";
+            } catch (error) { return "Unable to process the PDF."; }
+        }
+        try {
+            const text = (await response.text()).trim();
+            return text && text.length < 500 ? text.replace(/<[^>]*>/g, " ").trim() : "Unable to process the PDF. Please check your server logs.";
+        } catch (error) { return "Unable to process the PDF."; }
+    }
 
     form.addEventListener("submit", async function (event) {
-
         event.preventDefault();
+        clearClientError();
 
-
-        /* ----------------------------------------------------
-           VALIDATE PDF
-        ---------------------------------------------------- */
-
-        if (
-            !pdfInput.files ||
-            !pdfInput.files.length
-        ) {
-
-            alert("Please select a PDF file.");
-
+        if (!selectedPdfFile) {
+            showClientError("Please upload a valid PDF before applying the overlay.");
+            dropZone.scrollIntoView({ behavior: "smooth", block: "center" });
             return;
         }
-
-
-        /* ----------------------------------------------------
-           VALIDATE OVERLAY
-        ---------------------------------------------------- */
-
-        const selectedOverlay =
-            document.querySelector(
-                'input[name="overlay_image"]:checked'
-            );
-
+        const selectedOverlay = document.querySelector('input[name="overlay_image"]:checked');
         if (!selectedOverlay) {
-
-            alert("Please select an overlay image.");
-
+            showClientError("Please select an overlay image from the library.");
+            document.getElementById("yddOverlayHeading").scrollIntoView({ behavior: "smooth", block: "center" });
             return;
         }
-
-
-        /* ----------------------------------------------------
-           VALIDATE POSITION
-        ---------------------------------------------------- */
-
-        const selectedPosition =
-            document.querySelector(
-                'input[name="position"]:checked'
-            );
-
+        const selectedPosition = document.querySelector('input[name="position"]:checked');
         if (!selectedPosition) {
-
-            alert("Please select a PDF position.");
-
+            showClientError("Please choose where the overlay should appear.");
+            document.getElementById("yddPositionHeading").scrollIntoView({ behavior: "smooth", block: "center" });
             return;
         }
-
-
-        /* ----------------------------------------------------
-           SHOW PROCESSING
-        ---------------------------------------------------- */
 
         setProcessingState();
-
-
         try {
+            const formData = new FormData(form);
+            // Explicitly append the JS-held file so both picker and drop upload paths work.
+            formData.set("pdf_file", selectedPdfFile, selectedPdfFile.name);
 
-            const formData =
-                new FormData(form);
+            const response = await fetch(form.action, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": getCsrfToken(),
+                    "Accept": "application/pdf"
+                },
+                credentials: "same-origin"
+            });
 
-
-            /* ------------------------------------------------
-               SEND REQUEST TO DJANGO
-            ------------------------------------------------ */
-
-            const response =
-                await fetch(
-                    form.action,
-                    {
-                        method: "POST",
-
-                        body: formData,
-
-                        headers: {
-                            "X-Requested-With":
-                                "XMLHttpRequest",
-
-                            "X-CSRFToken":
-                                getCsrfToken()
-                        },
-
-                        credentials:
-                            "same-origin"
-                    }
-                );
-
-
-            /* ------------------------------------------------
-               SERVER ERROR
-            ------------------------------------------------ */
-
-            if (!response.ok) {
-
-                let message =
-                    "Unable to process the PDF.";
-
-                const contentType =
-                    response.headers.get(
-                        "Content-Type"
-                    ) || "";
-
-                if (
-                    contentType.includes(
-                        "application/json"
-                    )
-                ) {
-
-                    try {
-
-                        const data =
-                            await response.json();
-
-                        if (data.message) {
-                            message = data.message;
-                        }
-
-                    } catch (error) {
-
-                        console.warn(
-                            "Could not read JSON error.",
-                            error
-                        );
-                    }
-                }
-
-                throw new Error(message);
+            if (!response.ok) throw new Error(await readErrorMessage(response));
+            const contentType = (response.headers.get("Content-Type") || "").toLowerCase();
+            if (!contentType.includes("application/pdf") && !contentType.includes("application/octet-stream")) {
+                throw new Error("The server did not return a PDF file. Please check your pdf_overlay Django view.");
             }
+            const pdfBlob = await response.blob();
+            if (!pdfBlob || pdfBlob.size <= 0) throw new Error("The generated PDF is empty.");
 
-
-            /* ------------------------------------------------
-               VERIFY RESPONSE IS PDF
-            ------------------------------------------------ */
-
-            const contentType =
-                response.headers.get(
-                    "Content-Type"
-                ) || "";
-
-            if (
-                !contentType
-                    .toLowerCase()
-                    .includes("application/pdf")
-            ) {
-
-                const responseText =
-                    await response.text();
-
-                console.error(
-                    "Unexpected Django response:",
-                    responseText
-                );
-
-                throw new Error(
-                    "The server did not return a PDF file. " +
-                    "Please check your pdf_overlay Django view."
-                );
-            }
-
-
-            /* ------------------------------------------------
-               RECEIVE COMPLETE PDF
-            ------------------------------------------------ */
-
-            const pdfBlob =
-                await response.blob();
-
-
-            if (
-                !pdfBlob ||
-                pdfBlob.size <= 0
-            ) {
-
-                throw new Error(
-                    "The generated PDF is empty."
-                );
-            }
-
-
-            /* ------------------------------------------------
-               FILE NAME
-            ------------------------------------------------ */
-
-            const filename =
-                getFilenameFromResponse(
-                    response
-                );
-
-
-            /* ------------------------------------------------
-               START DOWNLOAD
-            ------------------------------------------------ */
-
-            startBrowserDownload(
-                pdfBlob,
-                filename
-            );
-
-
-            /*
-             * At this point:
-             *
-             * 1. Django has finished generating the PDF.
-             * 2. Browser has received the complete PDF.
-             * 3. Browser download has been triggered.
-             *
-             * Now refresh after a short handoff delay.
-             */
-
-            processIcon.className =
-                "ri-download-cloud-2-line text-lg";
-
-            processText.textContent =
-                "Download started...";
-
-
-            setTimeout(function () {
-
-                window.location.reload();
-
-            }, 1800);
-
-
+            startBrowserDownload(pdfBlob, getFilenameFromResponse(response));
+            processIcon.classList.remove("ydd-spin");
+            processIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"/>';
+            processText.textContent = "Download started";
+            window.setTimeout(function () { window.location.reload(); }, 1800);
         } catch (error) {
-
-            console.error(
-                "PDF processing error:",
-                error
-            );
-
-            alert(
-                error.message ||
-                "Something went wrong while processing the PDF."
-            );
-
+            console.error("PDF overlay processing error:", error);
+            showClientError(error && error.message ? error.message : "Something went wrong while processing the PDF.");
             resetProcessButton();
         }
-
     });
-
 });
 </script>
-
 {% endblock %}
