@@ -1,707 +1,1751 @@
 {% extends "dashboard/layout.html" %}
+
 {% load static %}
 
+
+
 {% block title %}Income Ledger | YAARLYNX{% endblock %}
+
 {% block page_heading %}Income Transactions{% endblock %}
+
 {% block meta_description %}YAARLYNX income ledger with advanced filters, payment statistics, responsive transaction history and Excel exports.{% endblock %}
+
+
 
 {% block content %}
 
+
+
 <style>
+
     .income-ledger {
+
         --ledger-ink: #153030;
+
         --ledger-teal: #26736d;
+
         --ledger-border: #e7edec;
+
         --ledger-muted: #73817f;
+
     }
+
+
 
     .ledger-panel {
+
         min-width: 0;
+
         border: 1px solid var(--ledger-border);
+
         border-radius: 20px;
+
         background: #fff;
+
         box-shadow: 0 3px 12px rgba(21, 48, 48, .025);
+
     }
+
+
 
     .ledger-control {
+
         width: 100%;
+
         min-height: 43px;
+
         border: 1px solid #dfe7e5;
+
         border-radius: 11px;
+
         background: #f9fbfa;
+
         padding: 10px 12px;
+
         color: #253b39;
+
         font-size: 13px;
+
         outline: none;
+
         transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+
     }
+
+
 
     .ledger-control:focus {
+
         border-color: #43857f;
+
         background: #fff;
+
         box-shadow: 0 0 0 3px rgba(38, 115, 109, .09);
+
     }
+
+
 
     .ledger-row {
+
         transition: background .16s ease;
+
     }
+
+
 
     .ledger-row:hover {
+
         background: #f5faf9;
+
     }
+
+
 
     .ledger-stat {
+
         position: relative;
+
         overflow: hidden;
+
         border-bottom: 1px solid #e9efee;
+
         padding: 17px 16px;
+
     }
+
+
 
     .ledger-stat:last-child {
+
         border-bottom: 0;
+
     }
 
+
+
     .ledger-stat-value {
+
+        font-variant-numeric: tabular-nums;
+
+        overflow-wrap: anywhere;
+
+    }
+
+
+
+    .ledger-table th {
+
+        white-space: nowrap;
+
+    }
+
+
+
+    .ledger-table td {
+
+        vertical-align: middle;
+
+    }
+
+
+
+    .ledger-button {
+
+        display: inline-flex;
+
+        min-height: 41px;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 8px;
+
+        border-radius: 11px;
+
+        padding: 10px 14px;
+
+        font-size: 12px;
+
+        font-weight: 750;
+
+        transition: background .16s ease, transform .16s ease;
+
+    }
+
+
+
+    .ledger-button:active {
+
+        transform: scale(.98);
+
+    }
+
+
+
+    .ledger-button-primary {
+
+        background: #153030;
+
+        color: #fff;
+
+    }
+
+
+
+    .ledger-button-primary:hover {
+
+        background: #214747;
+
+    }
+
+
+
+    .ledger-button-secondary {
+
+        border: 1px solid #dfe7e5;
+
+        background: #fff;
+
+        color: #415653;
+
+    }
+
+
+
+    .ledger-button-secondary:hover {
+
+        background: #f4f8f7;
+
+    }
+
+
+
+    .ledger-button-export {
+
+        border: 1px solid #bde5d4;
+
+        background: #edfaf3;
+
+        color: #126642;
+
+    }
+
+
+
+    .ledger-button-export:hover {
+
+        background: #daf4e6;
+
+    }
+
+
+
+    .ledger-status {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 6px;
+
+        border-radius: 999px;
+
+        padding: 5px 9px;
+
+        font-size: 11px;
+
+        font-weight: 750;
+
+        white-space: nowrap;
+
+    }
+
+
+
+    .ledger-status-dot {
+
+        width: 6px;
+
+        height: 6px;
+
+        flex: 0 0 6px;
+
+        border-radius: 50%;
+
+        background: currentColor;
+
+    }
+
+
+
+    @media (min-width: 768px) {
+
+        .ledger-stat {
+
+            border-right: 1px solid #e9efee;
+
+            border-bottom: 0;
+
+        }
+
+
+
+        .ledger-stat:last-child {
+
+            border-right: 0;
+
+        }
+
+    }
+
+
+
+    @media (max-width: 640px) {
+
+        .ledger-panel {
+
+            border-radius: 16px;
+
+        }
+
+    }
+
+
+
+    @media (prefers-reduced-motion: reduce) {
+
+        .ledger-control,
+
+        .ledger-row,
+
+        .ledger-button {
+
+            transition: none;
+
+        }
+
+    }
+
+
+
+    .income-ledger .income-money {
+        display: inline-block;
         font-variant-numeric: tabular-nums;
         overflow-wrap: anywhere;
     }
 
-    .ledger-table th {
-        white-space: nowrap;
+    .income-ledger .ledger-table .income-money {
+        max-width: 190px;
+        text-align: right;
     }
 
-    .ledger-table td {
-        vertical-align: middle;
+    .income-ledger .income-mobile-list .income-money {
+        max-width: 145px;
+        text-align: right;
     }
 
-    .ledger-button {
+    .income-ledger .income-money-words {
+        display: block;
+        margin-top: 3px;
+        color: #87958f;
+        font-size: 9px;
+        font-weight: 600;
+        line-height: 1.4;
+        letter-spacing: 0;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .income-ledger .ledger-stat .income-money-words {
+        max-width: 260px;
+        font-size: 9px;
+    }
+
+    .income-ledger .ledger-utility-button {
         display: inline-flex;
-        min-height: 41px;
+        min-height: 38px;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        border-radius: 11px;
-        padding: 10px 14px;
-        font-size: 12px;
-        font-weight: 750;
-        transition: background .16s ease, transform .16s ease;
-    }
-
-    .ledger-button:active {
-        transform: scale(.98);
-    }
-
-    .ledger-button-primary {
-        background: #153030;
-        color: #fff;
-    }
-
-    .ledger-button-primary:hover {
-        background: #214747;
-    }
-
-    .ledger-button-secondary {
+        gap: 7px;
         border: 1px solid #dfe7e5;
+        border-radius: 10px;
         background: #fff;
+        padding: 8px 11px;
         color: #415653;
+        font-size: 11px;
+        font-weight: 750;
+        transition: background .16s ease, border-color .16s ease, transform .16s ease;
     }
 
-    .ledger-button-secondary:hover {
+    .income-ledger .ledger-utility-button:hover {
+        border-color: #c9d9d4;
         background: #f4f8f7;
     }
 
-    .ledger-button-export {
-        border: 1px solid #bde5d4;
-        background: #edfaf3;
-        color: #126642;
-    }
+    .income-ledger .ledger-utility-button:active { transform: scale(.98); }
 
-    .ledger-button-export:hover {
-        background: #daf4e6;
-    }
-
-    .ledger-status {
+    .income-ledger .ledger-copy-amount {
         display: inline-flex;
+        width: 27px;
+        height: 27px;
         align-items: center;
-        gap: 6px;
-        border-radius: 999px;
-        padding: 5px 9px;
-        font-size: 11px;
-        font-weight: 750;
-        white-space: nowrap;
+        justify-content: center;
+        border: 1px solid #e4ece9;
+        border-radius: 8px;
+        background: #fff;
+        color: #668079;
+        font-size: 13px;
+        transition: background .16s ease, color .16s ease;
     }
 
-    .ledger-status-dot {
-        width: 6px;
-        height: 6px;
-        flex: 0 0 6px;
-        border-radius: 50%;
-        background: currentColor;
+    .income-ledger .ledger-copy-amount:hover {
+        background: #edf5f1;
+        color: #153030;
     }
 
-    @media (min-width: 768px) {
-        .ledger-stat {
-            border-right: 1px solid #e9efee;
-            border-bottom: 0;
-        }
-
-        .ledger-stat:last-child {
-            border-right: 0;
-        }
+    .income-ledger.amounts-hidden .income-money {
+        filter: blur(7px);
+        user-select: none;
     }
 
-    @media (max-width: 640px) {
-        .ledger-panel {
-            border-radius: 16px;
-        }
+    .income-ledger .ledger-action-feedback {
+        min-height: 18px;
+        color: #63817a;
+        font-size: 10px;
+        font-weight: 700;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        .ledger-control,
-        .ledger-row,
-        .ledger-button {
-            transition: none;
-        }
+    @media (max-width: 440px) {
+        .income-ledger .income-money-words { font-size: 8px; }
+        .income-ledger .ledger-utility-button { flex: 1 1 auto; }
     }
+
+    @media print {
+        body { background: #fff !important; }
+        .income-ledger { max-width: none !important; padding: 0 !important; }
+        .income-ledger .no-print,
+        .income-ledger #income-filters,
+        .income-ledger .income-header-actions,
+        .income-ledger .ledger-pagination,
+        .income-ledger .ledger-copy-amount { display: none !important; }
+        .income-ledger .ledger-panel { box-shadow: none !important; }
+        .income-ledger .ledger-table tr { break-inside: avoid; }
+        .income-ledger .income-hero { background: #153030 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        .income-ledger .income-money { filter: none !important; }
+        .income-ledger .income-money-words { color: #53645f !important; }
+        .income-ledger .income-mobile-list { display: none !important; }
+        .income-ledger .income-desktop-table { display: block !important; }
+        .income-ledger .income-desktop-table table { min-width: 0 !important; width: 100% !important; }
+        .income-ledger .income-desktop-table th,
+        .income-ledger .income-desktop-table td { padding: 7px !important; font-size: 9px !important; }
+        .income-ledger .ledger-table { min-width: 0 !important; }
+        .income-ledger .ledger-table td:nth-child(3) p:last-child { display: none !important; }
+        .income-ledger a { color: inherit !important; text-decoration: none !important; }
+    }
+
 </style>
 
-<div class="income-ledger mx-auto w-full max-w-[1700px] space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+
+
+<div id="incomeLedger" class="income-ledger mx-auto w-full max-w-[1700px] space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+
+
 
     <!-- PREMIUM PAGE HEADER -->
-    <section class="relative isolate overflow-hidden rounded-[26px] bg-[#153030] text-white shadow-lg shadow-teal-950/10">
+
+    <section class="income-hero relative isolate overflow-hidden rounded-[26px] bg-[#153030] text-white shadow-lg shadow-teal-950/10">
+
         <div class="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border-[34px] border-white/[0.045]"></div>
+
         <div class="pointer-events-none absolute -bottom-24 right-[28%] h-48 w-48 rounded-full bg-teal-300/[0.06] blur-2xl"></div>
 
+
+
         <div class="relative p-5 sm:p-7 lg:p-8">
+
             <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
 
+
+
                 <div class="min-w-0">
+
                     <div class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.17em] text-teal-50">
+
                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-300"></span>
+
                         Finance Studio / Income Ledger
+
                     </div>
+
+
 
                     <h1 class="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
+
                         Income transactions
+
                     </h1>
 
+
+
                     <p class="mt-2 max-w-2xl text-sm leading-6 text-teal-50/75">
+
                         Search payments, review collection performance, track payment status,
+
                         and export your complete filtered transaction data.
+
                     </p>
 
+
+
                     <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-teal-50/80">
-                        <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2">
-                            <i class="ri-calendar-check-line"></i>
-                            {{ period_label|default:"All time" }}
-                        </span>
 
                         <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2">
-                            <i class="ri-database-2-line"></i>
-                            {{ page_obj.paginator.count|default:0 }} matching records
+
+                            <i class="ri-calendar-check-line"></i>
+
+                            {{ period_label|default:"All time" }}
+
                         </span>
+
+
+
+                        <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2">
+
+                            <i class="ri-database-2-line"></i>
+
+                            <span class="indian-count">{{ page_obj.paginator.count|default:0 }}</span> matching records
+
+                        </span>
+
                     </div>
+
                 </div>
 
-                <nav class="flex flex-wrap gap-2" aria-label="Finance navigation">
+
+
+                <nav class="income-header-actions flex flex-wrap gap-2" aria-label="Finance navigation">
+
                     <a href="{% url 'finance_dashboard' %}"
+
                        class="ledger-button border border-white/20 bg-white px-4 text-[#153030] hover:bg-teal-50">
+
                         <i class="ri-dashboard-3-line text-base"></i>
+
                         Finance dashboard
+
                     </a>
+
+
 
                     <a href="{% url 'purchase_transactions' %}"
+
                        class="ledger-button border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15]">
+
                         <i class="ri-shopping-bag-3-line text-base"></i>
+
                         Purchases
+
                     </a>
+
                 </nav>
+            
+
             </div>
+            <div class="no-print mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+                <button id="income-privacy-toggle" type="button" class="ledger-utility-button border-white/15 bg-white/[0.08] text-white hover:bg-white/[0.15] hover:text-white" aria-pressed="false">
+                    <i id="income-privacy-icon" class="ri-eye-off-line text-sm"></i>
+                    <span id="income-privacy-label">Hide amounts</span>
+                </button>
+                <button id="income-copy-summary" type="button" class="ledger-utility-button border-white/15 bg-white/[0.08] text-white hover:bg-white/[0.15] hover:text-white">
+                    <i class="ri-file-copy-line text-sm"></i> Copy summary
+                </button>
+                <button id="income-print-page" type="button" class="ledger-utility-button border-white/15 bg-white/[0.08] text-white hover:bg-white/[0.15] hover:text-white">
+                    <i class="ri-printer-line text-sm"></i> Print / Save PDF
+                </button>
+                <span id="income-action-feedback" class="ledger-action-feedback ml-1 text-teal-50/75" role="status" aria-live="polite"></span>
+            </div>
+
         </div>
+
     </section>
+
+
 
     <!-- FINANCIAL SUMMARY STRIP -->
+
     <section class="ledger-panel overflow-hidden" aria-label="Filtered income summary">
+
         <div class="grid grid-cols-2 md:grid-cols-4">
 
+
+
             <div class="ledger-stat">
+
                 <p class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+
                     <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+
                         <i class="ri-file-list-3-line"></i>
+
                     </span>
+
                     Matching records
+
                 </p>
+
                 <p class="ledger-stat-value mt-3 text-2xl font-extrabold tracking-tight text-slate-900">
-                    {{ stats.count|default:0 }}
+
+                    <span class="indian-count">{{ stats.count|default:0 }}</span>
+
                 </p>
+
                 <p class="mt-1 text-[11px] text-slate-400">Current filter result</p>
+
             </div>
 
+
+
             <div class="ledger-stat">
+
                 <p class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+
                     <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-800">
+
                         <i class="ri-wallet-3-line"></i>
+
                     </span>
+
                     Recorded amount
+
                 </p>
+
                 <p class="ledger-stat-value mt-3 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
-                    ₹{{ stats.amount|default:0|floatformat:2 }}
+
+                    <span class="income-money" data-amount="{{ stats.amount|default:0 }}">₹{{ stats.amount|default:0|floatformat:2 }}</span>
+
                 </p>
+
                 <p class="mt-1 text-[11px] text-slate-400">All matching statuses</p>
+
             </div>
 
+
+
             <div class="ledger-stat">
+
                 <p class="flex items-center gap-2 text-xs font-semibold text-emerald-800">
+
                     <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100">
+
                         <i class="ri-checkbox-circle-line"></i>
+
                     </span>
+
                     Completed
+
                 </p>
+
                 <p class="ledger-stat-value mt-3 text-2xl font-extrabold tracking-tight text-emerald-800">
-                    {{ stats.completed_count|default:0 }}
+
+                    <span class="indian-count">{{ stats.completed_count|default:0 }}</span>
+
                 </p>
+
                 <p class="ledger-stat-value mt-1 text-xs font-semibold text-emerald-700">
-                    ₹{{ stats.completed_amount|default:0|floatformat:2 }}
+
+                    <span class="income-money" data-amount="{{ stats.completed_amount|default:0 }}">₹{{ stats.completed_amount|default:0|floatformat:2 }}</span>
+
                 </p>
+
             </div>
 
+
+
             <div class="ledger-stat">
+
                 <p class="flex items-center gap-2 text-xs font-semibold text-amber-800">
+
                     <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100">
+
                         <i class="ri-time-line"></i>
+
                     </span>
+
                     Pending
+
                 </p>
+
                 <p class="ledger-stat-value mt-3 text-2xl font-extrabold tracking-tight text-amber-800">
-                    {{ stats.pending_count|default:0 }}
+
+                    <span class="indian-count">{{ stats.pending_count|default:0 }}</span>
+
                 </p>
+
                 <p class="ledger-stat-value mt-1 text-xs font-semibold text-amber-700">
-                    ₹{{ stats.pending_amount|default:0|floatformat:2 }}
+
+                    <span class="income-money" data-amount="{{ stats.pending_amount|default:0 }}">₹{{ stats.pending_amount|default:0|floatformat:2 }}</span>
+
                 </p>
+
             </div>
+
+
 
         </div>
+
     </section>
 
+
+
     <!-- FILTER WORKSPACE -->
+
     <section class="ledger-panel overflow-hidden" id="income-filters">
+
         <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+
             <div>
+
                 <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">
+
                     Transaction controls
+
                 </p>
+
                 <h2 class="mt-1 text-base font-extrabold text-slate-900">
+
                     Find the payment you need
+
                 </h2>
+
                 <p class="mt-1 text-xs leading-5 text-slate-500">
+
                     Combine filters to narrow results. Excel export includes all records matching the filters.
+
                 </p>
+
             </div>
+
+
 
             <span class="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600">
+
                 <i class="ri-filter-3-line text-teal-700"></i>
-                {{ page_obj.paginator.count|default:0 }} results
+
+                <span class="indian-count">{{ page_obj.paginator.count|default:0 }}</span> results
+
             </span>
+
         </div>
 
+
+
         <form method="get" class="p-4 sm:p-5">
+
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
 
+
+
                 <div class="sm:col-span-2">
+
                     <label for="income-q" class="mb-1.5 block text-xs font-bold text-slate-600">
+
                         Search transactions
+
                     </label>
+
                     <div class="relative">
+
                         <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-base text-slate-400"></i>
+
                         <input id="income-q"
+
                                type="search"
+
                                name="q"
+
                                value="{{ search_query }}"
+
                                placeholder="Source, transaction ID, description..."
+
                                class="ledger-control pl-9"
+
                                autocomplete="off">
+
                     </div>
+
                 </div>
 
+
+
                 <div>
+
                     <label for="income-period" class="mb-1.5 block text-xs font-bold text-slate-600">
+
                         Reporting period
+
                     </label>
+
                     <select id="income-period" name="period" class="ledger-control">
+
                         {% for value, label in period_options %}
+
                             <option value="{{ value }}" {% if selected_period == value %}selected{% endif %}>
+
                                 {{ label }}
+
                             </option>
+
                         {% endfor %}
+
                     </select>
+
                 </div>
 
+
+
                 <div>
+
                     <label for="income-status" class="mb-1.5 block text-xs font-bold text-slate-600">
+
                         Payment status
+
                     </label>
+
                     <select id="income-status" name="status" class="ledger-control">
+
                         <option value="">All statuses</option>
+
                         {% for value, label in payment_statuses %}
+
                             <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>
+
                                 {{ label }}
+
                             </option>
+
                         {% endfor %}
+
                     </select>
+
                 </div>
 
+
+
                 <div>
+
                     <label for="income-method" class="mb-1.5 block text-xs font-bold text-slate-600">
+
                         Payment method
+
                     </label>
+
                     <select id="income-method" name="method" class="ledger-control">
+
                         <option value="">All methods</option>
+
                         {% for value, label in payment_methods %}
+
                             <option value="{{ value }}" {% if selected_method == value %}selected{% endif %}>
+
                                 {{ label }}
+
                             </option>
+
                         {% endfor %}
+
                     </select>
+
                 </div>
 
+
+
                 <div>
+
                     <label for="income-source" class="mb-1.5 block text-xs font-bold text-slate-600">
+
                         Income source
+
                     </label>
+
                     <select id="income-source" name="source" class="ledger-control">
+
                         <option value="">All sources</option>
+
                         {% for item in income_sources %}
+
                             <option value="{{ item.pk }}"
+
                                     {% if selected_source == item.pk|stringformat:"s" %}selected{% endif %}>
+
                                 {{ item.name }}
+
                             </option>
+
                         {% endfor %}
+
                     </select>
+
                 </div>
 
+
+
                 <div>
+
                     <label for="income-start" class="mb-1.5 block text-xs font-bold text-slate-600">
+
                         Start date
+
                     </label>
+
                     <input id="income-start"
+
                            type="date"
+
                            name="start_date"
+
                            value="{{ start_date }}"
+
                            class="ledger-control">
+
                 </div>
 
+
+
                 <div>
+
                     <label for="income-end" class="mb-1.5 block text-xs font-bold text-slate-600">
+
                         End date
+
                     </label>
+
                     <input id="income-end"
+
                            type="date"
+
                            name="end_date"
+
                            value="{{ end_date }}"
+
                            class="ledger-control">
+
                 </div>
+
+
 
             </div>
 
+
+
             <div class="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
+
                 <button type="submit" class="ledger-button ledger-button-primary">
+
                     <i class="ri-equalizer-2-line text-base"></i>
+
                     Apply filters
+
                 </button>
 
+
+
                 <a href="{% url 'income_transactions' %}"
+
                    class="ledger-button ledger-button-secondary">
+
                     <i class="ri-refresh-line text-base"></i>
+
                     Clear filters
+
                 </a>
+
+
 
                 <span class="hidden h-7 w-px bg-slate-200 sm:block"></span>
 
+
+
                 <button type="submit"
+
                         name="export"
+
                         value="xlsx"
+
                         class="ledger-button ledger-button-export">
+
                     <i class="ri-file-excel-2-line text-base"></i>
+
                     Download Excel
+
                 </button>
 
+
+
                 <p class="text-[11px] leading-5 text-slate-400 sm:ml-auto sm:text-right">
+
                     Export uses these filters and includes every matching record.
+
                 </p>
+
             </div>
+
         </form>
 
+
+
         {% if filter_message %}
+
             <div class="mx-4 mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900 sm:mx-5">
+
                 <i class="ri-information-line mt-0.5"></i>
+
                 <span>{{ filter_message }}</span>
+
             </div>
+
         {% endif %}
+
     </section>
+
+
 
     <!-- TRANSACTIONS TABLE -->
+
     <section class="ledger-panel overflow-hidden" id="income-records">
+
         <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+
             <div>
+
                 <h2 class="flex items-center gap-2 font-extrabold text-slate-900">
+
                     <i class="ri-list-check-3 text-lg text-teal-800"></i>
+
                     Income ledger
+
                 </h2>
+
                 <p class="mt-1 text-xs text-slate-500">
-                    Page {{ page_obj.number|default:1 }}
-                    of {{ page_obj.paginator.num_pages|default:1 }}
+
+                    Page <span class="indian-count">{{ page_obj.number|default:1 }}</span>
+
+                    of <span class="indian-count">{{ page_obj.paginator.num_pages|default:1 }}</span>
+
                 </p>
+
             </div>
 
+
+
             <span class="inline-flex w-fit items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">
+
                 <i class="ri-file-excel-2-line text-emerald-700"></i>
+
                 Full filtered results available in Excel
+
             </span>
+
         </div>
+
+
 
         <!-- DESKTOP / TABLET TABLE -->
-        <div class="hidden overflow-x-auto md:block">
+
+        <div class="income-desktop-table hidden overflow-x-auto md:block">
+
             <table class="ledger-table w-full min-w-[1050px]">
+
                 <thead class="bg-[#f7f9f8]">
+
                     <tr class="text-left text-[10px] font-extrabold uppercase tracking-[.13em] text-slate-500">
+
                         <th class="px-5 py-4">Payment date</th>
+
                         <th class="px-5 py-4">Income source</th>
+
                         <th class="px-5 py-4">Transaction reference</th>
+
                         <th class="px-5 py-4">Method</th>
+
                         <th class="px-5 py-4">Status</th>
+
                         <th class="px-5 py-4 text-right">Amount</th>
+
                     </tr>
+
                 </thead>
 
+
+
                 <tbody class="divide-y divide-slate-100">
+
                     {% for payment in payments %}
+
                         <tr class="ledger-row">
+
                             <td class="whitespace-nowrap px-5 py-4 text-xs font-medium text-slate-600">
+
                                 {% if payment.payment_date %}
+
                                     {{ payment.payment_date|date:"d M Y" }}
+
                                 {% else %}
+
                                     <span class="text-slate-400">Not recorded</span>
+
                                 {% endif %}
+
                             </td>
 
+
+
                             <td class="px-5 py-4">
+
                                 <div class="flex min-w-0 items-center gap-3">
+
                                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#153030]">
+
                                         <i class="ri-exchange-dollar-line text-lg"></i>
+
                                     </span>
+
                                     <div class="min-w-0">
+
                                         <p class="max-w-[230px] truncate text-sm font-bold text-slate-800">
+
                                             {{ payment.income_source.name|default:"Unassigned" }}
+
                                         </p>
+
                                         {% if payment.description %}
+
                                             <p class="mt-1 max-w-[240px] truncate text-xs text-slate-400">
+
                                                 {{ payment.description }}
+
                                             </p>
+
                                         {% endif %}
+
                                     </div>
+
                                 </div>
+
                             </td>
 
+
+
                             <td class="px-5 py-4">
+
                                 <p class="break-all text-xs font-bold text-slate-700">
+
                                     {{ payment.transaction_id|default:"—" }}
+
                                 </p>
+
                                 <p class="mt-1 text-[10px] text-slate-400">
+
                                     Record #{{ payment.pk }}
+
                                 </p>
+
                             </td>
+
+
 
                             <td class="whitespace-nowrap px-5 py-4 text-xs font-medium text-slate-600">
+
                                 {{ payment.get_payment_method_display|default:payment.payment_method|default:"—" }}
+
                             </td>
+
+
 
                             <td class="whitespace-nowrap px-5 py-4">
+
                                 {% if payment.payment_status == "COMPLETED" %}
+
                                     <span class="ledger-status bg-emerald-50 text-emerald-800">
+
                                         <span class="ledger-status-dot"></span>
+
                                         {{ payment.get_payment_status_display }}
+
                                     </span>
+
                                 {% elif payment.payment_status == "PENDING" %}
+
                                     <span class="ledger-status bg-amber-50 text-amber-800">
+
                                         <span class="ledger-status-dot"></span>
+
                                         {{ payment.get_payment_status_display }}
+
                                     </span>
+
                                 {% elif payment.payment_status == "FAILED" %}
+
                                     <span class="ledger-status bg-rose-50 text-rose-800">
+
                                         <span class="ledger-status-dot"></span>
+
                                         {{ payment.get_payment_status_display }}
+
                                     </span>
+
                                 {% else %}
+
                                     <span class="ledger-status bg-slate-100 text-slate-600">
+
                                         <span class="ledger-status-dot"></span>
+
                                         {{ payment.get_payment_status_display|default:"Unknown" }}
+
                                     </span>
+
                                 {% endif %}
+
                             </td>
+
+
 
                             <td class="whitespace-nowrap px-5 py-4 text-right">
-                                <p class="text-sm font-extrabold tabular-nums text-slate-900">
-                                    ₹{{ payment.amount|floatformat:2 }}
-                                </p>
-                            </td>
+
+                                <div class="flex items-start justify-end gap-2">
+
+
+                                    <p class="text-sm font-extrabold tabular-nums text-slate-900"><span class="income-money" data-amount="{{ payment.amount|default:0 }}">₹{{ payment.amount|floatformat:2 }}</span></p>
+
+
+                                    <button type="button" class="ledger-copy-amount no-print" data-copy-amount="{{ payment.amount|default:0 }}" title="Copy amount in numbers and words" aria-label="Copy payment amount">
+
+
+                                        <i class="ri-file-copy-line"></i>
+
+
+                                    </button>
+
+
+                                </div>
+
+
+                                </td>
+
                         </tr>
+
                     {% empty %}
+
                         <tr>
+
                             <td colspan="6" class="px-5 py-16 text-center">
+
                                 <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+
                                     <i class="ri-search-eye-line text-2xl"></i>
+
                                 </span>
+
                                 <p class="mt-3 text-sm font-bold text-slate-800">
+
                                     No income transactions found
+
                                 </p>
+
                                 <p class="mt-1 text-xs text-slate-500">
+
                                     Try another search or change the reporting period.
+
                                 </p>
+
                                 <a href="{% url 'income_transactions' %}"
+
                                    class="mt-4 inline-flex items-center gap-2 text-xs font-bold text-teal-800 hover:underline">
+
                                     <i class="ri-refresh-line"></i>
+
                                     Reset all filters
+
                                 </a>
+
                             </td>
+
                         </tr>
+
                     {% endfor %}
+
                 </tbody>
+
             </table>
+
         </div>
+
+
 
         <!-- MOBILE TRANSACTION LIST -->
-        <div class="divide-y divide-slate-100 md:hidden">
+
+        <div class="income-mobile-list divide-y divide-slate-100 md:hidden">
+
             {% for payment in payments %}
+
                 <article class="p-4 transition hover:bg-slate-50/80">
+
                     <div class="flex items-start justify-between gap-3">
+
                         <div class="flex min-w-0 items-start gap-3">
+
                             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-[#153030]">
+
                                 <i class="ri-exchange-dollar-line text-xl"></i>
+
                             </span>
+
+
 
                             <div class="min-w-0">
+
                                 <h3 class="break-words text-sm font-extrabold text-slate-900">
+
                                     {{ payment.income_source.name|default:"Unassigned" }}
+
                                 </h3>
+
                                 <p class="mt-1 break-all text-xs text-slate-500">
+
                                     {{ payment.transaction_id|default:"No transaction ID" }}
+
                                 </p>
+
                                 <p class="mt-1 text-[11px] text-slate-400">
+
                                     {% if payment.payment_date %}
+
                                         {{ payment.payment_date|date:"d M Y" }}
+
                                     {% else %}
+
                                         Date not recorded
+
                                     {% endif %}
+
                                 </p>
+
                             </div>
+
                         </div>
+
+
 
                         <div class="shrink-0 text-right">
+
                             <p class="break-words text-sm font-extrabold tabular-nums text-slate-900">
-                                ₹{{ payment.amount|floatformat:2 }}
+
+                                <span class="income-money" data-amount="{{ payment.amount|default:0 }}">₹{{ payment.amount|floatformat:2 }}</span>
+
                             </p>
-                            <p class="mt-1 text-[11px] text-slate-500">
-                                {{ payment.get_payment_method_display|default:payment.payment_method|default:"—" }}
-                            </p>
-                        </div>
+
+                            <p class="mt-1 text-[11px] text-slate-500">{{ payment.get_payment_method_display|default:payment.payment_method|default:"—" }}</p>
+
+
+                            <button type="button" class="ledger-copy-amount no-print mt-2" data-copy-amount="{{ payment.amount|default:0 }}" title="Copy amount in numbers and words" aria-label="Copy payment amount">
+
+
+                                <i class="ri-file-copy-line"></i>
+
+
+                            </button>
+
+
+                            </div>
+
                     </div>
+
+
 
                     <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+
                         {% if payment.payment_status == "COMPLETED" %}
+
                             <span class="ledger-status bg-emerald-50 text-emerald-800">
+
                                 <span class="ledger-status-dot"></span>
+
                                 {{ payment.get_payment_status_display }}
+
                             </span>
+
                         {% elif payment.payment_status == "PENDING" %}
+
                             <span class="ledger-status bg-amber-50 text-amber-800">
+
                                 <span class="ledger-status-dot"></span>
+
                                 {{ payment.get_payment_status_display }}
+
                             </span>
+
                         {% elif payment.payment_status == "FAILED" %}
+
                             <span class="ledger-status bg-rose-50 text-rose-800">
+
                                 <span class="ledger-status-dot"></span>
+
                                 {{ payment.get_payment_status_display }}
+
                             </span>
+
                         {% else %}
+
                             <span class="ledger-status bg-slate-100 text-slate-600">
+
                                 <span class="ledger-status-dot"></span>
+
                                 {{ payment.get_payment_status_display|default:"Unknown" }}
+
                             </span>
+
                         {% endif %}
 
+
+
                         <span class="text-[10px] font-medium text-slate-400">
+
                             Record #{{ payment.pk }}
+
                         </span>
+
                     </div>
 
+
+
                     {% if payment.description %}
+
                         <p class="mt-3 border-t border-slate-100 pt-3 text-xs leading-5 text-slate-600">
+
                             {{ payment.description }}
+
                         </p>
+
                     {% endif %}
+
                 </article>
+
             {% empty %}
+
                 <div class="px-5 py-12 text-center">
+
                     <i class="ri-file-search-line text-3xl text-slate-300"></i>
+
                     <p class="mt-2 text-sm font-bold text-slate-800">No matching transactions</p>
+
                     <p class="mt-1 text-xs text-slate-500">Change the filters to see more records.</p>
+
                 </div>
+
             {% endfor %}
+
         </div>
 
+
+
         <!-- PAGINATION -->
+
         {% if page_obj.paginator.num_pages > 1 %}
-            <nav class="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+
+            <nav class="ledger-pagination flex flex-col gap-3 border-t border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+
                  aria-label="Income transaction pagination">
 
+
+
                 <p class="text-xs leading-5 text-slate-500">
+
                     Showing
-                    <strong class="text-slate-800">{{ page_obj.start_index }}</strong>–<strong class="text-slate-800">{{ page_obj.end_index }}</strong>
-                    of <strong class="text-slate-800">{{ page_obj.paginator.count }}</strong> records
+
+                    <strong class="text-slate-800"><span class="indian-count">{{ page_obj.start_index }}</span></strong>–<strong class="text-slate-800"><span class="indian-count">{{ page_obj.end_index }}</span></strong>
+
+                    of <strong class="text-slate-800"><span class="indian-count">{{ page_obj.paginator.count }}</span></strong> records
+
                 </p>
 
+
+
                 <div class="flex flex-wrap items-center gap-2">
+
                     {% if page_obj.has_previous %}
+
                         <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page=1#income-records"
+
                            class="ledger-button ledger-button-secondary">
+
                             <i class="ri-skip-back-mini-line"></i>
+
                             First
+
                         </a>
+
+
 
                         <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.previous_page_number }}#income-records"
+
                            class="ledger-button ledger-button-secondary">
+
                             <i class="ri-arrow-left-s-line"></i>
+
                             Previous
+
                         </a>
+
                     {% endif %}
+
+
 
                     <span class="inline-flex min-h-10 items-center rounded-xl bg-[#153030] px-4 text-xs font-extrabold text-white">
-                        {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+
+                        <span class="indian-count">{{ page_obj.number }}</span> / <span class="indian-count">{{ page_obj.paginator.num_pages }}</span>
+
                     </span>
 
+
+
                     {% if page_obj.has_next %}
+
                         <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.next_page_number }}#income-records"
+
                            class="ledger-button ledger-button-secondary">
+
                             Next
+
                             <i class="ri-arrow-right-s-line"></i>
+
                         </a>
+
+
 
                         <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.paginator.num_pages }}#income-records"
+
                            class="ledger-button ledger-button-secondary">
+
                             Last
+
                             <i class="ri-skip-forward-mini-line"></i>
+
                         </a>
+
                     {% endif %}
+
                 </div>
+
             </nav>
+
         {% endif %}
+
     </section>
 
+
+
     <!-- EXPORT FOOTNOTE -->
+
     <footer class="flex flex-col gap-1 border-t border-slate-200 pt-4 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+
         <span>YAARLYNX Finance Studio · Income Ledger</span>
+
         <span>Currency: INR (₹) · Exported data follows your active filters</span>
+
     </footer>
+
 </div>
+
+
+
+
+
+<script>
+(function () {
+    "use strict";
+
+    const root = document.getElementById("incomeLedger");
+    if (!root) return;
+
+    const moneyFormatter = new Intl.NumberFormat("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    const integerFormatter = new Intl.NumberFormat("en-IN", {
+        maximumFractionDigits: 0
+    });
+
+    const ones = [
+        "Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+        "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+        "Seventeen", "Eighteen", "Nineteen"
+    ];
+    const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+    function underThousandToWords(value) {
+        let number = Math.floor(value);
+        const words = [];
+        if (number >= 100) {
+            words.push(ones[Math.floor(number / 100)] + " Hundred");
+            number %= 100;
+        }
+        if (number >= 20) {
+            words.push(tens[Math.floor(number / 10)]);
+            number %= 10;
+        }
+        if (number > 0) words.push(ones[number]);
+        return words.join(" ");
+    }
+
+    function indianIntegerToWords(value) {
+        const number = Math.floor(value);
+        if (number < 1000) return underThousandToWords(number) || "Zero";
+        const groups = [
+            [100000000000, "Kharab"],
+            [1000000000, "Arab"],
+            [10000000, "Crore"],
+            [100000, "Lakh"],
+            [1000, "Thousand"]
+        ];
+        for (const [size, label] of groups) {
+            if (number >= size) {
+                const quotient = Math.floor(number / size);
+                const remainder = number % size;
+                return indianIntegerToWords(quotient) + " " + label +
+                    (remainder ? " " + indianIntegerToWords(remainder) : "");
+            }
+        }
+        return underThousandToWords(number);
+    }
+
+    function amountToWords(value) {
+        const amount = Number(value);
+        if (!Number.isFinite(amount)) return "Amount unavailable";
+        const absolute = Math.abs(amount);
+        if (absolute > Number.MAX_SAFE_INTEGER) return "Amount is too large to spell out";
+        const fixed = absolute.toFixed(2).split(".");
+        const rupees = Number.parseInt(fixed[0], 10) || 0;
+        const paise = Number.parseInt(fixed[1], 10) || 0;
+        const parts = [];
+        if (rupees > 0 || paise === 0) {
+            parts.push(indianIntegerToWords(rupees) + (rupees === 1 ? " Rupee" : " Rupees"));
+        }
+        if (paise > 0) {
+            parts.push(indianIntegerToWords(paise) + (paise === 1 ? " Paisa" : " Paise"));
+        }
+        return (amount < 0 ? "Minus " : "") + parts.join(" and ") + " Only";
+    }
+
+    function formatAllAmounts() {
+        root.querySelectorAll(".income-money").forEach(function (element) {
+            if (element.dataset.formatted === "true") return;
+            const raw = element.dataset.amount;
+            const value = Number(raw);
+            if (!Number.isFinite(value)) return;
+            element.textContent = "₹" + moneyFormatter.format(value);
+            const words = document.createElement("span");
+            words.className = "income-money-words";
+            words.textContent = amountToWords(value);
+            element.appendChild(words);
+            element.dataset.formatted = "true";
+        });
+    }
+
+    function formatCounts() {
+        root.querySelectorAll(".indian-count").forEach(function (element) {
+            const value = Number((element.textContent || "").replace(/,/g, "").trim());
+            if (Number.isFinite(value)) element.textContent = integerFormatter.format(value);
+        });
+    }
+
+    formatAllAmounts();
+    formatCounts();
+
+    const feedback = document.getElementById("income-action-feedback");
+    let feedbackTimer = null;
+    function showFeedback(message) {
+        if (!feedback) return;
+        feedback.textContent = message;
+        window.clearTimeout(feedbackTimer);
+        feedbackTimer = window.setTimeout(function () {
+            feedback.textContent = "";
+        }, 2800);
+    }
+
+    async function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+        const helper = document.createElement("textarea");
+        helper.value = text;
+        helper.setAttribute("readonly", "");
+        helper.style.position = "fixed";
+        helper.style.opacity = "0";
+        document.body.appendChild(helper);
+        helper.select();
+        const copied = document.execCommand("copy");
+        helper.remove();
+        if (!copied) throw new Error("Copy is not available in this browser.");
+    }
+
+    const privacyButton = document.getElementById("income-privacy-toggle");
+    const privacyLabel = document.getElementById("income-privacy-label");
+    const privacyIcon = document.getElementById("income-privacy-icon");
+    if (privacyButton) {
+        privacyButton.addEventListener("click", function () {
+            const hidden = root.classList.toggle("amounts-hidden");
+            privacyButton.setAttribute("aria-pressed", hidden ? "true" : "false");
+            if (privacyLabel) privacyLabel.textContent = hidden ? "Show amounts" : "Hide amounts";
+            if (privacyIcon) privacyIcon.className = hidden ? "ri-eye-line text-sm" : "ri-eye-off-line text-sm";
+            showFeedback(hidden ? "Financial amounts hidden." : "Financial amounts visible.");
+        });
+    }
+
+    const copySummaryButton = document.getElementById("income-copy-summary");
+    if (copySummaryButton) {
+        copySummaryButton.addEventListener("click", async function () {
+            const amountValues = Array.from(root.querySelectorAll(".ledger-stat .income-money"));
+            const labels = ["Recorded amount", "Completed amount", "Pending amount"];
+            const lines = [
+                "YAARLYNX — Income Transactions",
+                "Period: {{ period_label|default:'All time'|escapejs }}",
+                "Matching records: " + (root.querySelector(".ledger-stat:nth-child(1) .indian-count")?.textContent.trim() || "{{ stats.count|default:0 }}"),
+            ];
+            amountValues.slice(0, 3).forEach(function (element, index) {
+                const raw = Number(element.dataset.amount || 0);
+                lines.push(labels[index] + ": ₹" + moneyFormatter.format(raw));
+                lines.push(amountToWords(raw));
+            });
+            try {
+                await copyText(lines.join("\n"));
+                showFeedback("Income summary copied.");
+            } catch (error) {
+                showFeedback(error.message || "Unable to copy summary.");
+            }
+        });
+    }
+
+    root.querySelectorAll(".ledger-copy-amount").forEach(function (button) {
+        button.addEventListener("click", async function () {
+            const value = Number(button.dataset.copyAmount || 0);
+            try {
+                await copyText("₹" + moneyFormatter.format(value) + "\n" + amountToWords(value));
+                showFeedback("Amount copied in numbers and words.");
+            } catch (error) {
+                showFeedback(error.message || "Unable to copy amount.");
+            }
+        });
+    });
+
+    const printButton = document.getElementById("income-print-page");
+    if (printButton) {
+        printButton.addEventListener("click", function () {
+            window.print();
+        });
+    }
+})();
+</script>
 
 {% endblock %}

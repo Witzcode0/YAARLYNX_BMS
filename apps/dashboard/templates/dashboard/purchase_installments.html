@@ -197,6 +197,39 @@
 @media (prefers-reduced-motion: reduce) {
     .yl-installments *, .yl-installments *::before, .yl-installments *::after { transition: none !important; scroll-behavior: auto !important; }
 }
+
+
+/* Indian currency, amount words and privacy controls */
+.yl-installments .yi-utility-bar { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:13px 0 16px; padding:11px 13px; border:1px solid var(--yl-line); border-radius:13px; background:#fff; }
+.yl-installments .yi-utility-copy { min-width:0; display:grid; gap:3px; }
+.yl-installments .yi-utility-copy strong { color:var(--yl-ink); font-size:10px; font-weight:900; }
+.yl-installments .yi-utility-copy span { color:#94a0a0; font-size:9px; }
+.yl-installments .yi-utility-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:7px; }
+.yl-installments .yi-tool-btn { min-height:35px; display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:7px 10px; border:1px solid #dfe8e8; border-radius:9px; color:#496060; background:#fff; font-size:9px; font-weight:850; cursor:pointer; transition:background .18s ease,border-color .18s ease,color .18s ease; }
+.yl-installments .yi-tool-btn:hover { border-color:#b8cecc; background:#f3f8f7; color:var(--yl-ink); }
+.yl-installments .yi-tool-btn-primary { border-color:var(--yl-ink); color:#fff; background:var(--yl-ink); }
+.yl-installments .yi-tool-btn-primary:hover { border-color:#244747; color:#fff; background:#244747; }
+.yl-installments .yi-money { font-variant-numeric:tabular-nums; white-space:normal; }
+.yl-installments .yi-amount-words { display:block; margin-top:3px; color:#91a09f; font-size:8px; line-height:1.45; font-weight:650; overflow-wrap:anywhere; }
+.yl-installments.yi-privacy-on .yi-money { filter:none; user-select:none; }
+.yl-installments.yi-privacy-on .yi-amount-words { visibility:hidden; }
+.yl-installments .yi-money-copy { display:inline-flex; align-items:center; gap:5px; }
+@media (max-width:650px) {
+  .yl-installments .yi-utility-bar { align-items:flex-start; flex-direction:column; }
+  .yl-installments .yi-utility-actions { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .yl-installments .yi-tool-btn { min-width:0; padding:8px 7px; }
+  .yl-installments #yi-print-record { grid-column:1/-1; }
+}
+@media print {
+  @page { size:A4; margin:12mm; }
+  .yl-installments .yi-utility-bar, .yl-installments .yi-hero-actions { display:none !important; }
+  .yl-installments .yi-wrap { max-width:none; padding:0; }
+  .yl-installments .yi-kpi, .yl-installments .yi-progress-panel, .yl-installments .yi-ledger, .yl-installments .yi-payment-state { break-inside:avoid; box-shadow:none; }
+  .yl-installments .yi-hero { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  .yl-installments.yi-privacy-on .yi-money { filter:none !important; }
+  .yl-installments.yi-privacy-on .yi-amount-words { visibility:visible !important; }
+}
+
 </style>
 
 <div class="yl-installments">
@@ -229,6 +262,29 @@
             </div>
         </header>
 
+
+        <!-- FINANCIAL DISPLAY CONTROLS -->
+        <section class="yi-utility-bar" aria-label="Installment page tools">
+            <div class="yi-utility-copy">
+                <strong>Payment workspace</strong>
+                <span>Protect, copy or print this installment statement</span>
+            </div>
+            <div class="yi-utility-actions">
+                <button type="button" class="yi-tool-btn" id="yi-privacy-toggle" aria-pressed="false">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+                    <span>Hide amounts</span>
+                </button>
+                <button type="button" class="yi-tool-btn" id="yi-copy-summary">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+                    <span>Copy summary</span>
+                </button>
+                <button type="button" class="yi-tool-btn yi-tool-btn-primary" id="yi-print-record">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>
+                    <span>Print / Save PDF</span>
+                </button>
+            </div>
+        </section>
+
         <!-- SUMMARY STATISTICS -->
         <section class="yi-kpis" aria-label="Installment statistics">
             <div class="yi-kpi">
@@ -237,7 +293,7 @@
                 </div>
                 <div class="yi-kpi-copy">
                     <p class="yi-kpi-label">Purchase total</p>
-                    <p class="yi-kpi-value">₹ {{ purchase.grand_total|floatformat:2 }}</p>
+                    <p class="yi-kpi-value"><span class="yi-money" data-amount="{{ purchase.grand_total|floatformat:2 }}">₹ {{ purchase.grand_total|floatformat:2 }}</span><small class="yi-amount-words" aria-label="Amount in words"></small></p>
                     <p class="yi-kpi-note">Total payable</p>
                 </div>
             </div>
@@ -257,7 +313,7 @@
                 </div>
                 <div class="yi-kpi-copy">
                     <p class="yi-kpi-label">Total paid</p>
-                    <p class="yi-kpi-value is-paid">₹ {{ total_paid|default:0|floatformat:2 }}</p>
+                    <p class="yi-kpi-value is-paid"><span class="yi-money" data-amount="{{ total_paid|default:0|floatformat:2 }}">₹ {{ total_paid|default:0|floatformat:2 }}</span><small class="yi-amount-words" aria-label="Amount in words"></small></p>
                     <p class="yi-kpi-note">Payments recorded</p>
                 </div>
             </div>
@@ -267,7 +323,7 @@
                 </div>
                 <div class="yi-kpi-copy">
                     <p class="yi-kpi-label">Remaining</p>
-                    <p class="yi-kpi-value is-due">₹ {{ total_remaining|default:0|floatformat:2 }}</p>
+                    <p class="yi-kpi-value is-due"><span class="yi-money" data-amount="{{ total_remaining|default:0|floatformat:2 }}">₹ {{ total_remaining|default:0|floatformat:2 }}</span><small class="yi-amount-words" aria-label="Amount in words"></small></p>
                     <p class="yi-kpi-note">Outstanding installments</p>
                 </div>
             </div>
@@ -354,15 +410,15 @@
 
                         <aside class="yi-amounts" aria-label="Installment amount summary">
                             <span class="yi-amount-main-label">Installment amount</span>
-                            <strong class="yi-amount-main">₹ {{ installment.installment_amount|floatformat:2 }}</strong>
+                            <strong class="yi-amount-main"><span class="yi-money" data-amount="{{ installment.installment_amount|floatformat:2 }}">₹ {{ installment.installment_amount|floatformat:2 }}</span><small class="yi-amount-words" aria-label="Amount in words"></small></strong>
                             <div class="yi-amount-split">
                                 <div>
                                     <span class="yi-amount-label">Paid</span>
-                                    <span class="yi-amount-value">₹ {{ installment.paid_amount|default:0|floatformat:2 }}</span>
+                                    <span class="yi-amount-value"><span class="yi-money" data-amount="{{ installment.paid_amount|default:0|floatformat:2 }}">₹ {{ installment.paid_amount|default:0|floatformat:2 }}</span><small class="yi-amount-words" aria-label="Amount in words"></small></span>
                                 </div>
                                 <div>
                                     <span class="yi-amount-label">Remaining</span>
-                                    <span class="yi-amount-value is-due">₹ {{ installment.remaining_amount|default:0|floatformat:2 }}</span>
+                                    <span class="yi-amount-value is-due"><span class="yi-money" data-amount="{{ installment.remaining_amount|default:0|floatformat:2 }}">₹ {{ installment.remaining_amount|default:0|floatformat:2 }}</span><small class="yi-amount-words" aria-label="Amount in words"></small></span>
                                 </div>
                             </div>
                             <div class="yi-row-progress">
@@ -403,11 +459,11 @@
             <div class="yi-state-amounts">
                 <div class="yi-state-amount">
                     <small>Purchase total</small>
-                    <strong>₹ {{ purchase.grand_total|floatformat:2 }}</strong>
+                    <strong><span class="yi-money" data-amount="{{ purchase.grand_total|floatformat:2 }}">₹ {{ purchase.grand_total|floatformat:2 }}</span><small class="yi-amount-words" aria-label="Amount in words"></small></strong>
                 </div>
                 <div class="yi-state-amount">
                     <small>Outstanding</small>
-                    <strong class="is-due">₹ {{ purchase.due_amount|floatformat:2 }}</strong>
+                    <strong class="is-due"><span class="yi-money" data-amount="{{ purchase.due_amount|floatformat:2 }}">₹ {{ purchase.due_amount|floatformat:2 }}</span><small class="yi-amount-words" aria-label="Amount in words"></small></strong>
                 </div>
             </div>
         </section>
@@ -418,4 +474,179 @@
         </footer>
     </div>
 </div>
+
+<script>
+(function () {
+  "use strict";
+  const root = document.querySelector(".yl-installments");
+  if (!root || root.dataset.utilitiesReady === "1") return;
+  root.dataset.utilitiesReady = "1";
+
+  const privacyButton = root.querySelector("#yi-privacy-toggle");
+  const copyButton = root.querySelector("#yi-copy-summary");
+  const printButton = root.querySelector("#yi-print-record");
+  const moneyNodes = Array.from(root.querySelectorAll(".yi-money"));
+  const formatter = new Intl.NumberFormat("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  const ones = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
+  const teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  function underThousand(value) {
+    let n = Math.floor(value);
+    const parts = [];
+    if (n >= 100) {
+      parts.push(ones[Math.floor(n / 100)] + " Hundred");
+      n %= 100;
+    }
+    if (n >= 20) {
+      parts.push(tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : ""));
+    } else if (n >= 10) {
+      parts.push(teens[n - 10]);
+    } else if (n > 0) {
+      parts.push(ones[n]);
+    }
+    return parts.join(" ");
+  }
+  function indianIntegerWords(value) {
+    let n = Math.floor(Math.abs(value));
+    if (!n) return "Zero";
+    const names = ["", "Thousand", "Lakh", "Crore", "Arab", "Kharab"];
+    const groups = [n % 1000];
+    n = Math.floor(n / 1000);
+    while (n > 0) {
+      groups.push(n % 100);
+      n = Math.floor(n / 100);
+    }
+    const parts = [];
+    for (let i = groups.length - 1; i >= 0; i--) {
+      if (groups[i]) parts.push(underThousand(groups[i]) + (names[i] ? " " + names[i] : ""));
+    }
+    return parts.join(" ");
+  }
+  function amountInWords(value) {
+    const amount = Math.abs(Number(value) || 0);
+    const rounded = Math.round((amount + Number.EPSILON) * 100) / 100;
+    const rupees = Math.floor(rounded);
+    const paise = Math.round((rounded - rupees) * 100);
+    const rupeeText = rupees ? indianIntegerWords(rupees) + (rupees === 1 ? " Rupee" : " Rupees") : "";
+    const paiseText = paise ? indianIntegerWords(paise) + (paise === 1 ? " Paisa" : " Paise") : "";
+    if (rupeeText && paiseText) return rupeeText + " and " + paiseText + " Only";
+    if (rupeeText) return rupeeText + " Only";
+    if (paiseText) return paiseText + " Only";
+    return "Zero Rupees Only";
+  }
+
+  moneyNodes.forEach((node) => {
+    const value = Number(node.dataset.amount);
+    if (!Number.isFinite(value)) return;
+    const visibleText = "₹ " + formatter.format(value);
+    node.dataset.visibleText = visibleText;
+    node.textContent = visibleText;
+    const wordNode = node.nextElementSibling;
+    if (wordNode && wordNode.classList.contains("yi-amount-words")) {
+      wordNode.textContent = amountInWords(value);
+      wordNode.dataset.fullText = wordNode.textContent;
+    }
+  });
+
+  function setPrivacy(hidden) {
+    root.classList.toggle("yi-privacy-on", hidden);
+    moneyNodes.forEach((node) => {
+      if (!node.dataset.visibleText) return;
+      node.textContent = hidden ? "₹ ••••••" : node.dataset.visibleText;
+      const wordNode = node.nextElementSibling;
+      if (wordNode && wordNode.classList.contains("yi-amount-words")) {
+        wordNode.setAttribute("aria-hidden", hidden ? "true" : "false");
+      }
+    });
+    if (privacyButton) {
+      privacyButton.setAttribute("aria-pressed", hidden ? "true" : "false");
+      const label = privacyButton.querySelector("span");
+      if (label) label.textContent = hidden ? "Show amounts" : "Hide amounts";
+      privacyButton.title = hidden ? "Show financial amounts" : "Hide financial amounts";
+    }
+  }
+
+  if (privacyButton) {
+    privacyButton.addEventListener("click", function () {
+      setPrivacy(!root.classList.contains("yi-privacy-on"));
+    });
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise((resolve, reject) => {
+      const field = document.createElement("textarea");
+      field.value = text;
+      field.setAttribute("readonly", "");
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      try {
+        const ok = document.execCommand("copy");
+        field.remove();
+        ok ? resolve() : reject(new Error("Copy command was not accepted"));
+      } catch (error) {
+        field.remove();
+        reject(error);
+      }
+    });
+  }
+
+  if (copyButton) {
+    copyButton.addEventListener("click", async function () {
+      if (root.classList.contains("yi-privacy-on")) {
+        const label = copyButton.querySelector("span");
+        if (label) {
+          const old = label.textContent;
+          label.textContent = "Show amounts to copy";
+          window.setTimeout(() => { label.textContent = old; }, 1800);
+        }
+        return;
+      }
+      const lines = ["YAARLYNX — Installment Summary"];
+      const purchaseLine = root.querySelector(".yi-party");
+      if (purchaseLine) lines.push(purchaseLine.textContent.trim());
+      root.querySelectorAll(".yi-kpi").forEach((card) => {
+        const label = card.querySelector(".yi-kpi-label")?.textContent.trim() || "Amount";
+        const amount = card.querySelector(".yi-money")?.dataset.visibleText;
+        const words = card.querySelector(".yi-amount-words")?.textContent.trim();
+        if (amount) lines.push(label + ": " + amount + (words ? " (" + words + ")" : ""));
+      });
+      root.querySelectorAll(".yi-row").forEach((row, index) => {
+        const title = row.querySelector(".yi-entry-title")?.textContent.trim() || ("Installment " + (index + 1));
+        const amounts = Array.from(row.querySelectorAll(".yi-money")).map((node) => node.dataset.visibleText).filter(Boolean);
+        lines.push(title + ": " + amounts.join(" | "));
+      });
+      try {
+        await copyText(lines.join("\n"));
+        const label = copyButton.querySelector("span");
+        if (label) {
+          const old = label.textContent;
+          label.textContent = "Copied";
+          window.setTimeout(() => { label.textContent = old; }, 1600);
+        }
+      } catch (error) {
+        console.error("YAARLYNX installment summary copy failed:", error);
+      }
+    });
+  }
+
+  if (printButton) {
+    printButton.addEventListener("click", function () {
+      const wasHidden = root.classList.contains("yi-privacy-on");
+      setPrivacy(false);
+      window.print();
+      if (wasHidden) window.setTimeout(() => setPrivacy(true), 500);
+    });
+  }
+})();
+</script>
+
 {% endblock %}

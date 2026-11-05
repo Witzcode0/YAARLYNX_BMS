@@ -1,55 +1,234 @@
 {% extends "dashboard/layout.html" %}
 
-{% block title %}
-    Dashboard | Yaarlynx
-{% endblock %}
-
-{% block page_heading %}
-    Dashboard
-{% endblock %}
-
-{% block meta_description %}
-    Yaarlynx Management Dashboard
-{% endblock %}
+{% block title %}Dashboard | YAARLYNX{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+{% block meta_description %}YAARLYNX role-based business dashboard.{% endblock %}
 
 {% block content %}
+<div class="mx-auto w-full max-w-[1700px] space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
 
-<div class="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
-
-    <!-- =====================================================
-         HEADER
-    ====================================================== -->
-
-    <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-
-        <div>
-
-            <h2 class="text-xl font-bold text-[#153030]">
-                Good day, {{ user.first_name }} 👋
-            </h2>
-
-            <p class="mt-1 text-sm text-gray-500">
-                Here's your Yaarlynx business overview.
-            </p>
-
+    <!-- Welcome header -->
+    <section class="relative isolate overflow-hidden rounded-3xl bg-[#153030] p-5 text-white shadow-lg shadow-teal-950/10 sm:p-7">
+        <div class="pointer-events-none absolute -right-12 -top-16 h-60 w-60 rounded-full border-[30px] border-white/[0.05]"></div>
+        <div class="pointer-events-none absolute -bottom-24 right-1/3 h-48 w-48 rounded-full bg-teal-300/[0.06] blur-2xl"></div>
+        <div class="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div class="min-w-0">
+                <p class="text-[10px] font-extrabold uppercase tracking-[.18em] text-teal-100/70">YAARLYNX / Management workspace</p>
+                <h2 class="mt-2 text-2xl font-black tracking-tight sm:text-3xl">Welcome, {{ request.session.yaarlynx_user_firstname|default:"Team Member" }}</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-teal-50/75">
+                    {% if is_admin_dashboard %}
+                        Your business overview, operational activity and finance indicators in one place.
+                    {% elif is_staff_dashboard %}
+                        Your work area for company updates, useful links and account information.
+                    {% else %}
+                        Your YAARLYNX dashboard and account workspace.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-full border border-white/15 bg-white/[0.09] px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider">{{ dashboard_role_label }}</span>
+                <span class="rounded-full border border-white/15 bg-white/[0.09] px-3 py-2 text-xs font-semibold">{{ today|date:"D, d M Y" }}</span>
+            </div>
         </div>
+    </section>
 
+    <!-- Common cards for every dashboard-enabled role -->
+    <section class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <p class="text-xs font-bold text-slate-500">Notifications</p>
+                <span class="grid h-9 w-9 place-items-center rounded-xl bg-blue-50 text-blue-700">🔔</span>
+            </div>
+            <p class="mt-3 text-2xl font-black text-[#153030]">{{ total_notifications|default:0 }}</p>
+            <p class="mt-1 text-[11px] text-slate-400">Published updates for your account</p>
+            <a href="{% url 'notification_list' %}" class="mt-3 inline-flex text-xs font-extrabold text-[#286c66] hover:underline">View notifications →</a>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <p class="text-xs font-bold text-slate-500">Unread notifications</p>
+                <span class="grid h-9 w-9 place-items-center rounded-xl bg-amber-50 text-amber-700">✉</span>
+            </div>
+            <p class="mt-3 text-2xl font-black text-[#153030]">{{ unread_notifications|default:0 }}</p>
+            <p class="mt-1 text-[11px] text-slate-400">Updates waiting for your review</p>
+            <a href="{% url 'notification_list' %}" class="mt-3 inline-flex text-xs font-extrabold text-[#286c66] hover:underline">Review updates →</a>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <p class="text-xs font-bold text-slate-500">Quick links</p>
+                <span class="grid h-9 w-9 place-items-center rounded-xl bg-emerald-50 text-emerald-700">↗</span>
+            </div>
+            <p class="mt-3 text-2xl font-black text-[#153030]">{{ quick_links_count|default:0 }}</p>
+            <p class="mt-1 text-[11px] text-slate-400">Active shortcuts available</p>
+            <a href="{% url 'quick_links' %}" class="mt-3 inline-flex text-xs font-extrabold text-[#286c66] hover:underline">Open quick links →</a>
+        </article>
+    </section>
 
-    </div>
+    {% if is_admin_dashboard %}
+    <!-- Business KPIs: SUPER_ADMIN / ADMIN only -->
+    <section class="space-y-3">
+        <div class="flex flex-wrap items-end justify-between gap-2">
+            <div>
+                <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">Business overview</p>
+                <h2 class="mt-1 text-lg font-black text-[#153030]">Company performance</h2>
+            </div>
+            <span class="text-[11px] text-slate-400">All recorded data · All time</span>
+        </div>
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total parties</p>
+                <p class="mt-2 text-2xl font-black text-[#153030]">{{ party_stats.total|default:0 }}</p>
+                <p class="mt-1 text-[11px] text-slate-400">{{ party_stats.active|default:0 }} active · {{ party_stats.inactive|default:0 }} inactive</p>
+                <a href="{% url 'party_list' %}" class="mt-3 inline-flex text-xs font-extrabold text-[#286c66] hover:underline">Open directory →</a>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Purchase value</p>
+                <p class="mt-2 text-2xl font-black text-[#153030]" data-money="{{ purchase_stats.value|default:0 }}">₹{{ purchase_stats.value|default:0|floatformat:2 }}</p>
+                <p class="mt-1 text-[11px] text-slate-400">{{ purchase_stats.count|default:0 }} purchase records</p>
+                <a href="{% url 'purchase_transactions' %}" class="mt-3 inline-flex text-xs font-extrabold text-[#286c66] hover:underline">View purchases →</a>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Income received</p>
+                <p class="mt-2 text-2xl font-black text-emerald-700" data-money="{{ income_stats.received|default:0 }}">₹{{ income_stats.received|default:0|floatformat:2 }}</p>
+                <p class="mt-1 text-[11px] text-slate-400">{{ income_stats.completed_count|default:0 }} completed transactions</p>
+                <a href="{% url 'income_transactions' %}" class="mt-3 inline-flex text-xs font-extrabold text-[#286c66] hover:underline">View income →</a>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Outstanding purchase due</p>
+                <p class="mt-2 text-2xl font-black text-rose-700" data-money="{{ purchase_stats.due|default:0 }}">₹{{ purchase_stats.due|default:0|floatformat:2 }}</p>
+                <p class="mt-1 text-[11px] text-slate-400">Across all purchase records</p>
+                <a href="{% url 'finance_dashboard' %}" class="mt-3 inline-flex text-xs font-extrabold text-[#286c66] hover:underline">Finance dashboard →</a>
+            </article>
+        </div>
+    </section>
 
+    <!-- Operational summaries -->
+    <section class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <article class="rounded-2xl border border-slate-200 bg-white p-4">
+            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Party records complete</p>
+            <p class="mt-2 text-xl font-black text-[#153030]">{{ party_stats.with_gst|default:0 }} <span class="text-xs font-semibold text-slate-400">with GST</span></p>
+            <p class="mt-1 text-[11px] text-slate-400">{{ party_stats.with_bank|default:0 }} with bank details</p>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-4">
+            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Purchase paid</p>
+            <p class="mt-2 text-xl font-black text-emerald-700" data-money="{{ purchase_stats.paid|default:0 }}">₹{{ purchase_stats.paid|default:0|floatformat:2 }}</p>
+            <p class="mt-1 text-[11px] text-slate-400">{{ purchase_stats.collection_percentage|default:0 }}% collection rate</p>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-4">
+            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Pending income</p>
+            <p class="mt-2 text-xl font-black text-amber-700" data-money="{{ income_stats.pending|default:0 }}">₹{{ income_stats.pending|default:0|floatformat:2 }}</p>
+            <p class="mt-1 text-[11px] text-slate-400">{{ income_stats.pending_count|default:0 }} pending transactions</p>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white p-4">
+            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Overdue installments</p>
+            <p class="mt-2 text-xl font-black text-rose-700">{{ installment_stats.overdue_count|default:0 }}</p>
+            <p class="mt-1 text-[11px] text-slate-400"><span data-money="{{ installment_stats.overdue_amount|default:0 }}">₹{{ installment_stats.overdue_amount|default:0|floatformat:2 }}</span> outstanding</p>
+        </article>
+    </section>
 
-    <!-- =====================================================
-         FOOTER
-    ====================================================== -->
+    <!-- Recent purchases and income -->
+    <section class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-4">
+                <div><h3 class="text-sm font-black text-[#153030]">Recent purchases</h3><p class="mt-1 text-[11px] text-slate-400">Latest supplier purchase records</p></div>
+                <a href="{% url 'purchase_transactions' %}" class="text-xs font-extrabold text-teal-800 hover:underline">View all</a>
+            </div>
+            <div class="divide-y divide-slate-100">
+                {% for purchase in recent_purchases %}
+                <div class="flex items-center justify-between gap-3 px-4 py-3">
+                    <div class="min-w-0"><p class="truncate text-xs font-extrabold text-slate-800">{{ purchase.purchase_number|default:purchase.pk }}</p><p class="mt-1 truncate text-[11px] text-slate-400">{{ purchase.party.name|default:"Supplier not set" }} · {{ purchase.purchase_date|date:"d M Y" }}</p></div>
+                    <div class="shrink-0 text-right"><p class="text-xs font-black text-[#153030]" data-money="{{ purchase.grand_total|default:0 }}">₹{{ purchase.grand_total|default:0|floatformat:2 }}</p><p class="mt-1 text-[10px] text-rose-600" data-money="{{ purchase.due_amount|default:0 }}">Due ₹{{ purchase.due_amount|default:0|floatformat:2 }}</p></div>
+                </div>
+                {% empty %}<p class="px-4 py-8 text-center text-xs text-slate-400">No purchase records found.</p>{% endfor %}
+            </div>
+        </article>
 
-    <div class="py-6">
+        <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-4">
+                <div><h3 class="text-sm font-black text-[#153030]">Recent income</h3><p class="mt-1 text-[11px] text-slate-400">Latest income transactions</p></div>
+                <a href="{% url 'income_transactions' %}" class="text-xs font-extrabold text-teal-800 hover:underline">View all</a>
+            </div>
+            <div class="divide-y divide-slate-100">
+                {% for payment in recent_income %}
+                <div class="flex items-center justify-between gap-3 px-4 py-3">
+                    <div class="min-w-0"><p class="truncate text-xs font-extrabold text-slate-800">{% if payment.income_source %}{{ payment.income_source.name }}{% else %}Income payment{% endif %}</p><p class="mt-1 truncate text-[11px] text-slate-400">{{ payment.payment_date|date:"d M Y" }} · {{ payment.get_payment_status_display|default:payment.payment_status }}</p></div>
+                    <p class="shrink-0 text-xs font-black text-emerald-700" data-money="{{ payment.amount|default:0 }}">₹{{ payment.amount|default:0|floatformat:2 }}</p>
+                </div>
+                {% empty %}<p class="px-4 py-8 text-center text-xs text-slate-400">No income transactions found.</p>{% endfor %}
+            </div>
+        </article>
+    </section>
 
-        <p class="text-center text-xs text-gray-400">
-            © {% now "Y" %} Yaarlynx. All rights reserved.
-        </p>
+    <!-- Attention list -->
+    <section class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <article class="rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+            <h3 class="text-xs font-black text-amber-900">Parties missing GST details</h3>
+            <div class="mt-3 space-y-2">
+                {% for party in parties_without_gst %}<p class="truncate text-xs text-amber-900">{{ party.name }}</p>{% empty %}<p class="text-xs text-amber-800/70">No active party is missing GST details.</p>{% endfor %}
+            </div>
+        </article>
+        <article class="rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+            <h3 class="text-xs font-black text-amber-900">Parties missing bank details</h3>
+            <div class="mt-3 space-y-2">
+                {% for party in parties_without_bank %}<p class="truncate text-xs text-amber-900">{{ party.name }}</p>{% empty %}<p class="text-xs text-amber-800/70">No active party is missing bank details.</p>{% endfor %}
+            </div>
+        </article>
+        <article class="rounded-2xl border border-rose-200 bg-rose-50/60 p-4">
+            <div class="flex items-center justify-between gap-2"><h3 class="text-xs font-black text-rose-900">Overdue installments</h3><span class="rounded-full bg-rose-100 px-2 py-1 text-[10px] font-black text-rose-800">{{ installment_stats.overdue_count|default:0 }}</span></div>
+            <div class="mt-3 space-y-3">
+                {% for installment in overdue_installments %}
+                <div><p class="truncate text-xs font-bold text-rose-900">{{ installment.purchase.purchase_number|default:installment.purchase_id }}</p><p class="mt-1 text-[10px] text-rose-800/70">{{ installment.purchase.party.name|default:"Supplier" }} · Due {{ installment.due_date|date:"d M Y" }}</p></div>
+                {% empty %}<p class="text-xs text-rose-800/70">No overdue installments.</p>{% endfor %}
+            </div>
+        </article>
+    </section>
 
-    </div>
+    <!-- Quick actions -->
+    <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div><h3 class="text-sm font-black text-[#153030]">Quick actions</h3><p class="mt-1 text-[11px] text-slate-400">Shortcuts to your main business areas</p></div>
+        <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <a href="{% url 'party_list' %}" class="rounded-xl border border-slate-200 p-3 text-xs font-extrabold text-[#153030] hover:border-teal-300 hover:bg-teal-50">Party directory <span class="block pt-1 text-[10px] font-medium text-slate-400">Manage parties</span></a>
+            <a href="{% url 'finance_dashboard' %}" class="rounded-xl border border-slate-200 p-3 text-xs font-extrabold text-[#153030] hover:border-teal-300 hover:bg-teal-50">Finance dashboard <span class="block pt-1 text-[10px] font-medium text-slate-400">Review finances</span></a>
+            <a href="{% url 'income_transactions' %}" class="rounded-xl border border-slate-200 p-3 text-xs font-extrabold text-[#153030] hover:border-teal-300 hover:bg-teal-50">Income ledger <span class="block pt-1 text-[10px] font-medium text-slate-400">Track received income</span></a>
+            <a href="{% url 'purchase_transactions' %}" class="rounded-xl border border-slate-200 p-3 text-xs font-extrabold text-[#153030] hover:border-teal-300 hover:bg-teal-50">Purchase ledger <span class="block pt-1 text-[10px] font-medium text-slate-400">Track supplier costs</span></a>
+        </div>
+    </section>
 
+    {% elif is_staff_dashboard %}
+    <!-- STAFF workspace: intentionally no business-wide financial values -->
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">Staff workspace</p>
+        <h2 class="mt-1 text-lg font-black text-[#153030]">Your daily workspace</h2>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Use the links below to access shared resources, review company notifications and maintain your profile. Business-wide party and financial summaries are restricted to administrative roles.</p>
+        <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <a href="{% url 'quick_links' %}" class="rounded-xl border border-slate-200 p-4 transition hover:border-teal-300 hover:bg-teal-50"><span class="text-xs font-black text-[#153030]">Company quick links</span><span class="mt-1 block text-[11px] text-slate-400">Open approved resources and tools</span></a>
+            <a href="{% url 'notification_list' %}" class="rounded-xl border border-slate-200 p-4 transition hover:border-teal-300 hover:bg-teal-50"><span class="text-xs font-black text-[#153030]">Company notifications</span><span class="mt-1 block text-[11px] text-slate-400">Review announcements and updates</span></a>
+            <a href="{% url 'profile_view' %}" class="rounded-xl border border-slate-200 p-4 transition hover:border-teal-300 hover:bg-teal-50"><span class="text-xs font-black text-[#153030]">My profile</span><span class="mt-1 block text-[11px] text-slate-400">View your account details</span></a>
+        </div>
+    </section>
+    {% else %}
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 class="text-base font-black text-[#153030]">Dashboard access is limited</h2>
+        <p class="mt-2 text-sm text-slate-500">Your current role does not have a configured business dashboard. Please contact your administrator if you need access.</p>
+    </section>
+    {% endif %}
+
+    <footer class="border-t border-slate-200 pt-4 text-[10px] text-slate-400">YAARLYNX Management System · Role-based dashboard</footer>
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const formatter = new Intl.NumberFormat("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+    document.querySelectorAll("[data-money]").forEach(function (element) {
+        const value = Number(element.getAttribute("data-money"));
+        if (Number.isFinite(value)) {
+            const prefix = element.textContent.trim().startsWith("Due ") ? "Due " : "";
+            element.textContent = prefix + "₹" + formatter.format(value);
+        }
+    });
+});
+</script>
 {% endblock %}

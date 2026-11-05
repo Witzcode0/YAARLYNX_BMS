@@ -1,637 +1,2818 @@
 {% extends "dashboard/layout.html" %}
 
+
+
+
+
+
+
 {% block title %}Purchase {{ purchase.purchase_number }} | Yaarlynx{% endblock %}
+
+
+
 {% block page_heading %}Purchase Details{% endblock %}
 
+
+
+
+
+
+
 {% block content %}
+
+
+
 <style>
+
+
+
 /* YAARLYNX purchase detail page — scoped styles */
+
+
+
 .yl-purchase-page {
+
+
+
     --yp-ink: #153030;
+
+
+
     --yp-ink-2: #244646;
+
+
+
     --yp-muted: #788888;
+
+
+
     --yp-line: #e7eded;
+
+
+
     --yp-soft: #f6f9f9;
+
+
+
     --yp-green: #16804a;
+
+
+
     --yp-red: #c83c43;
+
+
+
     --yp-amber: #a86a12;
+
+
+
     width: 100%;
+
+
+
     min-width: 0;
+
+
+
     color: var(--yp-ink);
+
+
+
     font-variant-numeric: tabular-nums;
+
+
+
 }
+
+
+
 .yl-purchase-page,
+
+
+
 .yl-purchase-page * { box-sizing: border-box; }
+
+
+
 .yl-purchase-page a { -webkit-tap-highlight-color: transparent; }
+
+
+
 .yl-purchase-page .yp-wrap {
+
+
+
     width: 100%;
+
+
+
     max-width: 1600px;
+
+
+
     margin: 0 auto;
+
+
+
     padding: 20px 16px 36px;
+
+
+
 }
+
+
+
+
+
+
 
 /* Hero */
+
+
+
 .yl-purchase-page .yp-hero {
+
+
+
     position: relative;
+
+
+
     isolation: isolate;
+
+
+
     overflow: hidden;
+
+
+
     display: flex;
+
+
+
     align-items: flex-start;
+
+
+
     justify-content: space-between;
+
+
+
     gap: 24px;
+
+
+
     padding: 25px;
+
+
+
     border-radius: 22px;
+
+
+
     color: #fff;
+
+
+
     background: linear-gradient(120deg, #153030 0%, #214747 58%, #2c5552 100%);
+
+
+
     box-shadow: 0 14px 34px rgba(21, 48, 48, .14);
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-hero::before,
+
+
+
 .yl-purchase-page .yp-hero::after {
+
+
+
     content: "";
+
+
+
     position: absolute;
+
+
+
     z-index: -1;
+
+
+
     border: 1px solid rgba(255,255,255,.10);
+
+
+
     border-radius: 50%;
+
+
+
     pointer-events: none;
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-hero::before { width: 310px; height: 310px; right: 8%; top: -205px; }
+
+
+
 .yl-purchase-page .yp-hero::after { width: 210px; height: 210px; right: -65px; bottom: -145px; }
+
+
+
 .yl-purchase-page .yp-hero-main { min-width: 0; }
+
+
+
 .yl-purchase-page .yp-eyebrow {
+
+
+
     margin: 0 0 8px;
+
+
+
     color: rgba(255,255,255,.62);
+
+
+
     font-size: 10px;
+
+
+
     font-weight: 850;
+
+
+
     letter-spacing: .15em;
+
+
+
     text-transform: uppercase;
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-title {
+
+
+
     margin: 0;
+
+
+
     color: #fff;
+
+
+
     font-size: clamp(21px, 2.5vw, 31px);
+
+
+
     line-height: 1.18;
+
+
+
     font-weight: 850;
+
+
+
     letter-spacing: -.035em;
+
+
+
     overflow-wrap: anywhere;
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-party-line {
+
+
+
     display: flex;
+
+
+
     flex-wrap: wrap;
+
+
+
     align-items: center;
+
+
+
     gap: 7px 12px;
+
+
+
     margin-top: 9px;
+
+
+
     color: rgba(255,255,255,.73);
+
+
+
     font-size: 12px;
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-party-line a { color: #fff; text-decoration: none; }
+
+
+
 .yl-purchase-page .yp-party-line a:hover { text-decoration: underline; }
+
+
+
 .yl-purchase-page .yp-dot-sep { color: rgba(255,255,255,.35); }
+
+
+
 .yl-purchase-page .yp-hero-actions {
+
+
+
     flex: 0 0 auto;
+
+
+
     display: flex;
+
+
+
     flex-wrap: wrap;
+
+
+
     justify-content: flex-end;
+
+
+
     gap: 8px;
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-btn {
+
+
+
     display: inline-flex;
+
+
+
     align-items: center;
+
+
+
     justify-content: center;
+
+
+
     gap: 8px;
+
+
+
     min-height: 40px;
+
+
+
     padding: 9px 13px;
+
+
+
     border: 1px solid rgba(255,255,255,.22);
+
+
+
     border-radius: 11px;
+
+
+
     color: #fff;
+
+
+
     background: rgba(255,255,255,.09);
+
+
+
     font-size: 11px;
+
+
+
     line-height: 1.2;
+
+
+
     font-weight: 800;
+
+
+
     text-decoration: none;
+
+
+
     transition: background .18s ease, transform .18s ease, border-color .18s ease;
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-btn:hover { color: #fff; background: rgba(255,255,255,.17); border-color: rgba(255,255,255,.38); transform: translateY(-1px); }
+
+
+
 .yl-purchase-page .yp-btn.yp-btn-light { color: var(--yp-ink); background: #fff; border-color: #fff; }
+
+
+
 .yl-purchase-page .yp-btn.yp-btn-light:hover { color: var(--yp-ink); background: #edf3f3; }
+
+
+
 .yl-purchase-page .yp-btn svg { flex: 0 0 auto; }
 
+
+
+
+
+
+
 /* Status strip */
+
+
+
 .yl-purchase-page .yp-status-strip {
+
+
+
     display: flex;
+
+
+
     align-items: center;
+
+
+
     justify-content: space-between;
+
+
+
     gap: 14px;
+
+
+
     margin-top: 13px;
+
+
+
     padding: 13px 16px;
+
+
+
     border: 1px solid var(--yp-line);
+
+
+
     border-radius: 14px;
+
+
+
     background: #fff;
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-status-group { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+
+
+
 .yl-purchase-page .yp-status-label { margin-right: 4px; color: #899696; font-size: 9px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+
+
+
 .yl-purchase-page .yp-badge {
+
+
+
     display: inline-flex;
+
+
+
     align-items: center;
+
+
+
     gap: 6px;
+
+
+
     padding: 6px 9px;
+
+
+
     border-radius: 999px;
+
+
+
     font-size: 10px;
+
+
+
     line-height: 1.2;
+
+
+
     font-weight: 850;
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-badge::before { content: ""; width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: currentColor; }
+
+
+
 .yl-purchase-page .yp-state-draft { color: #59636d; background: #eef1f3; }
+
+
+
 .yl-purchase-page .yp-state-confirmed { color: #245fbd; background: #edf4ff; }
+
+
+
 .yl-purchase-page .yp-state-received { color: #167447; background: #eaf7ef; }
+
+
+
 .yl-purchase-page .yp-state-partial { color: #94600d; background: #fff5df; }
+
+
+
 .yl-purchase-page .yp-state-cancelled { color: #b43139; background: #fff0f0; }
+
+
+
 .yl-purchase-page .yp-state-other { color: #536767; background: #eff4f4; }
+
+
+
 .yl-purchase-page .yp-pay-paid { color: #167447; background: #eaf7ef; }
+
+
+
 .yl-purchase-page .yp-pay-partial { color: #94600d; background: #fff5df; }
+
+
+
 .yl-purchase-page .yp-pay-unpaid { color: #b43139; background: #fff0f0; }
+
+
+
 .yl-purchase-page .yp-bill-chip { color: #2862ad; background: #edf4ff; }
+
+
+
 .yl-purchase-page .yp-status-total { text-align: right; }
+
+
+
 .yl-purchase-page .yp-status-total span { display: block; color: rgba(21,48,48,.52); font-size: 9px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+
+
+
 .yl-purchase-page .yp-status-total strong { display: block; margin-top: 3px; color: var(--yp-ink); font-size: 21px; line-height: 1.15; font-weight: 900; }
 
+
+
+
+
+
+
 /* KPI strip */
+
+
+
 .yl-purchase-page .yp-kpis {
+
+
+
     display: grid;
+
+
+
     grid-template-columns: repeat(4, minmax(0, 1fr));
+
+
+
     margin: 16px 0 22px;
+
+
+
     overflow: hidden;
+
+
+
     border: 1px solid var(--yp-line);
+
+
+
     border-radius: 15px;
+
+
+
     background: #fff;
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-kpi { min-width: 0; display: flex; align-items: center; gap: 11px; padding: 15px 17px; }
+
+
+
 .yl-purchase-page .yp-kpi + .yp-kpi { border-left: 1px solid var(--yp-line); }
+
+
+
 .yl-purchase-page .yp-kpi-icon { width: 35px; height: 35px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 10px; color: var(--yp-ink); background: #edf2f2; }
+
+
+
 .yl-purchase-page .yp-kpi-copy { min-width: 0; }
+
+
+
 .yl-purchase-page .yp-kpi-label { margin: 0; color: #899696; font-size: 9px; line-height: 1.3; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+
+
+
 .yl-purchase-page .yp-kpi-value { margin: 5px 0 0; color: var(--yp-ink); font-size: clamp(15px, 1.65vw, 21px); line-height: 1.2; font-weight: 900; overflow-wrap: anywhere; }
+
+
+
 .yl-purchase-page .yp-kpi-value.is-paid { color: var(--yp-green); }
+
+
+
 .yl-purchase-page .yp-kpi-value.is-due { color: var(--yp-red); }
+
+
+
 .yl-purchase-page .yp-kpi-note { margin: 3px 0 0; color: #a0aaaa; font-size: 9px; }
 
+
+
+
+
+
+
 /* Payment progress */
+
+
+
 .yl-purchase-page .yp-progress-panel {
+
+
+
     display: grid;
+
+
+
     grid-template-columns: minmax(0,1fr) auto;
+
+
+
     align-items: center;
+
+
+
     gap: 18px;
+
+
+
     margin-bottom: 22px;
+
+
+
     padding: 16px 18px;
+
+
+
     border: 1px solid var(--yp-line);
+
+
+
     border-radius: 14px;
+
+
+
     background: #fff;
+
+
+
 }
+
+
+
 .yl-purchase-page .yp-progress-title { margin: 0; color: var(--yp-ink); font-size: 12px; font-weight: 850; }
+
+
+
 .yl-purchase-page .yp-progress-caption { margin: 4px 0 0; color: var(--yp-muted); font-size: 10px; }
+
+
+
 .yl-purchase-page .yp-progress-track { height: 8px; margin-top: 12px; overflow: hidden; border-radius: 99px; background: #edf1f1; }
+
+
+
 .yl-purchase-page .yp-progress-fill { height: 100%; max-width: 100%; border-radius: inherit; background: linear-gradient(90deg,#1a7650,#35a56d); }
+
+
+
 .yl-purchase-page .yp-progress-percent { min-width: 65px; color: var(--yp-ink); font-size: 24px; font-weight: 900; text-align: right; }
 
+
+
+
+
+
+
 /* Main content columns */
+
+
+
 .yl-purchase-page .yp-main-grid { display: grid; grid-template-columns: minmax(0,1.55fr) minmax(290px,.85fr); align-items: start; gap: 18px; }
+
+
+
 .yl-purchase-page .yp-column { min-width: 0; display: grid; gap: 18px; }
+
+
+
 .yl-purchase-page .yp-panel { min-width: 0; overflow: hidden; border: 1px solid var(--yp-line); border-radius: 16px; background: #fff; box-shadow: 0 5px 20px rgba(21,48,48,.035); }
+
+
+
 .yl-purchase-page .yp-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 17px; border-bottom: 1px solid #edf1f1; }
+
+
+
 .yl-purchase-page .yp-panel-heading { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+
+
 .yl-purchase-page .yp-panel-icon { width: 34px; height: 34px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 10px; color: var(--yp-ink); background: #edf2f2; }
+
+
+
 .yl-purchase-page .yp-panel-title { margin: 0; color: var(--yp-ink); font-size: 13px; font-weight: 900; }
+
+
+
 .yl-purchase-page .yp-panel-subtitle { margin: 3px 0 0; color: #96a1a1; font-size: 9px; }
+
+
+
 .yl-purchase-page .yp-panel-body { padding: 17px; }
+
+
+
 .yl-purchase-page .yp-info-split { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+
+
+
 .yl-purchase-page .yp-info-block { min-width: 0; padding: 2px 17px 5px 0; }
+
+
+
 .yl-purchase-page .yp-info-block + .yp-info-block { padding: 2px 0 5px 17px; border-left: 1px solid #edf1f1; }
+
+
+
 .yl-purchase-page .yp-info-heading { display: flex; align-items: center; gap: 7px; margin: 0 0 13px; color: #536969; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .07em; }
+
+
+
 .yl-purchase-page .yp-info-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px 12px; }
+
+
+
 .yl-purchase-page .yp-info-item { min-width: 0; }
+
+
+
 .yl-purchase-page .yp-info-label { display: block; color: #99a3a3; font-size: 8px; line-height: 1.3; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+
+
+
 .yl-purchase-page .yp-info-value { display: block; margin-top: 4px; color: #3e5151; font-size: 11px; line-height: 1.45; font-weight: 750; overflow-wrap: anywhere; }
+
+
+
 .yl-purchase-page .yp-info-value a { color: var(--yp-ink); text-decoration: none; }
+
+
+
 .yl-purchase-page .yp-info-value a:hover { text-decoration: underline; }
 
+
+
+
+
+
+
 /* Amount breakdown */
+
+
+
 .yl-purchase-page .yp-breakdown { display: grid; gap: 0; }
+
+
+
 .yl-purchase-page .yp-break-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 10px 0; border-bottom: 1px solid #f0f3f3; }
+
+
+
 .yl-purchase-page .yp-break-row:last-child { border-bottom: 0; }
+
+
+
 .yl-purchase-page .yp-break-label { color: #718080; font-size: 11px; }
+
+
+
 .yl-purchase-page .yp-break-value { color: #354a4a; font-size: 11px; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+
+
+
 .yl-purchase-page .yp-break-value.is-discount { color: var(--yp-red); }
+
+
+
 .yl-purchase-page .yp-tax-breakdown { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed #e4ebeb; }
+
+
+
 .yl-purchase-page .yp-tax-cell { min-width: 0; padding: 11px; border: 1px solid #e9eeee; border-radius: 11px; background: #fafcfc; }
+
+
+
 .yl-purchase-page .yp-tax-name { color: #849292; font-size: 8px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+
+
+
 .yl-purchase-page .yp-tax-rate { margin-top: 4px; color: #344b4b; font-size: 10px; font-weight: 800; }
+
+
+
 .yl-purchase-page .yp-tax-amount { margin-top: 3px; color: var(--yp-ink); font-size: 12px; font-weight: 900; overflow-wrap: anywhere; }
 
+
+
+
+
+
+
 /* Payment summary */
+
+
+
 .yl-purchase-page .yp-payment-hero { padding: 19px; color: #fff; background: linear-gradient(145deg,#153030,#24504d); }
+
+
+
 .yl-purchase-page .yp-payment-label { margin: 0; color: rgba(255,255,255,.62); font-size: 9px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+
+
+
 .yl-purchase-page .yp-payment-total { margin: 7px 0 0; color: #fff; font-size: clamp(25px,3vw,33px); line-height: 1.12; font-weight: 900; overflow-wrap: anywhere; }
+
+
+
 .yl-purchase-page .yp-payment-hint { margin: 5px 0 0; color: rgba(255,255,255,.58); font-size: 10px; }
+
+
+
 .yl-purchase-page .yp-payment-lines { padding: 5px 17px 15px; }
+
+
+
 .yl-purchase-page .yp-payment-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid #edf1f1; }
+
+
+
 .yl-purchase-page .yp-payment-line:last-child { border-bottom: 0; }
+
+
+
 .yl-purchase-page .yp-payment-line span { color: #819090; font-size: 10px; }
+
+
+
 .yl-purchase-page .yp-payment-line strong { color: var(--yp-ink); font-size: 11px; font-weight: 900; text-align: right; }
+
+
+
 .yl-purchase-page .yp-payment-line strong.is-paid { color: var(--yp-green); }
+
+
+
 .yl-purchase-page .yp-payment-line strong.is-due { color: var(--yp-red); }
 
+
+
+
+
+
+
 /* Tax / document panel */
+
+
+
 .yl-purchase-page .yp-tax-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+
+
 .yl-purchase-page .yp-tax-chip { padding: 5px 8px; border-radius: 999px; color: #167447; background: #eaf7ef; font-size: 8px; font-weight: 900; letter-spacing: .07em; }
+
+
+
 .yl-purchase-page .yp-tax-chip.is-nongst { color: #687777; background: #eff3f3; }
+
+
+
 .yl-purchase-page .yp-tax-note { margin: 9px 0 0; color: #8a9696; font-size: 10px; line-height: 1.5; }
+
+
+
 .yl-purchase-page .yp-doc-link { display: flex; align-items: center; gap: 11px; margin-top: 13px; padding: 11px; border: 1px solid #e6eded; border-radius: 11px; color: var(--yp-ink); background: #fafcfc; text-decoration: none; }
+
+
+
 .yl-purchase-page .yp-doc-link:hover { border-color: #cbdada; background: #f3f8f8; }
+
+
+
 .yl-purchase-page .yp-doc-icon { width: 35px; height: 35px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 9px; color: #245fbd; background: #edf4ff; }
+
+
+
 .yl-purchase-page .yp-doc-copy { min-width: 0; flex: 1; }
+
+
+
 .yl-purchase-page .yp-doc-title { display: block; color: #405353; font-size: 10px; font-weight: 850; }
+
+
+
 .yl-purchase-page .yp-doc-name { display: block; margin-top: 3px; color: #96a1a1; font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+
+
 .yl-purchase-page .yp-doc-empty { margin-top: 13px; padding: 14px 10px; border: 1px dashed #dfe7e7; border-radius: 11px; color: #98a3a3; background: #fafcfc; font-size: 10px; text-align: center; }
 
+
+
+
+
+
+
 /* Installments as a timeline */
+
+
+
 .yl-purchase-page .yp-installment-list { padding: 4px 17px 13px; }
+
+
+
 .yl-purchase-page .yp-installment-row { display: grid; grid-template-columns: 76px 19px minmax(0,1fr) 145px; gap: 10px; min-width: 0; padding: 13px 0; }
+
+
+
 .yl-purchase-page .yp-installment-row + .yp-installment-row { border-top: 1px solid #f0f3f3; }
+
+
+
 .yl-purchase-page .yp-installment-date { padding-top: 2px; text-align: right; }
+
+
+
 .yl-purchase-page .yp-installment-date strong { display: block; color: #405454; font-size: 11px; font-weight: 900; }
+
+
+
 .yl-purchase-page .yp-installment-date span { display: block; margin-top: 3px; color: #9aa5a5; font-size: 8px; }
+
+
+
 .yl-purchase-page .yp-installment-rail { position: relative; display: flex; justify-content: center; }
+
+
+
 .yl-purchase-page .yp-installment-rail::before { content: ""; position: absolute; top: 0; bottom: -14px; width: 1px; background: #e2ebeb; }
+
+
+
 .yl-purchase-page .yp-installment-row:last-child .yp-installment-rail::before { bottom: calc(100% - 8px); }
+
+
+
 .yl-purchase-page .yp-installment-dot { position: relative; z-index: 1; width: 9px; height: 9px; margin-top: 4px; border: 2px solid #fff; border-radius: 50%; background: #8a9b9b; box-shadow: 0 0 0 1px #dce6e6; }
+
+
+
 .yl-purchase-page .yp-installment-dot.is-paid { background: #1b9658; box-shadow: 0 0 0 1px #cce8d7; }
+
+
+
 .yl-purchase-page .yp-installment-dot.is-partial { background: #c58a2d; box-shadow: 0 0 0 1px #efdfc3; }
+
+
+
 .yl-purchase-page .yp-installment-main { min-width: 0; }
+
+
+
 .yl-purchase-page .yp-installment-name { margin: 0; color: #405454; font-size: 10px; font-weight: 850; }
+
+
+
 .yl-purchase-page .yp-installment-sub { margin: 4px 0 0; color: #98a3a3; font-size: 8px; }
+
+
+
 .yl-purchase-page .yp-installment-amounts { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; min-width: 0; }
+
+
+
 .yl-purchase-page .yp-installment-amount { min-width: 0; }
+
+
+
 .yl-purchase-page .yp-installment-amount span { display: block; color: #9aa5a5; font-size: 7px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+
+
+
 .yl-purchase-page .yp-installment-amount strong { display: block; margin-top: 4px; color: #3f5555; font-size: 9px; font-weight: 850; overflow-wrap: anywhere; }
+
+
+
 .yl-purchase-page .yp-installment-amount strong.is-paid { color: var(--yp-green); }
+
+
+
 .yl-purchase-page .yp-installment-amount strong.is-due { color: var(--yp-red); }
+
+
+
 .yl-purchase-page .yp-installment-status { display: inline-flex; align-items: center; justify-content: center; margin-top: 6px; padding: 4px 7px; border-radius: 999px; color: #687777; background: #eff3f3; font-size: 8px; font-weight: 850; }
+
+
+
 .yl-purchase-page .yp-installment-status.is-paid { color: #167447; background: #eaf7ef; }
+
+
+
 .yl-purchase-page .yp-installment-status.is-partial { color: #94600d; background: #fff5df; }
+
+
+
 .yl-purchase-page .yp-installment-status.is-cancelled { color: #b43139; background: #fff0f0; }
+
+
+
 .yl-purchase-page .yp-view-all { display: inline-flex; align-items: center; gap: 6px; color: var(--yp-ink); font-size: 10px; font-weight: 850; text-decoration: none; }
+
+
+
 .yl-purchase-page .yp-view-all:hover { text-decoration: underline; }
+
+
+
 .yl-purchase-page .yp-empty { padding: 28px 16px; color: #98a3a3; font-size: 10px; text-align: center; }
 
+
+
+
+
+
+
 /* Notes and footer */
+
+
+
 .yl-purchase-page .yp-notes { padding: 15px 17px; border-left: 3px solid #c6d8d8; border-radius: 0 10px 10px 0; color: #617171; background: #f7fafa; font-size: 11px; line-height: 1.7; white-space: pre-line; overflow-wrap: anywhere; }
+
+
+
 .yl-purchase-page .yp-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 18px; padding-top: 13px; border-top: 1px solid var(--yp-line); color: #9aa5a5; font-size: 9px; }
 
+
+
+
+
+
+
 /* Responsive layouts */
+
+
+
 @media (max-width: 1100px) {
+
+
+
     .yl-purchase-page .yp-main-grid { grid-template-columns: minmax(0,1.2fr) minmax(270px,.8fr); gap: 14px; }
+
+
+
     .yl-purchase-page .yp-kpi { padding: 13px 12px; }
+
+
+
     .yl-purchase-page .yp-installment-row { grid-template-columns: 65px 16px minmax(0,1fr) 130px; gap: 7px; }
+
+
+
 }
+
+
+
 @media (max-width: 850px) {
+
+
+
     .yl-purchase-page .yp-main-grid { grid-template-columns: minmax(0,1fr); }
+
+
+
     .yl-purchase-page .yp-side-column { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
+
+
+
     .yl-purchase-page .yp-side-column .yp-panel:first-child { grid-row: span 2; }
+
+
+
 }
+
+
+
 @media (max-width: 650px) {
+
+
+
     .yl-purchase-page .yp-wrap { padding: 13px 10px 25px; }
+
+
+
     .yl-purchase-page .yp-hero { flex-direction: column; gap: 17px; padding: 19px 16px; border-radius: 17px; }
+
+
+
     .yl-purchase-page .yp-hero-actions { width: 100%; justify-content: flex-start; }
+
+
+
     .yl-purchase-page .yp-btn { flex: 1 1 auto; min-width: 0; }
+
+
+
     .yl-purchase-page .yp-status-strip { align-items: flex-start; flex-direction: column; }
+
+
+
     .yl-purchase-page .yp-status-total { width: 100%; padding-top: 10px; border-top: 1px solid #edf1f1; text-align: left; }
+
+
+
     .yl-purchase-page .yp-kpis { grid-template-columns: repeat(2,minmax(0,1fr)); }
+
+
+
     .yl-purchase-page .yp-kpi { padding: 12px 10px; }
+
+
+
     .yl-purchase-page .yp-kpi:nth-child(3) { border-left: 0; border-top: 1px solid var(--yp-line); }
+
+
+
     .yl-purchase-page .yp-kpi:nth-child(4) { border-top: 1px solid var(--yp-line); }
+
+
+
     .yl-purchase-page .yp-kpi-icon { width: 30px; height: 30px; }
+
+
+
     .yl-purchase-page .yp-kpi-label { font-size: 8px; }
+
+
+
     .yl-purchase-page .yp-kpi-value { font-size: 15px; }
+
+
+
     .yl-purchase-page .yp-progress-panel { grid-template-columns: minmax(0,1fr); gap: 9px; padding: 14px; }
+
+
+
     .yl-purchase-page .yp-progress-percent { text-align: left; }
+
+
+
     .yl-purchase-page .yp-side-column { grid-template-columns: minmax(0,1fr); }
+
+
+
     .yl-purchase-page .yp-side-column .yp-panel:first-child { grid-row: auto; }
+
+
+
     .yl-purchase-page .yp-info-split { grid-template-columns: minmax(0,1fr); }
+
+
+
     .yl-purchase-page .yp-info-block { padding: 0 0 16px; }
+
+
+
     .yl-purchase-page .yp-info-block + .yp-info-block { padding: 15px 0 0; border-top: 1px solid #edf1f1; border-left: 0; }
+
+
+
 }
+
+
+
 @media (max-width: 480px) {
+
+
+
     .yl-purchase-page .yp-title { font-size: 20px; }
+
+
+
     .yl-purchase-page .yp-party-line { font-size: 10px; }
+
+
+
     .yl-purchase-page .yp-hero-actions { display: grid; grid-template-columns: 1fr 1fr; }
+
+
+
     .yl-purchase-page .yp-btn { min-height: 38px; padding: 8px 9px; font-size: 9px; }
+
+
+
     .yl-purchase-page .yp-kpi { gap: 7px; padding: 11px 8px; }
+
+
+
     .yl-purchase-page .yp-kpi-icon { display: none; }
+
+
+
     .yl-purchase-page .yp-kpi-value { font-size: 14px; }
+
+
+
     .yl-purchase-page .yp-panel-head { padding: 13px; }
+
+
+
     .yl-purchase-page .yp-panel-body { padding: 13px; }
+
+
+
     .yl-purchase-page .yp-info-list { gap: 12px 9px; }
+
+
+
     .yl-purchase-page .yp-tax-breakdown { gap: 6px; }
+
+
+
     .yl-purchase-page .yp-tax-cell { padding: 8px 6px; }
+
+
+
     .yl-purchase-page .yp-tax-amount { font-size: 10px; }
+
+
+
     .yl-purchase-page .yp-installment-list { padding: 3px 11px 10px; }
+
+
+
     .yl-purchase-page .yp-installment-row { grid-template-columns: 43px 13px minmax(0,1fr); gap: 6px; }
+
+
+
     .yl-purchase-page .yp-installment-date strong { font-size: 9px; }
+
+
+
     .yl-purchase-page .yp-installment-date span { font-size: 7px; }
+
+
+
     .yl-purchase-page .yp-installment-amounts { grid-column: 3; grid-template-columns: repeat(2,minmax(0,1fr)); margin-top: 7px; }
+
+
+
     .yl-purchase-page .yp-installment-status { margin-top: 5px; }
+
+
+
     .yl-purchase-page .yp-footer { align-items: flex-start; flex-direction: column; }
+
+
+
 }
+
+
+
 @media (max-width: 340px) {
+
+
+
     .yl-purchase-page .yp-wrap { padding-left: 7px; padding-right: 7px; }
+
+
+
     .yl-purchase-page .yp-kpi-value { font-size: 12px; }
+
+
+
     .yl-purchase-page .yp-tax-breakdown { grid-template-columns: 1fr; }
+
+
+
 }
+
+
+
 @media (prefers-reduced-motion: reduce) {
+
+
+
     .yl-purchase-page *, .yl-purchase-page *::before, .yl-purchase-page *::after { transition: none !important; }
+
+
+
 }
+
+
+
+
+
+/* Purchase detail utilities and Indian currency presentation */
+
+.yl-purchase-page .yp-utility-bar { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:12px; padding:11px 13px; border:1px solid var(--yp-line); border-radius:13px; background:#fff; }
+
+.yl-purchase-page .yp-utility-copy { min-width:0; display:grid; gap:3px; }
+
+.yl-purchase-page .yp-utility-kicker { color:var(--yp-ink); font-size:10px; font-weight:900; }
+
+.yl-purchase-page .yp-utility-caption { color:#94a0a0; font-size:9px; }
+
+.yl-purchase-page .yp-utility-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:7px; }
+
+.yl-purchase-page .yp-tool-btn { min-height:35px; display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:7px 10px; border:1px solid #dfe8e8; border-radius:9px; color:#496060; background:#fff; font-size:9px; font-weight:850; cursor:pointer; transition:background .18s ease,border-color .18s ease,color .18s ease; }
+
+.yl-purchase-page .yp-tool-btn:hover { border-color:#b8cecc; background:#f3f8f7; color:var(--yp-ink); }
+
+.yl-purchase-page .yp-tool-btn-primary { border-color:var(--yp-ink); color:#fff; background:var(--yp-ink); }
+
+.yl-purchase-page .yp-tool-btn-primary:hover { border-color:#244747; color:#fff; background:#244747; }
+
+.yl-purchase-page .yp-amount-words { display:block; margin-top:3px; color:#91a09f; font-size:8px; line-height:1.45; font-weight:650; letter-spacing:0; overflow-wrap:anywhere; }
+
+.yl-purchase-page.yp-privacy-on .yp-money, .yl-purchase-page.yp-privacy-on .yp-amount-words { user-select: none; letter-spacing: .12em; }
+
+.yl-purchase-page .yp-money { font-variant-numeric:tabular-nums; }
+
+@media (max-width:650px) { .yl-purchase-page .yp-utility-bar { align-items:flex-start; flex-direction:column; } .yl-purchase-page .yp-utility-actions { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .yl-purchase-page .yp-tool-btn { min-width:0; padding:8px 7px; } .yl-purchase-page #yp-print-record { grid-column:1 / -1; } }
+
+@media print { @page { size:A4; margin:12mm; } .yl-purchase-page .yp-utility-bar, .yl-purchase-page .yp-hero-actions { display:none !important; } .yl-purchase-page .yp-wrap { max-width:none; padding:0; } .yl-purchase-page .yp-panel, .yl-purchase-page .yp-kpis, .yl-purchase-page .yp-status-strip, .yl-purchase-page .yp-progress-panel { break-inside:avoid; box-shadow:none; } .yl-purchase-page { color:#111; } .yl-purchase-page .yp-hero { print-color-adjust:exact; -webkit-print-color-adjust:exact; } }
+
+
+
 </style>
 
+
+
+
+
+
+
 <div class="yl-purchase-page">
+
+
+
   <div class="yp-wrap">
 
+
+
+
+
+
+
     <!-- PURCHASE HEADER -->
+
+
+
     <header class="yp-hero">
+
+
+
       <div class="yp-hero-main">
+
+
+
         <p class="yp-eyebrow">Yaarlynx · Procurement record</p>
+
+
+
         <h1 class="yp-title">{{ purchase.purchase_number }}</h1>
+
+
+
         <div class="yp-party-line">
+
+
+
           <span>{{ party.name }}</span>
+
+
+
           {% if purchase.purchase_date %}<span class="yp-dot-sep">•</span><span>{{ purchase.purchase_date|date:"d M Y" }}</span>{% endif %}
+
+
+
           {% if purchase.invoice_number %}<span class="yp-dot-sep">•</span><span>Invoice {{ purchase.invoice_number }}</span>{% endif %}
+
+
+
         </div>
+
+
+
       </div>
+
+
+
+
+
+
 
       <nav class="yp-hero-actions" aria-label="Purchase actions">
+
+
+
         {% if purchase.invoice_document %}
+
+
+
           <a href="{{ purchase.invoice_document.url }}" target="_blank" rel="noopener" class="yp-btn" title="Open supplier bill">
+
+
+
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/></svg>
+
+
+
             View Bill
+
+
+
           </a>
+
+
+
         {% endif %}
+
+
+
         <a href="{% url 'purchase_installments' purchase.pk %}" class="yp-btn">
+
+
+
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path stroke-linecap="round" d="M3 10h18m-5 5h2"/></svg>
+
+
+
           Installments
+
+
+
         </a>
+
+
+
         <a href="{% url 'party_orders' party.pk %}" class="yp-btn yp-btn-light">
+
+
+
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7 7-7-7 7-7"/></svg>
+
+
+
           Back to Orders
+
+
+
         </a>
+
+
+
       </nav>
+
+
+
     </header>
 
-    <!-- STATUS -->
-    <section class="yp-status-strip" aria-label="Purchase and payment status">
-      <div class="yp-status-group">
-        <span class="yp-status-label">Order status</span>
-        {% if purchase.status == "DRAFT" %}
-          <span class="yp-badge yp-state-draft">Draft</span>
-        {% elif purchase.status == "CONFIRMED" %}
-          <span class="yp-badge yp-state-confirmed">Confirmed</span>
-        {% elif purchase.status == "RECEIVED" %}
-          <span class="yp-badge yp-state-received">Received</span>
-        {% elif purchase.status == "PARTIAL" %}
-          <span class="yp-badge yp-state-partial">Partially Received</span>
-        {% elif purchase.status == "CANCELLED" %}
-          <span class="yp-badge yp-state-cancelled">Cancelled</span>
-        {% else %}
-          <span class="yp-badge yp-state-other">{{ purchase.get_status_display|default:purchase.status|default:"Status unavailable" }}</span>
-        {% endif %}
-        <span class="yp-status-label">Payment</span>
-        {% if purchase.payment_status == "PAID" %}
-          <span class="yp-badge yp-pay-paid">Fully Paid</span>
-        {% elif purchase.payment_status == "PARTIAL" %}
-          <span class="yp-badge yp-pay-partial">Partially Paid</span>
-        {% else %}
-          <span class="yp-badge yp-pay-unpaid">Unpaid</span>
-        {% endif %}
-        {% if purchase.bill_type == "GST" %}<span class="yp-badge yp-bill-chip">GST Bill</span>{% else %}<span class="yp-badge yp-state-other">Non-GST Bill</span>{% endif %}
-      </div>
-      <div class="yp-status-total">
-        <span>Grand total</span>
-        <strong>₹ {{ purchase.grand_total|default:0|floatformat:2 }}</strong>
-      </div>
-    </section>
 
-    <!-- KEY FIGURES -->
-    <section class="yp-kpis" aria-label="Purchase financial statistics">
-      <div class="yp-kpi">
-        <div class="yp-kpi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v10m-3-7h4a2 2 0 010 4H9"/></svg></div>
-        <div class="yp-kpi-copy"><p class="yp-kpi-label">Grand total</p><p class="yp-kpi-value">₹ {{ purchase.grand_total|default:0|floatformat:2 }}</p><p class="yp-kpi-note">Final payable amount</p></div>
-      </div>
-      <div class="yp-kpi">
-        <div class="yp-kpi-icon" style="color:#16804a;background:#eaf7ef;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"/></svg></div>
-        <div class="yp-kpi-copy"><p class="yp-kpi-label">Paid amount</p><p class="yp-kpi-value is-paid">₹ {{ purchase.paid_amount|default:0|floatformat:2 }}</p><p class="yp-kpi-note">Amount collected</p></div>
-      </div>
-      <div class="yp-kpi">
-        <div class="yp-kpi-icon" style="color:#c83c43;background:#fff0f0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M10.3 3.8 2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/></svg></div>
-        <div class="yp-kpi-copy"><p class="yp-kpi-label">Balance due</p><p class="yp-kpi-value is-due">₹ {{ purchase.due_amount|default:0|floatformat:2 }}</p><p class="yp-kpi-note">Outstanding balance</p></div>
-      </div>
-      <div class="yp-kpi">
-        <div class="yp-kpi-icon" style="color:#2862ad;background:#edf4ff;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19V5m0 14h16M8 15l3-4 3 2 5-7"/></svg></div>
-        <div class="yp-kpi-copy"><p class="yp-kpi-label">Payment progress</p><p class="yp-kpi-value">{% if purchase.grand_total %}{% widthratio purchase.paid_amount purchase.grand_total 100 %}{% else %}0{% endif %}%</p><p class="yp-kpi-note">Paid against grand total</p></div>
-      </div>
-    </section>
 
-    <!-- PAYMENT PROGRESS -->
-    {% if purchase.grand_total %}
-      <section class="yp-progress-panel" aria-label="Payment progress">
-        <div>
-          <h2 class="yp-progress-title">Payment collection progress</h2>
-          <p class="yp-progress-caption">Track how much of this purchase has been paid.</p>
-          <div class="yp-progress-track" role="progressbar" aria-label="Payment collection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{% widthratio purchase.paid_amount purchase.grand_total 100 %}">
-            <div class="yp-progress-fill" style="width:{% widthratio purchase.paid_amount purchase.grand_total 100 %}%;"></div>
-          </div>
-        </div>
-        <div class="yp-progress-percent">{% widthratio purchase.paid_amount purchase.grand_total 100 %}%</div>
-      </section>
-    {% endif %}
+    <div class="yp-utility-bar" aria-label="Purchase detail tools">
 
-    <div class="yp-main-grid">
-      <!-- LEFT COLUMN -->
-      <div class="yp-column">
+      <div class="yp-utility-copy">
 
-        <!-- PARTY + PURCHASE INFORMATION -->
-        <section class="yp-panel">
-          <div class="yp-panel-head">
-            <div class="yp-panel-heading">
-              <span class="yp-panel-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 9h8M8 13h5"/></svg></span>
-              <div><h2 class="yp-panel-title">Record information</h2><p class="yp-panel-subtitle">Supplier identity and purchase reference</p></div>
-            </div>
-          </div>
-          <div class="yp-panel-body">
-            <div class="yp-info-split">
-              <section class="yp-info-block">
-                <h3 class="yp-info-heading"><span style="color:#16804a;">●</span> Party information</h3>
-                <div class="yp-info-list">
-                  <div class="yp-info-item"><span class="yp-info-label">Party name</span><span class="yp-info-value">{{ party.name|default:"—" }}</span></div>
-                  {% if party.contact_person %}<div class="yp-info-item"><span class="yp-info-label">Contact person</span><span class="yp-info-value">{{ party.contact_person }}</span></div>{% endif %}
-                  {% if party.phone %}<div class="yp-info-item"><span class="yp-info-label">Phone</span><span class="yp-info-value"><a href="tel:{{ party.phone }}">{{ party.phone }}</a></span></div>{% endif %}
-                  {% if party.gst_number %}<div class="yp-info-item"><span class="yp-info-label">GST number</span><span class="yp-info-value">{{ party.gst_number }}</span></div>{% endif %}
-                </div>
-              </section>
-              <section class="yp-info-block">
-                <h3 class="yp-info-heading"><span style="color:#2862ad;">●</span> Purchase information</h3>
-                <div class="yp-info-list">
-                  <div class="yp-info-item"><span class="yp-info-label">Purchase number</span><span class="yp-info-value">{{ purchase.purchase_number|default:"—" }}</span></div>
-                  <div class="yp-info-item"><span class="yp-info-label">Purchase date</span><span class="yp-info-value">{% if purchase.purchase_date %}{{ purchase.purchase_date|date:"d M Y" }}{% else %}—{% endif %}</span></div>
-                  <div class="yp-info-item"><span class="yp-info-label">Invoice number</span><span class="yp-info-value">{{ purchase.invoice_number|default:"—" }}</span></div>
-                  <div class="yp-info-item"><span class="yp-info-label">Invoice date</span><span class="yp-info-value">{% if purchase.invoice_date %}{{ purchase.invoice_date|date:"d M Y" }}{% else %}—{% endif %}</span></div>
-                </div>
-              </section>
-            </div>
-          </div>
-        </section>
+        <span class="yp-utility-kicker">Purchase workspace</span>
 
-        <!-- AMOUNT BREAKDOWN -->
-        <section class="yp-panel">
-          <div class="yp-panel-head">
-            <div class="yp-panel-heading">
-              <span class="yp-panel-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></span>
-              <div><h2 class="yp-panel-title">Amount breakdown</h2><p class="yp-panel-subtitle">Purchase value, discount and tax components</p></div>
-            </div>
-          </div>
-          <div class="yp-panel-body">
-            <div class="yp-breakdown">
-              <div class="yp-break-row"><span class="yp-break-label">Subtotal</span><strong class="yp-break-value">₹ {{ purchase.subtotal|default:0|floatformat:2 }}</strong></div>
-              <div class="yp-break-row"><span class="yp-break-label">Discount ({{ purchase.discount_percent|default:0|floatformat:2 }}%)</span><strong class="yp-break-value is-discount">− ₹ {{ purchase.discount_amount|default:0|floatformat:2 }}</strong></div>
-              <div class="yp-break-row"><span class="yp-break-label">Taxable amount</span><strong class="yp-break-value">₹ {{ purchase.taxable_amount|default:0|floatformat:2 }}</strong></div>
-              <div class="yp-break-row"><span class="yp-break-label">Other charges</span><strong class="yp-break-value">₹ {{ purchase.other_charges|default:0|floatformat:2 }}</strong></div>
-            </div>
-            {% if purchase.bill_type == "GST" %}
-              <div class="yp-tax-breakdown">
-                <div class="yp-tax-cell"><div class="yp-tax-name">CGST</div><div class="yp-tax-rate">{{ purchase.cgst_percent|default:0|floatformat:2 }}%</div><div class="yp-tax-amount">₹ {{ purchase.cgst_amount|default:0|floatformat:2 }}</div></div>
-                <div class="yp-tax-cell"><div class="yp-tax-name">SGST</div><div class="yp-tax-rate">{{ purchase.sgst_percent|default:0|floatformat:2 }}%</div><div class="yp-tax-amount">₹ {{ purchase.sgst_amount|default:0|floatformat:2 }}</div></div>
-                <div class="yp-tax-cell"><div class="yp-tax-name">IGST</div><div class="yp-tax-rate">{{ purchase.igst_percent|default:0|floatformat:2 }}%</div><div class="yp-tax-amount">₹ {{ purchase.igst_amount|default:0|floatformat:2 }}</div></div>
-              </div>
-            {% else %}
-              <div class="yp-doc-empty" style="margin-top:14px;">Non-GST purchase · No GST tax applied.</div>
-            {% endif %}
-          </div>
-        </section>
+        <span class="yp-utility-caption">Review, share or save this purchase record</span>
 
-        <!-- INSTALLMENT TIMELINE -->
-        <section class="yp-panel">
-          <div class="yp-panel-head">
-            <div class="yp-panel-heading">
-              <span class="yp-panel-icon" style="color:#94600d;background:#fff5df;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18m-5 5h2"/></svg></span>
-              <div><h2 class="yp-panel-title">Payment installments</h2><p class="yp-panel-subtitle">Upcoming and completed payment milestones</p></div>
-            </div>
-            <a href="{% url 'purchase_installments' purchase.pk %}" class="yp-view-all">View all <span aria-hidden="true">→</span></a>
-          </div>
-          {% if installments %}
-            <div class="yp-installment-list">
-              {% for installment in installments|slice:":5" %}
-                <article class="yp-installment-row">
-                  <div class="yp-installment-date">
-                    {% if installment.due_date %}<strong>{{ installment.due_date|date:"d M" }}</strong><span>{{ installment.due_date|date:"Y" }}</span>{% else %}<strong>—</strong><span>No due date</span>{% endif %}
-                  </div>
-                  <div class="yp-installment-rail" aria-hidden="true"><span class="yp-installment-dot {% if installment.status == 'PAID' %}is-paid{% elif installment.status == 'PARTIAL' %}is-partial{% endif %}"></span></div>
-                  <div class="yp-installment-main">
-                    <p class="yp-installment-name">Installment {{ installment.installment_number }}</p>
-                    <p class="yp-installment-sub">Scheduled payment</p>
-                    {% if installment.status == "PAID" %}
-                      <span class="yp-installment-status is-paid">Paid</span>
-                    {% elif installment.status == "PARTIAL" %}
-                      <span class="yp-installment-status is-partial">Partial</span>
-                    {% elif installment.status == "CANCELLED" %}
-                      <span class="yp-installment-status is-cancelled">Cancelled</span>
-                    {% else %}
-                      <span class="yp-installment-status">Pending</span>
-                    {% endif %}
-                  </div>
-                  <div class="yp-installment-amounts">
-                    <div class="yp-installment-amount"><span>Installment</span><strong>₹ {{ installment.installment_amount|default:0|floatformat:2 }}</strong></div>
-                    <div class="yp-installment-amount"><span>Paid</span><strong class="is-paid">₹ {{ installment.paid_amount|default:0|floatformat:2 }}</strong></div>
-                    <div class="yp-installment-amount"><span>Remaining</span><strong class="is-due">₹ {{ installment.remaining_amount|default:0|floatformat:2 }}</strong></div>
-                  </div>
-                </article>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="yp-empty">No payment installments have been added to this purchase yet.</div>
-          {% endif %}
-        </section>
       </div>
 
-      <!-- RIGHT COLUMN -->
-      <aside class="yp-column yp-side-column">
-        <!-- PAYMENT SUMMARY -->
-        <section class="yp-panel">
-          <div class="yp-payment-hero">
-            <p class="yp-payment-label">Final payable amount</p>
-            <p class="yp-payment-total">₹ {{ purchase.grand_total|default:0|floatformat:2 }}</p>
-            <p class="yp-payment-hint">Purchase financial summary</p>
-          </div>
-          <div class="yp-payment-lines">
-            <div class="yp-payment-line"><span>Total paid</span><strong class="is-paid">₹ {{ purchase.paid_amount|default:0|floatformat:2 }}</strong></div>
-            <div class="yp-payment-line"><span>Outstanding due</span><strong class="is-due">₹ {{ purchase.due_amount|default:0|floatformat:2 }}</strong></div>
-            <div class="yp-payment-line"><span>Bill type</span><strong>{% if purchase.bill_type == "GST" %}GST Bill{% else %}Non-GST Bill{% endif %}</strong></div>
-          </div>
-        </section>
+      <div class="yp-utility-actions">
 
-        <!-- TAX STATUS -->
-        <section class="yp-panel">
-          <div class="yp-panel-head">
-            <div class="yp-panel-heading">
-              <span class="yp-panel-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2h9l5 5v15H6V2zM14 2v6h6M9 13h6M9 17h4"/></svg></span>
-              <div><h2 class="yp-panel-title">Tax configuration</h2><p class="yp-panel-subtitle">Invoice tax treatment</p></div>
-            </div>
-            {% if purchase.bill_type == "GST" %}<span class="yp-tax-chip">GST</span>{% else %}<span class="yp-tax-chip is-nongst">NON-GST</span>{% endif %}
-          </div>
-          <div class="yp-panel-body">
-            {% if purchase.bill_type == "GST" %}
-              <p class="yp-info-value" style="margin:0;">GST applicable</p>
-              <p class="yp-tax-note">CGST / SGST or IGST is applied according to the purchase tax configuration.</p>
-            {% else %}
-              <p class="yp-info-value" style="margin:0;">GST not applicable</p>
-              <p class="yp-tax-note">No CGST, SGST or IGST is applied to this purchase.</p>
-            {% endif %}
-          </div>
-        </section>
+        <button type="button" class="yp-tool-btn" id="yp-privacy-toggle" aria-pressed="false" title="Hide or show amounts">
 
-        <!-- SUPPLIER DOCUMENT -->
-        <section class="yp-panel">
-          <div class="yp-panel-head">
-            <div class="yp-panel-heading">
-              <span class="yp-panel-icon" style="color:#2862ad;background:#edf4ff;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/></svg></span>
-              <div><h2 class="yp-panel-title">Supplier document</h2><p class="yp-panel-subtitle">Uploaded invoice or bill</p></div>
-            </div>
-          </div>
-          <div class="yp-panel-body">
-            {% if purchase.invoice_document %}
-              <a href="{{ purchase.invoice_document.url }}" target="_blank" rel="noopener" class="yp-doc-link">
-                <span class="yp-doc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/></svg></span>
-                <span class="yp-doc-copy"><span class="yp-doc-title">{% if ".pdf" in purchase.invoice_document.name|lower %}View supplier PDF{% else %}View supplier image{% endif %}</span><span class="yp-doc-name" title="{{ purchase.invoice_document.name }}">{{ purchase.invoice_document.name }}</span></span>
-                <span aria-hidden="true">↗</span>
-              </a>
-            {% else %}
-              <div class="yp-doc-empty">No supplier bill document uploaded.</div>
-            {% endif %}
-          </div>
-        </section>
-      </aside>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+
+          <span>Hide amounts</span>
+
+        </button>
+
+        <button type="button" class="yp-tool-btn" id="yp-copy-summary" title="Copy purchase summary">
+
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+
+          <span>Copy summary</span>
+
+        </button>
+
+        <button type="button" class="yp-tool-btn yp-tool-btn-primary" id="yp-print-record" title="Print or save as PDF">
+
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z"/></svg>
+
+          <span>Print / Save PDF</span>
+
+        </button>
+
+      </div>
+
     </div>
 
-    <!-- NOTES -->
-    {% if purchase.notes %}
-      <section class="yp-panel" style="margin-top:18px;">
-        <div class="yp-panel-head">
-          <div class="yp-panel-heading"><span class="yp-panel-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span><div><h2 class="yp-panel-title">Purchase notes</h2><p class="yp-panel-subtitle">Additional information recorded for this purchase</p></div></div>
+
+
+
+
+
+
+
+
+    <!-- STATUS -->
+
+
+
+    <section class="yp-status-strip" aria-label="Purchase and payment status">
+
+
+
+      <div class="yp-status-group">
+
+
+
+        <span class="yp-status-label">Order status</span>
+
+
+
+        {% if purchase.status == "DRAFT" %}
+
+
+
+          <span class="yp-badge yp-state-draft">Draft</span>
+
+
+
+        {% elif purchase.status == "CONFIRMED" %}
+
+
+
+          <span class="yp-badge yp-state-confirmed">Confirmed</span>
+
+
+
+        {% elif purchase.status == "RECEIVED" %}
+
+
+
+          <span class="yp-badge yp-state-received">Received</span>
+
+
+
+        {% elif purchase.status == "PARTIAL" %}
+
+
+
+          <span class="yp-badge yp-state-partial">Partially Received</span>
+
+
+
+        {% elif purchase.status == "CANCELLED" %}
+
+
+
+          <span class="yp-badge yp-state-cancelled">Cancelled</span>
+
+
+
+        {% else %}
+
+
+
+          <span class="yp-badge yp-state-other">{{ purchase.get_status_display|default:purchase.status|default:"Status unavailable" }}</span>
+
+
+
+        {% endif %}
+
+
+
+        <span class="yp-status-label">Payment</span>
+
+
+
+        {% if purchase.payment_status == "PAID" %}
+
+
+
+          <span class="yp-badge yp-pay-paid">Fully Paid</span>
+
+
+
+        {% elif purchase.payment_status == "PARTIAL" %}
+
+
+
+          <span class="yp-badge yp-pay-partial">Partially Paid</span>
+
+
+
+        {% else %}
+
+
+
+          <span class="yp-badge yp-pay-unpaid">Unpaid</span>
+
+
+
+        {% endif %}
+
+
+
+        {% if purchase.bill_type == "GST" %}<span class="yp-badge yp-bill-chip">GST Bill</span>{% else %}<span class="yp-badge yp-state-other">Non-GST Bill</span>{% endif %}
+
+
+
+      </div>
+
+
+
+      <div class="yp-status-total">
+
+
+
+        <span>Grand total</span>
+
+
+
+        <strong><span class="yp-money" data-amount="{{ purchase.grand_total|default:0|floatformat:2 }}">₹ {{ purchase.grand_total|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></strong>
+
+
+
+      </div>
+
+
+
+    </section>
+
+
+
+
+
+
+
+    <!-- KEY FIGURES -->
+
+
+
+    <section class="yp-kpis" aria-label="Purchase financial statistics">
+
+
+
+      <div class="yp-kpi">
+
+
+
+        <div class="yp-kpi-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 7v10m-3-7h4a2 2 0 010 4H9"/></svg></div>
+
+
+
+        <div class="yp-kpi-copy"><p class="yp-kpi-label">Grand total</p><p class="yp-kpi-value"><span class="yp-money" data-amount="{{ purchase.grand_total|default:0|floatformat:2 }}">₹ {{ purchase.grand_total|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></p><p class="yp-kpi-note">Final payable amount</p></div>
+
+
+
+      </div>
+
+
+
+      <div class="yp-kpi">
+
+
+
+        <div class="yp-kpi-icon" style="color:#16804a;background:#eaf7ef;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"/></svg></div>
+
+
+
+        <div class="yp-kpi-copy"><p class="yp-kpi-label">Paid amount</p><p class="yp-kpi-value is-paid"><span class="yp-money" data-amount="{{ purchase.paid_amount|default:0|floatformat:2 }}">₹ {{ purchase.paid_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></p><p class="yp-kpi-note">Amount collected</p></div>
+
+
+
+      </div>
+
+
+
+      <div class="yp-kpi">
+
+
+
+        <div class="yp-kpi-icon" style="color:#c83c43;background:#fff0f0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M10.3 3.8 2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.8a2 2 0 00-3.4 0z"/></svg></div>
+
+
+
+        <div class="yp-kpi-copy"><p class="yp-kpi-label">Balance due</p><p class="yp-kpi-value is-due"><span class="yp-money" data-amount="{{ purchase.due_amount|default:0|floatformat:2 }}">₹ {{ purchase.due_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></p><p class="yp-kpi-note">Outstanding balance</p></div>
+
+
+
+      </div>
+
+
+
+      <div class="yp-kpi">
+
+
+
+        <div class="yp-kpi-icon" style="color:#2862ad;background:#edf4ff;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19V5m0 14h16M8 15l3-4 3 2 5-7"/></svg></div>
+
+
+
+        <div class="yp-kpi-copy"><p class="yp-kpi-label">Payment progress</p><p class="yp-kpi-value">{% if purchase.grand_total %}{% widthratio purchase.paid_amount purchase.grand_total 100 %}{% else %}0{% endif %}%</p><p class="yp-kpi-note">Paid against grand total</p></div>
+
+
+
+      </div>
+
+
+
+    </section>
+
+
+
+
+
+
+
+    <!-- PAYMENT PROGRESS -->
+
+
+
+    {% if purchase.grand_total %}
+
+
+
+      <section class="yp-progress-panel" aria-label="Payment progress">
+
+
+
+        <div>
+
+
+
+          <h2 class="yp-progress-title">Payment collection progress</h2>
+
+
+
+          <p class="yp-progress-caption">Track how much of this purchase has been paid.</p>
+
+
+
+          <div class="yp-progress-track" role="progressbar" aria-label="Payment collection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{% widthratio purchase.paid_amount purchase.grand_total 100 %}">
+
+
+
+            <div class="yp-progress-fill" style="width:{% widthratio purchase.paid_amount purchase.grand_total 100 %}%;"></div>
+
+
+
+          </div>
+
+
+
         </div>
-        <div class="yp-panel-body"><div class="yp-notes">{{ purchase.notes }}</div></div>
+
+
+
+        <div class="yp-progress-percent">{% widthratio purchase.paid_amount purchase.grand_total 100 %}%</div>
+
+
+
       </section>
+
+
+
     {% endif %}
 
+
+
+
+
+
+
+    <div class="yp-main-grid">
+
+
+
+      <!-- LEFT COLUMN -->
+
+
+
+      <div class="yp-column">
+
+
+
+
+
+
+
+        <!-- PARTY + PURCHASE INFORMATION -->
+
+
+
+        <section class="yp-panel">
+
+
+
+          <div class="yp-panel-head">
+
+
+
+            <div class="yp-panel-heading">
+
+
+
+              <span class="yp-panel-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 9h8M8 13h5"/></svg></span>
+
+
+
+              <div><h2 class="yp-panel-title">Record information</h2><p class="yp-panel-subtitle">Supplier identity and purchase reference</p></div>
+
+
+
+            </div>
+
+
+
+          </div>
+
+
+
+          <div class="yp-panel-body">
+
+
+
+            <div class="yp-info-split">
+
+
+
+              <section class="yp-info-block">
+
+
+
+                <h3 class="yp-info-heading"><span style="color:#16804a;">●</span> Party information</h3>
+
+
+
+                <div class="yp-info-list">
+
+
+
+                  <div class="yp-info-item"><span class="yp-info-label">Party name</span><span class="yp-info-value">{{ party.name|default:"—" }}</span></div>
+
+
+
+                  {% if party.contact_person %}<div class="yp-info-item"><span class="yp-info-label">Contact person</span><span class="yp-info-value">{{ party.contact_person }}</span></div>{% endif %}
+
+
+
+                  {% if party.phone %}<div class="yp-info-item"><span class="yp-info-label">Phone</span><span class="yp-info-value"><a href="tel:{{ party.phone }}">{{ party.phone }}</a></span></div>{% endif %}
+
+
+
+                  {% if party.gst_number %}<div class="yp-info-item"><span class="yp-info-label">GST number</span><span class="yp-info-value">{{ party.gst_number }}</span></div>{% endif %}
+
+
+
+                </div>
+
+
+
+              </section>
+
+
+
+              <section class="yp-info-block">
+
+
+
+                <h3 class="yp-info-heading"><span style="color:#2862ad;">●</span> Purchase information</h3>
+
+
+
+                <div class="yp-info-list">
+
+
+
+                  <div class="yp-info-item"><span class="yp-info-label">Purchase number</span><span class="yp-info-value">{{ purchase.purchase_number|default:"—" }}</span></div>
+
+
+
+                  <div class="yp-info-item"><span class="yp-info-label">Purchase date</span><span class="yp-info-value">{% if purchase.purchase_date %}{{ purchase.purchase_date|date:"d M Y" }}{% else %}—{% endif %}</span></div>
+
+
+
+                  <div class="yp-info-item"><span class="yp-info-label">Invoice number</span><span class="yp-info-value">{{ purchase.invoice_number|default:"—" }}</span></div>
+
+
+
+                  <div class="yp-info-item"><span class="yp-info-label">Invoice date</span><span class="yp-info-value">{% if purchase.invoice_date %}{{ purchase.invoice_date|date:"d M Y" }}{% else %}—{% endif %}</span></div>
+
+
+
+                </div>
+
+
+
+              </section>
+
+
+
+            </div>
+
+
+
+          </div>
+
+
+
+        </section>
+
+
+
+
+
+
+
+        <!-- AMOUNT BREAKDOWN -->
+
+
+
+        <section class="yp-panel">
+
+
+
+          <div class="yp-panel-head">
+
+
+
+            <div class="yp-panel-heading">
+
+
+
+              <span class="yp-panel-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></span>
+
+
+
+              <div><h2 class="yp-panel-title">Amount breakdown</h2><p class="yp-panel-subtitle">Purchase value, discount and tax components</p></div>
+
+
+
+            </div>
+
+
+
+          </div>
+
+
+
+          <div class="yp-panel-body">
+
+
+
+            <div class="yp-breakdown">
+
+
+
+              <div class="yp-break-row"><span class="yp-break-label">Subtotal</span><strong class="yp-break-value"><span class="yp-money" data-amount="{{ purchase.subtotal|default:0|floatformat:2 }}">₹ {{ purchase.subtotal|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></strong></div>
+
+
+
+              <div class="yp-break-row"><span class="yp-break-label">Discount ({{ purchase.discount_percent|default:0|floatformat:2 }}%)</span><strong class="yp-break-value is-discount">− <span class="yp-money" data-amount="{{ purchase.discount_amount|default:0|floatformat:2 }}">₹ {{ purchase.discount_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></strong></div>
+
+
+
+              <div class="yp-break-row"><span class="yp-break-label">Taxable amount</span><strong class="yp-break-value"><span class="yp-money" data-amount="{{ purchase.taxable_amount|default:0|floatformat:2 }}">₹ {{ purchase.taxable_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></strong></div>
+
+
+
+              <div class="yp-break-row"><span class="yp-break-label">Other charges</span><strong class="yp-break-value"><span class="yp-money" data-amount="{{ purchase.other_charges|default:0|floatformat:2 }}">₹ {{ purchase.other_charges|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></strong></div>
+
+
+
+            </div>
+
+
+
+            {% if purchase.bill_type == "GST" %}
+
+
+
+              <div class="yp-tax-breakdown">
+
+
+
+                <div class="yp-tax-cell"><div class="yp-tax-name">CGST</div><div class="yp-tax-rate">{{ purchase.cgst_percent|default:0|floatformat:2 }}%</div><div class="yp-tax-amount"><span class="yp-money" data-amount="{{ purchase.cgst_amount|default:0|floatformat:2 }}">₹ {{ purchase.cgst_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></div></div>
+
+
+
+                <div class="yp-tax-cell"><div class="yp-tax-name">SGST</div><div class="yp-tax-rate">{{ purchase.sgst_percent|default:0|floatformat:2 }}%</div><div class="yp-tax-amount"><span class="yp-money" data-amount="{{ purchase.sgst_amount|default:0|floatformat:2 }}">₹ {{ purchase.sgst_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></div></div>
+
+
+
+                <div class="yp-tax-cell"><div class="yp-tax-name">IGST</div><div class="yp-tax-rate">{{ purchase.igst_percent|default:0|floatformat:2 }}%</div><div class="yp-tax-amount"><span class="yp-money" data-amount="{{ purchase.igst_amount|default:0|floatformat:2 }}">₹ {{ purchase.igst_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></div></div>
+
+
+
+              </div>
+
+
+
+            {% else %}
+
+
+
+              <div class="yp-doc-empty" style="margin-top:14px;">Non-GST purchase · No GST tax applied.</div>
+
+
+
+            {% endif %}
+
+
+
+          </div>
+
+
+
+        </section>
+
+
+
+
+
+
+
+        <!-- INSTALLMENT TIMELINE -->
+
+
+
+        <section class="yp-panel">
+
+
+
+          <div class="yp-panel-head">
+
+
+
+            <div class="yp-panel-heading">
+
+
+
+              <span class="yp-panel-icon" style="color:#94600d;background:#fff5df;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18m-5 5h2"/></svg></span>
+
+
+
+              <div><h2 class="yp-panel-title">Payment installments</h2><p class="yp-panel-subtitle">Upcoming and completed payment milestones</p></div>
+
+
+
+            </div>
+
+
+
+            <a href="{% url 'purchase_installments' purchase.pk %}" class="yp-view-all">View all <span aria-hidden="true">→</span></a>
+
+
+
+          </div>
+
+
+
+          {% if installments %}
+
+
+
+            <div class="yp-installment-list">
+
+
+
+              {% for installment in installments|slice:":5" %}
+
+
+
+                <article class="yp-installment-row">
+
+
+
+                  <div class="yp-installment-date">
+
+
+
+                    {% if installment.due_date %}<strong>{{ installment.due_date|date:"d M" }}</strong><span>{{ installment.due_date|date:"Y" }}</span>{% else %}<strong>—</strong><span>No due date</span>{% endif %}
+
+
+
+                  </div>
+
+
+
+                  <div class="yp-installment-rail" aria-hidden="true"><span class="yp-installment-dot {% if installment.status == 'PAID' %}is-paid{% elif installment.status == 'PARTIAL' %}is-partial{% endif %}"></span></div>
+
+
+
+                  <div class="yp-installment-main">
+
+
+
+                    <p class="yp-installment-name">Installment {{ installment.installment_number }}</p>
+
+
+
+                    <p class="yp-installment-sub">Scheduled payment</p>
+
+
+
+                    {% if installment.status == "PAID" %}
+
+
+
+                      <span class="yp-installment-status is-paid">Paid</span>
+
+
+
+                    {% elif installment.status == "PARTIAL" %}
+
+
+
+                      <span class="yp-installment-status is-partial">Partial</span>
+
+
+
+                    {% elif installment.status == "CANCELLED" %}
+
+
+
+                      <span class="yp-installment-status is-cancelled">Cancelled</span>
+
+
+
+                    {% else %}
+
+
+
+                      <span class="yp-installment-status">Pending</span>
+
+
+
+                    {% endif %}
+
+
+
+                  </div>
+
+
+
+                  <div class="yp-installment-amounts">
+
+
+
+                    <div class="yp-installment-amount"><span>Installment</span><strong><span class="yp-money" data-amount="{{ installment.installment_amount|default:0|floatformat:2 }}">₹ {{ installment.installment_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></strong></div>
+
+
+
+                    <div class="yp-installment-amount"><span>Paid</span><strong class="is-paid"><span class="yp-money" data-amount="{{ installment.paid_amount|default:0|floatformat:2 }}">₹ {{ installment.paid_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></strong></div>
+
+
+
+                    <div class="yp-installment-amount"><span>Remaining</span><strong class="is-due"><span class="yp-money" data-amount="{{ installment.remaining_amount|default:0|floatformat:2 }}">₹ {{ installment.remaining_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></strong></div>
+
+
+
+                  </div>
+
+
+
+                </article>
+
+
+
+              {% endfor %}
+
+
+
+            </div>
+
+
+
+          {% else %}
+
+
+
+            <div class="yp-empty">No payment installments have been added to this purchase yet.</div>
+
+
+
+          {% endif %}
+
+
+
+        </section>
+
+
+
+      </div>
+
+
+
+
+
+
+
+      <!-- RIGHT COLUMN -->
+
+
+
+      <aside class="yp-column yp-side-column">
+
+
+
+        <!-- PAYMENT SUMMARY -->
+
+
+
+        <section class="yp-panel">
+
+
+
+          <div class="yp-payment-hero">
+
+
+
+            <p class="yp-payment-label">Final payable amount</p>
+
+
+
+            <p class="yp-payment-total"><span class="yp-money" data-amount="{{ purchase.grand_total|default:0|floatformat:2 }}">₹ {{ purchase.grand_total|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></p>
+
+
+
+            <p class="yp-payment-hint">Purchase financial summary</p>
+
+
+
+          </div>
+
+
+
+          <div class="yp-payment-lines">
+
+
+
+            <div class="yp-payment-line"><span>Total paid</span><strong class="is-paid"><span class="yp-money" data-amount="{{ purchase.paid_amount|default:0|floatformat:2 }}">₹ {{ purchase.paid_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></strong></div>
+
+
+
+            <div class="yp-payment-line"><span>Outstanding due</span><strong class="is-due"><span class="yp-money" data-amount="{{ purchase.due_amount|default:0|floatformat:2 }}">₹ {{ purchase.due_amount|default:0|floatformat:2 }}</span><small class="yp-amount-words" aria-label="Amount in words"></small></strong></div>
+
+
+
+            <div class="yp-payment-line"><span>Bill type</span><strong>{% if purchase.bill_type == "GST" %}GST Bill{% else %}Non-GST Bill{% endif %}</strong></div>
+
+
+
+          </div>
+
+
+
+        </section>
+
+
+
+
+
+
+
+        <!-- TAX STATUS -->
+
+
+
+        <section class="yp-panel">
+
+
+
+          <div class="yp-panel-head">
+
+
+
+            <div class="yp-panel-heading">
+
+
+
+              <span class="yp-panel-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2h9l5 5v15H6V2zM14 2v6h6M9 13h6M9 17h4"/></svg></span>
+
+
+
+              <div><h2 class="yp-panel-title">Tax configuration</h2><p class="yp-panel-subtitle">Invoice tax treatment</p></div>
+
+
+
+            </div>
+
+
+
+            {% if purchase.bill_type == "GST" %}<span class="yp-tax-chip">GST</span>{% else %}<span class="yp-tax-chip is-nongst">NON-GST</span>{% endif %}
+
+
+
+          </div>
+
+
+
+          <div class="yp-panel-body">
+
+
+
+            {% if purchase.bill_type == "GST" %}
+
+
+
+              <p class="yp-info-value" style="margin:0;">GST applicable</p>
+
+
+
+              <p class="yp-tax-note">CGST / SGST or IGST is applied according to the purchase tax configuration.</p>
+
+
+
+            {% else %}
+
+
+
+              <p class="yp-info-value" style="margin:0;">GST not applicable</p>
+
+
+
+              <p class="yp-tax-note">No CGST, SGST or IGST is applied to this purchase.</p>
+
+
+
+            {% endif %}
+
+
+
+          </div>
+
+
+
+        </section>
+
+
+
+
+
+
+
+        <!-- SUPPLIER DOCUMENT -->
+
+
+
+        <section class="yp-panel">
+
+
+
+          <div class="yp-panel-head">
+
+
+
+            <div class="yp-panel-heading">
+
+
+
+              <span class="yp-panel-icon" style="color:#2862ad;background:#edf4ff;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/></svg></span>
+
+
+
+              <div><h2 class="yp-panel-title">Supplier document</h2><p class="yp-panel-subtitle">Uploaded invoice or bill</p></div>
+
+
+
+            </div>
+
+
+
+          </div>
+
+
+
+          <div class="yp-panel-body">
+
+
+
+            {% if purchase.invoice_document %}
+
+
+
+              <a href="{{ purchase.invoice_document.url }}" target="_blank" rel="noopener" class="yp-doc-link">
+
+
+
+                <span class="yp-doc-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/></svg></span>
+
+
+
+                <span class="yp-doc-copy"><span class="yp-doc-title">{% if ".pdf" in purchase.invoice_document.name|lower %}View supplier PDF{% else %}View supplier image{% endif %}</span><span class="yp-doc-name" title="{{ purchase.invoice_document.name }}">{{ purchase.invoice_document.name }}</span></span>
+
+
+
+                <span aria-hidden="true">↗</span>
+
+
+
+              </a>
+
+
+
+            {% else %}
+
+
+
+              <div class="yp-doc-empty">No supplier bill document uploaded.</div>
+
+
+
+            {% endif %}
+
+
+
+          </div>
+
+
+
+        </section>
+
+
+
+      </aside>
+
+
+
+    </div>
+
+
+
+
+
+
+
+    <!-- NOTES -->
+
+
+
+    {% if purchase.notes %}
+
+
+
+      <section class="yp-panel" style="margin-top:18px;">
+
+
+
+        <div class="yp-panel-head">
+
+
+
+          <div class="yp-panel-heading"><span class="yp-panel-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span><div><h2 class="yp-panel-title">Purchase notes</h2><p class="yp-panel-subtitle">Additional information recorded for this purchase</p></div></div>
+
+
+
+        </div>
+
+
+
+        <div class="yp-panel-body"><div class="yp-notes">{{ purchase.notes }}</div></div>
+
+
+
+      </section>
+
+
+
+    {% endif %}
+
+
+
+
+
+
+
     <!-- FOOTER -->
+
+
+
     <footer class="yp-footer">
+
+
+
       <span>Purchase reference: {{ purchase.purchase_number }}</span>
+
+
+
       <span>{% if purchase.created_at %}Created {{ purchase.created_at|date:"d M Y, h:i A" }}{% endif %}</span>
+
+
+
     </footer>
+
+
+
   </div>
+
+
+
 </div>
+
+
+
+
+
+<script>
+(function () {
+  "use strict";
+
+  function initPurchaseDetail() {
+    const root = document.querySelector(".yl-purchase-page");
+    if (!root || root.dataset.ypInitialized === "true") return;
+    root.dataset.ypInitialized = "true";
+
+    const numberFormat = new Intl.NumberFormat("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+    const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+    function underThousand(number) {
+      let n = Math.floor(number);
+      let output = "";
+      if (n >= 100) {
+        output += ones[Math.floor(n / 100)] + " Hundred";
+        n %= 100;
+        if (n) output += " ";
+      }
+      if (n >= 20) {
+        output += tens[Math.floor(n / 10)];
+        n %= 10;
+        if (n) output += " " + ones[n];
+      } else if (n > 0) {
+        output += ones[n];
+      }
+      return output;
+    }
+
+    function integerWords(number) {
+      let n = Math.floor(Math.abs(number));
+      if (!Number.isFinite(n)) return "Zero";
+      if (n === 0) return "Zero";
+
+      const units = ["", "Thousand", "Lakh", "Crore", "Arab", "Kharab"];
+      const groups = [n % 1000];
+      n = Math.floor(n / 1000);
+      while (n > 0 && groups.length < units.length) {
+        groups.push(n % 100);
+        n = Math.floor(n / 100);
+      }
+
+      const parts = [];
+      for (let index = groups.length - 1; index >= 0; index -= 1) {
+        if (groups[index]) {
+          parts.push(underThousand(groups[index]) + (units[index] ? " " + units[index] : ""));
+        }
+      }
+      return parts.join(" ");
+    }
+
+    function amountWords(value) {
+      let amount = Number(String(value == null ? "0" : value).replace(/,/g, "").trim());
+      if (!Number.isFinite(amount)) amount = 0;
+      amount = Math.abs(amount);
+
+      let rupees = Math.floor(amount + 0.000001);
+      let paise = Math.round((amount - rupees) * 100);
+      if (paise === 100) {
+        rupees += 1;
+        paise = 0;
+      }
+
+      const rupeeText = rupees ? integerWords(rupees) + (rupees === 1 ? " Rupee" : " Rupees") : "";
+      const paiseText = paise ? integerWords(paise) + (paise === 1 ? " Paisa" : " Paise") : "";
+      if (rupeeText && paiseText) return rupeeText + " and " + paiseText + " Only";
+      if (rupeeText) return rupeeText + " Only";
+      if (paiseText) return paiseText + " Only";
+      return "Zero Rupees Only";
+    }
+
+    const moneyNodes = Array.from(root.querySelectorAll(".yp-money[data-amount]"));
+    const wordNodes = [];
+
+    moneyNodes.forEach(function (node) {
+      const raw = Number(String(node.dataset.amount || "0").replace(/,/g, "").trim());
+      if (!Number.isFinite(raw)) return;
+
+      const formatted = "₹ " + numberFormat.format(raw);
+      node.dataset.visibleText = formatted;
+      node.textContent = formatted;
+
+      const wordsNode = node.nextElementSibling;
+      if (wordsNode && wordsNode.classList.contains("yp-amount-words")) {
+        const words = amountWords(raw);
+        wordsNode.dataset.visibleText = words;
+        wordsNode.textContent = words;
+        wordNodes.push(wordsNode);
+      }
+    });
+
+    const privacyButton = root.querySelector("#yp-privacy-toggle");
+
+    function setAmountsHidden(hidden) {
+      root.classList.toggle("yp-privacy-on", hidden);
+      root.dataset.ypAmountsHidden = hidden ? "true" : "false";
+
+      moneyNodes.forEach(function (node) {
+        if (!node.dataset.visibleText) return;
+        node.textContent = hidden ? "₹ ••••••" : node.dataset.visibleText;
+        node.setAttribute("aria-label", hidden ? "Amount hidden" : node.dataset.visibleText);
+      });
+
+      wordNodes.forEach(function (node) {
+        if (!node.dataset.visibleText) return;
+        node.textContent = hidden ? "••••••••••••" : node.dataset.visibleText;
+        node.setAttribute("aria-hidden", hidden ? "true" : "false");
+      });
+
+      if (privacyButton) {
+        privacyButton.setAttribute("aria-pressed", String(hidden));
+        privacyButton.setAttribute("aria-label", hidden ? "Show amounts" : "Hide amounts");
+        const label = privacyButton.querySelector("span");
+        if (label) label.textContent = hidden ? "Show amounts" : "Hide amounts";
+      }
+    }
+
+    if (privacyButton) {
+      privacyButton.addEventListener("click", function () {
+        const currentlyHidden = root.dataset.ypAmountsHidden === "true";
+        setAmountsHidden(!currentlyHidden);
+      });
+    }
+
+    // Start in the visible state and keep button text and ARIA state in sync.
+    setAmountsHidden(false);
+
+    const copyButton = root.querySelector("#yp-copy-summary");
+    if (copyButton) {
+      copyButton.addEventListener("click", async function () {
+        const purchaseNo = root.querySelector(".yp-title")?.textContent.trim() || "Purchase";
+        const lines = ["YAARLYNX Purchase Summary", "Purchase: " + purchaseNo];
+        const hidden = root.dataset.ypAmountsHidden === "true";
+
+        moneyNodes.forEach(function (node) {
+          const labelContainer = node.closest(".yp-kpi-copy, .yp-break-row, .yp-tax-cell, .yp-payment-line, .yp-installment-amount, .yp-status-total, .yp-payment-hero, .yp-kpi, .yp-tax-amount");
+          const labelNode = labelContainer ? labelContainer.querySelector(".yp-kpi-label, .yp-break-label, .yp-tax-name, .yp-payment-line span, .yp-installment-amount > span, .yp-status-total > span, .yp-payment-label") : null;
+          const label = labelNode ? labelNode.textContent.trim() : "Amount";
+          const value = hidden ? "₹ ••••••" : (node.dataset.visibleText || node.textContent.trim());
+          const wordsNode = node.nextElementSibling;
+          const words = hidden ? "Amount hidden" : (wordsNode && wordsNode.dataset.visibleText ? wordsNode.dataset.visibleText : "");
+          lines.push(label + ": " + value + (words ? " (" + words + ")" : ""));
+        });
+
+        const text = lines.join("\n");
+        const label = copyButton.querySelector("span");
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const area = document.createElement("textarea");
+            area.value = text;
+            area.setAttribute("readonly", "");
+            area.style.position = "fixed";
+            area.style.opacity = "0";
+            document.body.appendChild(area);
+            area.select();
+            const copied = document.execCommand("copy");
+            area.remove();
+            if (!copied) throw new Error("Clipboard copy was not available");
+          }
+          if (label) label.textContent = "Copied";
+        } catch (error) {
+          if (label) label.textContent = "Copy unavailable";
+        }
+        window.setTimeout(function () {
+          if (label) label.textContent = "Copy summary";
+        }, 1600);
+      });
+    }
+
+    const printButton = root.querySelector("#yp-print-record");
+    if (printButton) printButton.addEventListener("click", function () {
+      window.print();
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initPurchaseDetail, { once: true });
+  } else {
+    initPurchaseDetail();
+  }
+})();
+</script>
+
+
+
 {% endblock %}

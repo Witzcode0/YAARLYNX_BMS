@@ -1,24 +1,125 @@
-from django.contrib import messages
-from django.shortcuts import redirect, render, get_object_or_404
-from django.core.paginator import Paginator
-from django.db.models import Q
-from django.db.models import Prefetch
+
+# ==========================================================
+# YAARLYNX DASHBOARD - COMPLETE VIEWS.PY
+# ==========================================================
+# Modules:
+# 01. Authentication
+# 02. Main Dashboard
+# 03. Party Directory
+# 04. Party Excel Export
+# 05. Party Purchase & Installments
+# 06. Finance Utilities
+# 07. Finance Dashboard
+# 08. Income Transactions
+# 09. Purchase Transactions
+# 10. User Profile
+# 11. Quick Links
+# 12. Notifications
+# 13. PDF Overlay
+# ==========================================================
+
+
+# ==========================================================
+# 01. PYTHON IMPORTS
+# ==========================================================
+
+import json
+
+from datetime import date, datetime, timedelta
 from decimal import Decimal
-from django.http import JsonResponse
-from django.utils import timezone
-from django.http import HttpResponse
-from operator import or_
 from functools import reduce
+from io import BytesIO
+from operator import or_
+from uuid import UUID
 
-import csv
-from datetime import timedelta
 
-from django.db.models import Sum, Count, DecimalField, Value
+# ==========================================================
+# 02. DJANGO IMPORTS
+# ==========================================================
+
+from django.contrib import messages
+
+from django.core.exceptions import (
+    FieldDoesNotExist,
+    ValidationError,
+)
+
+from django.core.paginator import Paginator
+
+from django.db import models
+
+from django.db.models import (
+    Count,
+    DecimalField,
+    Prefetch,
+    Q,
+    Sum,
+    Value,
+)
+
+from django.db.models.functions import (
+    Coalesce,
+    TruncDay,
+    TruncMonth,
+)
+
+from django.http import (
+    FileResponse,
+    HttpResponse,
+    JsonResponse,
+)
+
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+)
+
+from django.utils import timezone
 from django.utils.dateparse import parse_date
-from django.db.models.functions import Coalesce, TruncMonth
+
+
+# ==========================================================
+# 03. THIRD-PARTY IMPORTS
+# ==========================================================
+
+from openpyxl import Workbook
+
+from openpyxl.styles import (
+    Alignment,
+    Font,
+    PatternFill,
+)
+
+from openpyxl.utils import get_column_letter
+
+
+# ==========================================================
+# 04. PROJECT MODELS
+# ==========================================================
 
 from apps.accounts.models import UserAccount
-from apps.dashboard.models import Party, PartyPaymentQR, PartyPurchase, PurchasePaymentInstallment, QuickLink, QuickLinkCategory, Notification, NotificationRecipient, IncomeSource, IncomePayment
+
+from apps.dashboard.models import (
+    Party,
+    PartyPaymentQR,
+    PartyPurchase,
+    PurchasePaymentInstallment,
+    QuickLink,
+    QuickLinkCategory,
+    NotificationRecipient,
+    IncomeSource,
+    IncomePayment,
+)
+
+from apps.pdf_overlay.models import OverlayImage
+
+
+# ==========================================================
+# 05. PROJECT SERVICES
+# ==========================================================
+
+from apps.pdf_overlay.services.pdf_processor import apply_overlay
 
 from apps.dashboard.session import (
     get_logged_in_user,
@@ -31,135 +132,101 @@ from apps.dashboard.decorators import (
     dashboard_access_required,
 )
 
-from django.shortcuts import render
-from django.http import FileResponse
 
-from apps.pdf_overlay.models import OverlayImage
-from apps.pdf_overlay.services.pdf_processor import apply_overlay
+# ==========================================================
+# 06. COMMON FINANCE CONSTANTS
+# ==========================================================
 
+MONEY_FIELD = DecimalField(
+    max_digits=16,
+    decimal_places=2,
+)
 
+ZERO = Value(
+    Decimal("0.00"),
+    output_field=MONEY_FIELD,
+)
 
+PERIOD_OPTIONS = [
+    ("", "All time"),
+    ("today", "Today"),
+    ("week", "Last 7 days"),
+    ("month", "This month"),
+    ("quarter", "This quarter"),
+    ("year", "This year"),
+    ("last_30", "Last 30 days"),
+    ("last_90", "Last 90 days"),
+    ("previous_month", "Previous month"),
+    ("previous_quarter", "Previous quarter"),
+    ("custom", "Custom dates"),
+]
 
 
 # ==========================================================
-# LOGIN
+# 07. AUTHENTICATION
 # ==========================================================
+
+
 def login_view(request):
+    """
+    Authenticate dashboard users and create a session.
 
-    # ------------------------------------------------------
-    # STEP 1: CHECK ALREADY LOGGED-IN USER
-    # ------------------------------------------------------
+    Supports:
+        - Email and password authentication.
+        - Active account validation.
+        - Dashboard permission validation.
+        - Remember Me session (30 days).
+    """
 
-    current_user = get_logged_in_user(
-        request
-    )
+    current_user = get_logged_in_user(request)
 
-
-    if current_user:
-
-        # If already has dashboard access
-        if current_user.has_dashboard_access:
-
-            return redirect(
-                "dashboard_view"
-            )
-
-
-    # ------------------------------------------------------
-    # STEP 2: HANDLE POST
-    # ------------------------------------------------------
+    if current_user and current_user.has_dashboard_access:
+        return redirect("dashboard_view")
 
     if request.method == "POST":
 
-        # --------------------------------------------------
-        # GET FORM DATA
-        # --------------------------------------------------
-
-        email = request.POST[
-            "email"
-        ].strip().lower()
-
-        password = request.POST[
-            "password"
-        ]
-
-        remember_me = request.POST.get(
-            "remember_me"
-        )
-
-
-        # --------------------------------------------------
-        # FIND USER
-        # --------------------------------------------------
+        email = request.POST["email"].strip().lower()
+        password = request.POST["password"]
+        remember_me = request.POST.get("remember_me")
 
         try:
-
             user = (
                 UserAccount.objects
                 .select_related("role")
-                .get(
-                    email=email
-                )
+                .get(email=email)
             )
 
         except UserAccount.DoesNotExist:
-
             return render(
                 request,
                 "dashboard/login.html",
                 {
-                    "error": (
-                        "Invalid email or password."
-                    ),
+                    "error": "Invalid email or password.",
                     "email": email,
                 }
             )
-
-
-        # --------------------------------------------------
-        # CHECK ACTIVE
-        # --------------------------------------------------
 
         if not user.is_active:
-
             return render(
                 request,
                 "dashboard/login.html",
                 {
-                    "error": (
-                        "Your account has been deactivated."
-                    ),
+                    "error": "Your account has been deactivated.",
                     "email": email,
                 }
             )
 
-
-        # --------------------------------------------------
-        # CHECK PASSWORD
-        # --------------------------------------------------
-
-        if not user.check_password(
-            password
-        ):
-
+        if not user.check_password(password):
             return render(
                 request,
                 "dashboard/login.html",
                 {
-                    "error": (
-                        "Invalid email or password."
-                    ),
+                    "error": "Invalid email or password.",
                     "email": email,
                 }
             )
-
-
-        # --------------------------------------------------
-        # CHECK DASHBOARD ACCESS
-        # --------------------------------------------------
 
         if not user.has_dashboard_access:
-
             return render(
                 request,
                 "dashboard/login.html",
@@ -172,47 +239,13 @@ def login_view(request):
                 }
             )
 
+        login_user(request, user)
 
-        # --------------------------------------------------
-        # LOGIN
-        # --------------------------------------------------
-
-        login_user(
-            request,
-            user
+        request.session.set_expiry(
+            60 * 60 * 24 * 30 if remember_me else 0
         )
 
-
-        # --------------------------------------------------
-        # REMEMBER ME
-        # --------------------------------------------------
-
-        if remember_me:
-
-            # 30 days
-            request.session.set_expiry(
-                60 * 60 * 24 * 30
-            )
-
-        else:
-
-            # Browser session
-            request.session.set_expiry(
-                0
-            )
-
-        # --------------------------------------------------
-        # REDIRECT DASHBOARD
-        # --------------------------------------------------
-
-        return redirect(
-            "dashboard_view"
-        )
-
-
-    # ------------------------------------------------------
-    # GET LOGIN PAGE
-    # ------------------------------------------------------
+        return redirect("dashboard_view")
 
     return render(
         request,
@@ -220,175 +253,305 @@ def login_view(request):
     )
 
 
-# ==========================================================
-# LOGOUT
-# ==========================================================
 @login_required
 def logout_view(request):
+    """
+    Destroy the current user session and redirect to login.
+    """
 
-    # ------------------------------------------------------
-    # DESTROY CUSTOM SESSION
-    # ------------------------------------------------------
-
-    logout_user(
-        request
-    )
-
-
-    # ------------------------------------------------------
-    # SUCCESS MESSAGE
-    # ------------------------------------------------------
+    logout_user(request)
 
     messages.success(
         request,
         "You have been logged out successfully."
     )
 
+    return redirect("login_view")
 
-    # ------------------------------------------------------
-    # REDIRECT LOGIN
-    # ------------------------------------------------------
 
-    return redirect(
-        "login_view"
+# ==========================================================
+# 08. MAIN DASHBOARD
+# ==========================================================
+
+
+# ==========================================================
+# ROLE-BASED DASHBOARD VIEW
+# Replace your existing dashboard_view() with this function.
+# Existing imports/constants/helpers in views.py are reused:
+# Party, PartyPaymentQR, PartyPurchase, PurchasePaymentInstallment,
+# IncomePayment, QuickLink, NotificationRecipient, Count, Q, Sum,
+# Coalesce, ZERO, MONEY_FIELD, timezone, render.
+# ==========================================================
+
+
+def _get_dashboard_role_code(request, user):
+    """Return the stable role code, never the human-readable role name."""
+    role_object = getattr(user, "role", None)
+    role_code = getattr(role_object, "code", "") if role_object else ""
+
+    # Session fallbacks support older login/session implementations.
+    role_code = (
+        role_code
+        or request.session.get("yaarlynx_user_role")
+        or request.session.get("yaarylynx_user_role")
+        or ""
     )
+    return str(role_code).strip().upper()
 
 
-# ==========================================================
-# DASHBOARD
-# ==========================================================
 @dashboard_access_required
 def dashboard_view(request):
+    """
+    Role-aware YAARLYNX dashboard.
 
-    # =====================================================
-    # CURRENT USER
-    # =====================================================
+    SUPER_ADMIN / ADMIN:
+        Business overview, parties, purchases, income, installments,
+        overdue items and operational alerts.
 
+    STAFF:
+        General workspace only: notifications, quick links and profile.
+        No business-wide financial or supplier totals are exposed.
+
+    CUSTOMER:
+        The current UserAccount.has_dashboard_access policy should deny
+        dashboard access before this view is reached.
+    """
     user = request.current_user
+    today = timezone.localdate()
 
-    # =====================================================
-    # PARTY STATISTICS
-    # =====================================================
+    role_code = _get_dashboard_role_code(request, user)
+    role_labels = {
+        "SUPER_ADMIN": "Super Admin",
+        "ADMIN": "Admin",
+        "STAFF": "Staff",
+        "CUSTOMER": "Customer",
+    }
+    role_label = role_labels.get(role_code, "Team Member")
 
-    total_parties = Party.objects.count()
+    is_admin_dashboard = role_code in {"SUPER_ADMIN", "ADMIN"}
+    is_staff_dashboard = role_code == "STAFF"
 
-    active_parties = Party.objects.filter(
-        is_active=True
-    ).count()
-
-    inactive_parties = Party.objects.filter(
-        is_active=False
-    ).count()
-
-    gst_parties = (
-        Party.objects
-        .exclude(gst_number="")
-        .exclude(gst_number__isnull=True)
-        .count()
-    )
-
-    bank_parties = (
-        Party.objects
-        .exclude(bank_name="")
-        .exclude(bank_name__isnull=True)
-        .exclude(account_number="")
-        .exclude(account_number__isnull=True)
-        .count()
-    )
-
-    total_qrs = PartyPaymentQR.objects.count()
-
-    active_qrs = PartyPaymentQR.objects.filter(
-        is_active=True
-    ).count()
-
-    # =====================================================
-    # PARTY TYPES
-    # =====================================================
-
-    party_type_data = []
-
-    for value, label in Party.PartyType.choices:
-
-        count = Party.objects.filter(
-            party_type=value
-        ).count()
-
-        party_type_data.append(
-            {
-                "value": value,
-                "label": label,
-                "count": count,
-            }
-        )
-
-    # =====================================================
-    # RECENT PARTIES
-    # =====================================================
-
-    recent_parties = (
-        Party.objects
-        .order_by("-created_at")[:8]
-    )
-
-    # =====================================================
-    # RECENTLY UPDATED PARTIES
-    # =====================================================
-
-    recently_updated_parties = (
-        Party.objects
-        .order_by("-updated_at")[:5]
-    )
-
-    # =====================================================
-    # PARTIES NEEDING ATTENTION
-    # =====================================================
-
-    parties_without_gst = (
-        Party.objects
-        .filter(is_active=True)
+    # Published notification counts are scoped to the signed-in user.
+    # This follows the same publication checks used by notification_list().
+    notification_queryset = (
+        NotificationRecipient.objects
         .filter(
-            gst_number=""
+            user=user,
+            notification__is_active=True,
+            notification__publish_at__lte=timezone.now(),
         )
-        .order_by("name")[:5]
+        .select_related("notification")
+        .order_by(
+            "-notification__is_pinned",
+            "-notification__publish_at",
+            "-created_at",
+        )
+    )
+    published_recipients = [
+        recipient
+        for recipient in notification_queryset
+        if recipient.notification.is_published
+    ]
+    total_notifications = len(published_recipients)
+    unread_notifications = sum(
+        1 for recipient in published_recipients if not recipient.is_read
     )
 
-    parties_without_bank = (
-        Party.objects
-        .filter(is_active=True)
-        .filter(
-            bank_name=""
-        )
-        .order_by("name")[:5]
-    )
-
-    # =====================================================
-    # CONTEXT
-    # =====================================================
+    quick_links_count = QuickLink.objects.filter(is_active=True).count()
 
     context = {
         "user": user,
-
-        # Statistics
-        "total_parties": total_parties,
-        "active_parties": active_parties,
-        "inactive_parties": inactive_parties,
-        "gst_parties": gst_parties,
-        "bank_parties": bank_parties,
-        "total_qrs": total_qrs,
-        "active_qrs": active_qrs,
-
-        # Party types
-        "party_type_data": party_type_data,
-
-        # Lists
-        "recent_parties": recent_parties,
-        "recently_updated_parties": recently_updated_parties,
-
-        # Attention
-        "parties_without_gst": parties_without_gst,
-        "parties_without_bank": parties_without_bank,
+        "today": today,
+        "dashboard_role": role_code,
+        "dashboard_role_label": role_label,
+        "is_admin_dashboard": is_admin_dashboard,
+        "is_staff_dashboard": is_staff_dashboard,
+        "total_notifications": total_notifications,
+        "unread_notifications": unread_notifications,
+        "quick_links_count": quick_links_count,
     }
+
+    # Keep business and financial data out of the STAFF dashboard context.
+    if is_admin_dashboard:
+        # ------------------------------
+        # Party directory statistics
+        # ------------------------------
+        party_summary = Party.objects.aggregate(
+            total=Count("pk"),
+            active=Count("pk", filter=Q(is_active=True)),
+            inactive=Count("pk", filter=Q(is_active=False)),
+            with_gst=Count(
+                "pk",
+                filter=(
+                    ~Q(gst_number__isnull=True)
+                    & ~Q(gst_number__exact="")
+                ),
+            ),
+            with_bank=Count(
+                "pk",
+                filter=(
+                    ~Q(bank_name__isnull=True)
+                    & ~Q(bank_name__exact="")
+                    & ~Q(account_number__isnull=True)
+                    & ~Q(account_number__exact="")
+                ),
+            ),
+        )
+
+        party_stats = {
+            "total": party_summary["total"] or 0,
+            "active": party_summary["active"] or 0,
+            "inactive": party_summary["inactive"] or 0,
+            "with_gst": party_summary["with_gst"] or 0,
+            "with_bank": party_summary["with_bank"] or 0,
+            "total_qrs": PartyPaymentQR.objects.count(),
+            "active_qrs": PartyPaymentQR.objects.filter(is_active=True).count(),
+        }
+        party_stats["active_percentage"] = round(
+            party_stats["active"] / party_stats["total"] * 100, 1
+        ) if party_stats["total"] else 0
+
+        # Aggregate party types in one query.
+        party_type_counts = dict(
+            Party.objects.values("party_type")
+            .annotate(total=Count("pk"))
+            .values_list("party_type", "total")
+        )
+        party_type_data = [
+            {
+                "value": value,
+                "label": label,
+                "count": party_type_counts.get(value, 0),
+            }
+            for value, label in Party.PartyType.choices
+            if party_type_counts.get(value, 0)
+        ]
+
+        # ------------------------------
+        # Purchase statistics
+        # ------------------------------
+        purchase_queryset = PartyPurchase.objects.all()
+        purchase_summary = purchase_queryset.aggregate(
+            count=Count("pk"),
+            value=Coalesce(Sum("grand_total"), ZERO, output_field=MONEY_FIELD),
+            paid=Coalesce(Sum("paid_amount"), ZERO, output_field=MONEY_FIELD),
+            due=Coalesce(Sum("due_amount"), ZERO, output_field=MONEY_FIELD),
+        )
+        purchase_stats = {
+            "count": purchase_summary["count"] or 0,
+            "value": purchase_summary["value"] or Decimal("0.00"),
+            "paid": purchase_summary["paid"] or Decimal("0.00"),
+            "due": purchase_summary["due"] or Decimal("0.00"),
+        }
+        purchase_stats["collection_percentage"] = round(
+            float(purchase_stats["paid"] / purchase_stats["value"] * 100), 1
+        ) if purchase_stats["value"] else 0
+
+        # ------------------------------
+        # Income statistics
+        # ------------------------------
+        income_queryset = IncomePayment.objects.all()
+        completed_income = income_queryset.filter(
+            payment_status=IncomePayment.PaymentStatus.COMPLETED
+        )
+        pending_income = income_queryset.filter(
+            payment_status=IncomePayment.PaymentStatus.PENDING
+        )
+        failed_income = income_queryset.filter(
+            payment_status=IncomePayment.PaymentStatus.FAILED
+        )
+
+        income_stats = {
+            "count": income_queryset.count(),
+            "recorded": _amount_total(income_queryset, "amount"),
+            "completed_count": completed_income.count(),
+            "received": _amount_total(completed_income, "amount"),
+            "pending_count": pending_income.count(),
+            "pending": _amount_total(pending_income, "amount"),
+            "failed_count": failed_income.count(),
+            "failed": _amount_total(failed_income, "amount"),
+        }
+
+        # ------------------------------
+        # Installment statistics
+        # ------------------------------
+        installment_queryset = PurchasePaymentInstallment.objects.all()
+        overdue_queryset = installment_queryset.filter(
+            due_date__lt=today,
+            remaining_amount__gt=0,
+        ).select_related("purchase", "purchase__party")
+
+        installment_summary = installment_queryset.aggregate(
+            count=Count("pk"),
+            scheduled=Coalesce(
+                Sum("installment_amount"), ZERO, output_field=MONEY_FIELD
+            ),
+            paid=Coalesce(
+                Sum("paid_amount"), ZERO, output_field=MONEY_FIELD
+            ),
+            remaining=Coalesce(
+                Sum("remaining_amount"), ZERO, output_field=MONEY_FIELD
+            ),
+        )
+        installment_stats = {
+            "count": installment_summary["count"] or 0,
+            "scheduled": installment_summary["scheduled"] or Decimal("0.00"),
+            "paid": installment_summary["paid"] or Decimal("0.00"),
+            "remaining": installment_summary["remaining"] or Decimal("0.00"),
+            "overdue_count": overdue_queryset.count(),
+            "overdue_amount": _amount_total(
+                overdue_queryset, "remaining_amount"
+            ),
+        }
+        installment_stats["collection_percentage"] = round(
+            float(installment_stats["paid"] / installment_stats["scheduled"] * 100), 1
+        ) if installment_stats["scheduled"] else 0
+
+        # ------------------------------
+        # Recent records and attention lists
+        # ------------------------------
+        recent_parties = Party.objects.order_by("-created_at")[:6]
+        recently_updated_parties = Party.objects.order_by("-updated_at")[:5]
+        recent_purchases = (
+            PartyPurchase.objects.select_related("party")
+            .order_by("-purchase_date", "-created_at")[:6]
+        )
+        recent_income = (
+            IncomePayment.objects.select_related("income_source")
+            .order_by("-payment_date", "-pk")[:6]
+        )
+        overdue_installments = overdue_queryset.order_by("due_date")[:6]
+
+        parties_without_gst = (
+            Party.objects.filter(is_active=True)
+            .filter(Q(gst_number__isnull=True) | Q(gst_number__exact=""))
+            .order_by("name")[:6]
+        )
+        parties_without_bank = (
+            Party.objects.filter(is_active=True)
+            .filter(
+                Q(bank_name__isnull=True)
+                | Q(bank_name__exact="")
+                | Q(account_number__isnull=True)
+                | Q(account_number__exact="")
+            )
+            .order_by("name")[:6]
+        )
+
+        context.update({
+            "party_stats": party_stats,
+            "party_type_data": party_type_data,
+            "purchase_stats": purchase_stats,
+            "income_stats": income_stats,
+            "installment_stats": installment_stats,
+            "recent_parties": recent_parties,
+            "recently_updated_parties": recently_updated_parties,
+            "recent_purchases": recent_purchases,
+            "recent_income": recent_income,
+            "overdue_installments": overdue_installments,
+            "parties_without_gst": parties_without_gst,
+            "parties_without_bank": parties_without_bank,
+        })
 
     return render(
         request,
@@ -397,14 +560,17 @@ def dashboard_view(request):
     )
 
 
+# ==========================================================
+# 09. PARTY DIRECTORY QUERYSET
+# ==========================================================
 
-
-# =========================================================
-# SHARED PARTY QUERYSET
-# =========================================================
 
 def _get_filtered_party_queryset(request):
-    """Build the same filtered queryset for listing and export."""
+    """
+    Build the common filtered Party queryset.
+
+    Used by party directory and Excel export.
+    """
 
     search = request.GET.get("search", "").strip()[:150]
     party_type = request.GET.get("party_type", "").strip()
@@ -448,11 +614,13 @@ def _get_filtered_party_queryset(request):
     if bank not in {"", "available", "missing"}:
         bank = ""
 
-    # Base queryset
-    parties = Party.objects.all().prefetch_related("payment_qrs")
+    parties = Party.objects.all().prefetch_related(
+        "payment_qrs"
+    )
 
-    # Search across the existing directory fields.
+    # Search party fields.
     if search:
+
         search_fields = (
             "name",
             "contact_person",
@@ -484,16 +652,20 @@ def _get_filtered_party_queryset(request):
 
     # Party type
     if party_type:
-        parties = parties.filter(party_type=party_type)
+        parties = parties.filter(
+            party_type=party_type
+        )
 
     # Active / inactive
     if status == "active":
         parties = parties.filter(is_active=True)
+
     elif status == "inactive":
         parties = parties.filter(is_active=False)
 
     # GST availability
     if gst == "available":
+
         parties = (
             parties
             .exclude(gst_number__isnull=True)
@@ -501,12 +673,13 @@ def _get_filtered_party_queryset(request):
         )
 
     elif gst == "missing":
+
         parties = parties.filter(
             Q(gst_number__isnull=True)
             | Q(gst_number__exact="")
         )
 
-    # Bank / payment profile
+    # Bank availability
     bank_fields = (
         "bank_name",
         "account_holder_name",
@@ -518,6 +691,7 @@ def _get_filtered_party_queryset(request):
     )
 
     if bank in {"available", "missing"}:
+
         bank_query = reduce(
             or_,
             [
@@ -529,10 +703,10 @@ def _get_filtered_party_queryset(request):
 
         if bank == "available":
             parties = parties.filter(bank_query)
+
         else:
             parties = parties.exclude(bank_query)
 
-    # Stable ordering
     parties = parties.order_by(sort, "pk")
 
     filters = {
@@ -546,26 +720,35 @@ def _get_filtered_party_queryset(request):
 
     return parties, filters, sort_options
 
-# =========================================================
-# PARTY DIRECTORY VIEW
-# =========================================================
+
+# ==========================================================
+# 10. PARTY DIRECTORY
+# ==========================================================
+
 
 @dashboard_access_required
 def party_list(request):
-    parties, filters, sort_options = _get_filtered_party_queryset(request)
+    """
+    Display the party directory with search, filters,
+    pagination, statistics and charts.
+    """
 
-    # Page size
+    parties, filters, sort_options = (
+        _get_filtered_party_queryset(request)
+    )
+
     page_size_options = (15, 25, 50, 100)
 
     try:
         per_page = int(request.GET.get("per_page", 15))
+
     except (TypeError, ValueError):
         per_page = 15
 
     if per_page not in page_size_options:
         per_page = 15
 
-    # Global statistics across ALL parties
+    # Global statistics
     global_stats = Party.objects.aggregate(
         total=Count("pk"),
         active=Count("pk", filter=Q(is_active=True)),
@@ -584,10 +767,12 @@ def party_list(request):
     inactive_parties = global_stats["inactive"] or 0
     gst_parties = global_stats["with_gst"] or 0
 
-    # Pagination applies ONLY to the directory display.
+    # Pagination
     paginator = Paginator(parties, per_page)
 
-    page_obj = paginator.get_page(request.GET.get("page", 1))
+    page_obj = paginator.get_page(
+        request.GET.get("page", 1)
+    )
 
     page_range = paginator.get_elided_page_range(
         number=page_obj.number,
@@ -597,7 +782,7 @@ def party_list(request):
 
     filtered_count = paginator.count
 
-    # Party-type chart
+    # Party type chart
     type_totals = dict(
         Party.objects
         .values("party_type")
@@ -609,10 +794,14 @@ def party_list(request):
 
     party_type_chart = {
         "labels": [
-            party_type_labels.get(value, str(value or "Unspecified"))
+            party_type_labels.get(
+                value,
+                str(value or "Unspecified")
+            )
             for value in party_type_labels
             if type_totals.get(value, 0)
         ],
+
         "values": [
             type_totals.get(value, 0)
             for value in party_type_labels
@@ -631,8 +820,12 @@ def party_list(request):
     )
 
     state_chart = {
-        "labels": [row["state"] for row in state_rows],
-        "values": [row["total"] for row in state_rows],
+        "labels": [
+            row["state"] for row in state_rows
+        ],
+        "values": [
+            row["total"] for row in state_rows
+        ],
     }
 
     status_chart = {
@@ -640,9 +833,10 @@ def party_list(request):
         "values": [active_parties, inactive_parties],
     }
 
-    # Preserve query parameters for pagination.
+    # Pagination query parameters
     query_params = request.GET.copy()
     query_params.pop("page", None)
+
     pagination_query = query_params.urlencode()
 
     context = {
@@ -650,23 +844,20 @@ def party_list(request):
         "parties": page_obj.object_list,
         "page_range": page_range,
 
-        # Filters
         **filters,
 
-        # Options
         "party_types": Party.PartyType.choices,
         "page_size_options": page_size_options,
         "sort_options": sort_options.items(),
         "per_page": per_page,
 
-        # Global statistics
         "total_parties": total_parties,
         "active_parties": active_parties,
         "inactive_parties": inactive_parties,
         "gst_parties": gst_parties,
 
-        # Filtered statistics
         "filtered_parties_count": filtered_count,
+
         "has_active_filters": bool(
             filters["search"]
             or filters["party_type"]
@@ -674,14 +865,13 @@ def party_list(request):
             or filters["gst"]
             or filters["bank"]
         ),
+
         "pagination_query": pagination_query,
 
-        # Charts
         "status_chart": status_chart,
         "party_type_chart": party_type_chart,
         "state_chart": state_chart,
 
-        # Percentages
         "active_percentage": round(
             active_parties / total_parties * 100, 1
         ) if total_parties else 0,
@@ -714,252 +904,16 @@ def party_list(request):
         context,
     )
 
-# =========================================================
-# EXCEL EXPORT HELPERS
-# =========================================================
-
-def _get_export_columns(model):
-    columns = []
-
-    for field in model._meta.concrete_fields:
-        label = str(field.verbose_name).replace("_", " ").title()
-
-        if field.is_relation and (
-            field.many_to_one or field.one_to_one
-        ):
-            columns.append((field, "id", f"{label} ID"))
-            columns.append((field, "related", f"{label} Display"))
-
-        elif field.choices:
-            columns.append((field, "value", f"{label} Value"))
-            columns.append((field, "display", f"{label} Display"))
-
-        else:
-            columns.append((field, "value", label))
-
-    return columns
-
-
-def _get_export_value(record, field, value_type):
-    if value_type == "id":
-        return getattr(record, field.attname, None)
-
-    if value_type == "related":
-        related_object = getattr(record, field.name, None)
-        return str(related_object) if related_object is not None else ""
-
-    if value_type == "display":
-        display_method = getattr(
-            record,
-            f"get_{field.name}_display",
-            None,
-        )
-
-        if callable(display_method):
-            return display_method()
-
-    return getattr(record, field.attname, None)
-
-
-def _excel_safe_value(value):
-    if value is None:
-        return ""
-
-    if isinstance(value, datetime):
-        if timezone.is_aware(value):
-            value = timezone.make_naive(value)
-        return value
-
-    if isinstance(value, date):
-        return value
-
-    if isinstance(value, bool):
-        return value
-
-    if isinstance(value, Decimal):
-        return float(value)
-
-    if isinstance(value, (int, float)):
-        return value
-
-    if isinstance(value, bytes):
-        value = value.decode("utf-8", errors="replace")
-
-    if isinstance(value, (dict, list, tuple, set)):
-        value = json.dumps(value, ensure_ascii=False, default=str)
-
-    text_value = str(value)
-
-    # Protect text fields from being interpreted as Excel formulas.
-    if text_value.startswith(("=", "+", "-", "@")):
-        text_value = "'" + text_value
-
-    return text_value
-
-
-def _style_excel_sheet(worksheet):
-    header_fill = PatternFill(
-        fill_type="solid",
-        fgColor="153030",
-    )
-
-    for cell in worksheet[1]:
-        cell.fill = header_fill
-        cell.font = Font(bold=True, color="FFFFFF")
-        cell.alignment = Alignment(
-            vertical="center",
-            wrap_text=True,
-        )
-
-    worksheet.row_dimensions[1].height = 32
-    worksheet.freeze_panes = "A2"
-    worksheet.sheet_view.showGridLines = False
-
-    if worksheet.max_row and worksheet.max_column:
-        worksheet.auto_filter.ref = worksheet.dimensions
-
-    sample_end = min(worksheet.max_row, 250)
-
-    for column_index in range(1, worksheet.max_column + 1):
-        max_length = 12
-
-        for row_index in range(1, sample_end + 1):
-            cell_value = worksheet.cell(
-                row=row_index,
-                column=column_index,
-            ).value
-
-            max_length = max(
-                max_length,
-                len(str(cell_value or "")),
-            )
-
-        letter = get_column_letter(column_index)
-
-        worksheet.column_dimensions[letter].width = min(
-            max_length + 2,
-            40,
-        )
-
-# =========================================================
-# EXPORT ALL PARTIES TO EXCEL
-# =========================================================
-
-@dashboard_access_required
-def export_parties_excel(request):
-    # Use the same filters as the directory.
-    parties, filters, _sort_options = _get_filtered_party_queryset(request)
-
-    # Optimise foreign-key display values.
-    related_fields = [
-        field.name
-        for field in Party._meta.concrete_fields
-        if field.is_relation
-        and (field.many_to_one or field.one_to_one)
-    ]
-
-    if related_fields:
-        parties = parties.select_related(*related_fields)
-
-    # Detect the related QR model if the relationship exists.
-    qr_model = None
-
-    try:
-        qr_model = Party._meta.get_field("payment_qrs").related_model
-    except (FieldDoesNotExist, AttributeError):
-        pass
-
-    # Create workbook and primary Party worksheet.
-    workbook = Workbook()
-    party_sheet = workbook.active
-    party_sheet.title = "Parties"
-
-    party_columns = _get_export_columns(Party)
-
-    party_sheet.append([
-        label
-        for _field, _value_type, label in party_columns
-    ])
-
-    # Optional related QR worksheet.
-    qr_sheet = None
-    qr_columns = []
-
-    if qr_model is not None:
-        qr_sheet = workbook.create_sheet("Payment QRs")
-        qr_columns = _get_export_columns(qr_model)
-
-        qr_sheet.append(
-            ["Party ID", "Party Name"]
-            + [
-                label
-                for _field, _value_type, label in qr_columns
-            ]
-        )
-
-    # IMPORTANT:
-    # This is the complete filtered queryset.
-    # No Paginator, page number, or page-size restriction.
-    for party in parties.iterator(chunk_size=500):
-        party_sheet.append([
-            _excel_safe_value(
-                _get_export_value(party, field, value_type)
-            )
-            for field, value_type, _label in party_columns
-        ])
-
-        # Export related QR data into its own worksheet.
-        if qr_sheet is not None:
-            qr_manager = getattr(party, "payment_qrs", None)
-
-            if qr_manager is not None:
-                for qr_record in qr_manager.all():
-                    qr_sheet.append(
-                        [
-                            _excel_safe_value(party.pk),
-                            _excel_safe_value(party.name),
-                        ]
-                        + [
-                            _excel_safe_value(
-                                _get_export_value(
-                                    qr_record,
-                                    field,
-                                    value_type,
-                                )
-                            )
-                            for field, value_type, _label in qr_columns
-                        ]
-                    )
-
-    _style_excel_sheet(party_sheet)
-
-    if qr_sheet is not None:
-        _style_excel_sheet(qr_sheet)
-
-    # Download as a real .xlsx Excel file.
-    timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"parties_export_{timestamp}.xlsx"
-
-    response = HttpResponse(
-        content_type=(
-            "application/vnd.openxmlformats-officedocument."
-            "spreadsheetml.sheet"
-        )
-    )
-
-    response["Content-Disposition"] = (
-        f'attachment; filename="{filename}"'
-    )
-
-    workbook.save(response)
-
-    return response
 
 @dashboard_access_required
 def party_detail(request, pk):
+    """
+    Display complete party details and payment QR information.
+    """
+
     party = get_object_or_404(
         Party.objects.prefetch_related("payment_qrs"),
-        pk=pk
+        pk=pk,
     )
 
     return render(
@@ -973,7 +927,8 @@ def party_detail(request, pk):
 
 def party_orders_view(request, party_id):
     """
-    Display all purchase orders for a particular party.
+    Display all purchase orders for a particular party
+    with purchase, paid and outstanding summaries.
     """
 
     party = get_object_or_404(
@@ -981,15 +936,11 @@ def party_orders_view(request, party_id):
         pk=party_id,
     )
 
-
     orders = (
         PartyPurchase.objects
         .filter(party=party)
         .select_related("party")
-        .order_by(
-            "-purchase_date",
-            "-created_at",
-        )
+        .order_by("-purchase_date", "-created_at")
     )
 
     summary = orders.aggregate(
@@ -998,32 +949,22 @@ def party_orders_view(request, party_id):
         total_due=Sum("due_amount"),
     )
 
-    total_purchase = (
-        summary["total_purchase"]
-        or Decimal("0.00")
-    )
-
-    total_paid = (
-        summary["total_paid"]
-        or Decimal("0.00")
-    )
-
-    total_due = (
-        summary["total_due"]
-        or Decimal("0.00")
-    )
-
     context = {
         "party": party,
         "orders": orders,
-
         "total_orders": orders.count(),
 
-        "total_purchase": total_purchase,
+        "total_purchase": (
+            summary["total_purchase"] or Decimal("0.00")
+        ),
 
-        "total_paid": total_paid,
+        "total_paid": (
+            summary["total_paid"] or Decimal("0.00")
+        ),
 
-        "total_due": total_due,
+        "total_due": (
+            summary["total_due"] or Decimal("0.00")
+        ),
     }
 
     return render(
@@ -1032,55 +973,11 @@ def party_orders_view(request, party_id):
         context,
     )
 
+
 def party_purchase_detail_view(request, purchase_id):
-
-    purchase = get_object_or_404(
-        PartyPurchase.objects.select_related("party"),
-        pk=purchase_id,
-    )
-
-    installments = (
-        PurchasePaymentInstallment.objects
-        .filter(purchase=purchase)
-        .select_related("payment_method")
-        .order_by("installment_number")
-    )
-
-    installment_summary = installments.aggregate(
-        total_installment=Sum("installment_amount"),
-        total_paid=Sum("paid_amount"),
-        total_remaining=Sum("remaining_amount"),
-    )
-
-    context = {
-        "purchase": purchase,
-        "party": purchase.party,
-        "installments": installments,
-
-        "total_installments": installments.count(),
-
-        "total_installment": (
-            installment_summary["total_installment"]
-            or Decimal("0.00")
-        ),
-
-        "installment_paid": (
-            installment_summary["total_paid"]
-            or Decimal("0.00")
-        ),
-
-        "installment_remaining": (
-            installment_summary["total_remaining"]
-            or Decimal("0.00")
-        ),
-    }
-
-    return render(
-        request,
-        "dashboard/party_purchase_detail.html",
-        context,
-    )
-def purchase_installments_view(request, purchase_id):
+    """
+    Display individual purchase details and installment summary.
+    """
 
     purchase = get_object_or_404(
         PartyPurchase.objects.select_related("party"),
@@ -1108,18 +1005,65 @@ def purchase_installments_view(request, purchase_id):
         "total_installments": installments.count(),
 
         "total_installment": (
-            summary["total_installment"]
-            or Decimal("0.00")
+            summary["total_installment"] or Decimal("0.00")
+        ),
+
+        "installment_paid": (
+            summary["total_paid"] or Decimal("0.00")
+        ),
+
+        "installment_remaining": (
+            summary["total_remaining"] or Decimal("0.00")
+        ),
+    }
+
+    return render(
+        request,
+        "dashboard/party_purchase_detail.html",
+        context,
+    )
+
+
+def purchase_installments_view(request, purchase_id):
+    """
+    Display installment details for an individual purchase.
+    """
+
+    purchase = get_object_or_404(
+        PartyPurchase.objects.select_related("party"),
+        pk=purchase_id,
+    )
+
+    installments = (
+        PurchasePaymentInstallment.objects
+        .filter(purchase=purchase)
+        .select_related("payment_method")
+        .order_by("installment_number")
+    )
+
+    summary = installments.aggregate(
+        total_installment=Sum("installment_amount"),
+        total_paid=Sum("paid_amount"),
+        total_remaining=Sum("remaining_amount"),
+    )
+
+    context = {
+        "purchase": purchase,
+        "party": purchase.party,
+        "installments": installments,
+
+        "total_installments": installments.count(),
+
+        "total_installment": (
+            summary["total_installment"] or Decimal("0.00")
         ),
 
         "total_paid": (
-            summary["total_paid"]
-            or Decimal("0.00")
+            summary["total_paid"] or Decimal("0.00")
         ),
 
         "total_remaining": (
-            summary["total_remaining"]
-            or Decimal("0.00")
+            summary["total_remaining"] or Decimal("0.00")
         ),
     }
 
@@ -1130,628 +1074,2084 @@ def purchase_installments_view(request, purchase_id):
     )
 
 
-
-import calendar
-from datetime import date, datetime, timedelta
-from decimal import Decimal
-from io import BytesIO
-from uuid import UUID
-
-from django.core.paginator import Paginator
-from django.core.exceptions import ValidationError
-from django.db.models import Avg, Count, DecimalField, Q, Sum, Value
-from django.db.models.functions import Coalesce, TruncDay, TruncMonth
-from django.http import HttpResponse
-from django.shortcuts import render
-from django.utils import timezone
-from django.utils.dateparse import parse_date
-from django.db import models
-from openpyxl import Workbook
-from openpyxl.styles import Alignment, Font, PatternFill
-from openpyxl.utils import get_column_letter
-
-from apps.dashboard.decorators import dashboard_access_required
+# ==========================================================
+# 11. EXCEL EXPORT UTILITIES
+# ==========================================================
 
 
-MONEY_FIELD = DecimalField(max_digits=16, decimal_places=2)
-ZERO = Value(Decimal("0.00"), output_field=MONEY_FIELD)
+def _get_export_columns(model):
+    """
+    Dynamically generate Excel columns from model fields.
 
-PERIOD_OPTIONS = [
-    ("", "All time"),
-    ("today", "Today"),
-    ("week", "Last 7 days"),
-    ("month", "This month"),
-    ("quarter", "This quarter"),
-    ("year", "This year"),
-    ("last_30", "Last 30 days"),
-    ("last_90", "Last 90 days"),
-    ("previous_month", "Previous month"),
-    ("previous_quarter", "Previous quarter"),
-    ("custom", "Custom dates"),
-]
+    Foreign keys export ID and display value.
+    Choice fields export stored and display values.
+    """
+
+    columns = []
+
+    for field in model._meta.concrete_fields:
+
+        label = str(field.verbose_name).replace(
+            "_", " "
+        ).title()
+
+        if field.is_relation and (
+            field.many_to_one or field.one_to_one
+        ):
+
+            columns.append(
+                (field, "id", f"{label} ID")
+            )
+
+            columns.append(
+                (field, "related", f"{label} Display")
+            )
+
+        elif field.choices:
+
+            columns.append(
+                (field, "value", f"{label} Value")
+            )
+
+            columns.append(
+                (field, "display", f"{label} Display")
+            )
+
+        else:
+
+            columns.append(
+                (field, "value", label)
+            )
+
+    return columns
+
+
+def _get_export_value(record, field, value_type):
+    """
+    Retrieve the correct value for an Excel column.
+    """
+
+    if value_type == "id":
+        return getattr(record, field.attname, None)
+
+    if value_type == "related":
+
+        related_object = getattr(
+            record,
+            field.name,
+            None,
+        )
+
+        return (
+            str(related_object)
+            if related_object is not None
+            else ""
+        )
+
+    if value_type == "display":
+
+        display_method = getattr(
+            record,
+            f"get_{field.name}_display",
+            None,
+        )
+
+        if callable(display_method):
+            return display_method()
+
+    return getattr(record, field.attname, None)
+
+
+def _excel_safe_value(value):
+    """
+    Convert Python values into Excel-compatible values.
+    Protect text values against Excel formula injection.
+    """
+
+    if value is None:
+        return ""
+
+    if isinstance(value, datetime):
+
+        if timezone.is_aware(value):
+            value = timezone.make_naive(value)
+
+        return value
+
+    if isinstance(value, date):
+        return value
+
+    if isinstance(value, bool):
+        return value
+
+    if isinstance(value, Decimal):
+        return float(value)
+
+    if isinstance(value, (int, float)):
+        return value
+
+    if isinstance(value, bytes):
+        value = value.decode(
+            "utf-8",
+            errors="replace",
+        )
+
+    if isinstance(value, (dict, list, tuple, set)):
+        value = json.dumps(
+            value,
+            ensure_ascii=False,
+            default=str,
+        )
+
+    text_value = str(value)
+
+    if text_value.startswith(("=", "+", "-", "@")):
+        text_value = "'" + text_value
+
+    return text_value
+
+
+def _style_excel_sheet(worksheet):
+    """
+    Apply standard YAARLYNX Excel formatting.
+    """
+
+    header_fill = PatternFill(
+        fill_type="solid",
+        fgColor="153030",
+    )
+
+    for cell in worksheet[1]:
+
+        cell.fill = header_fill
+
+        cell.font = Font(
+            bold=True,
+            color="FFFFFF",
+        )
+
+        cell.alignment = Alignment(
+            vertical="center",
+            wrap_text=True,
+        )
+
+    worksheet.row_dimensions[1].height = 32
+    worksheet.freeze_panes = "A2"
+    worksheet.sheet_view.showGridLines = False
+
+    if worksheet.max_row and worksheet.max_column:
+        worksheet.auto_filter.ref = worksheet.dimensions
+
+    sample_end = min(worksheet.max_row, 250)
+
+    for column_index in range(
+        1,
+        worksheet.max_column + 1,
+    ):
+
+        max_length = 12
+
+        for row_index in range(
+            1,
+            sample_end + 1,
+        ):
+
+            cell_value = worksheet.cell(
+                row=row_index,
+                column=column_index,
+            ).value
+
+            max_length = max(
+                max_length,
+                len(str(cell_value or "")),
+            )
+
+        letter = get_column_letter(column_index)
+
+        worksheet.column_dimensions[letter].width = min(
+            max_length + 2,
+            40,
+        )
+
+
+# ==========================================================
+# 12. PARTY EXCEL EXPORT
+# ==========================================================
+
+
+@dashboard_access_required
+def export_parties_excel(request):
+    """
+    Export all filtered parties into an Excel workbook.
+
+    Includes:
+        - Complete party information.
+        - Related foreign-key information.
+        - Separate Payment QR worksheet.
+        - Excel formatting.
+        - No pagination restriction.
+    """
+
+    parties, filters, _sort_options = (
+        _get_filtered_party_queryset(request)
+    )
+
+    related_fields = [
+        field.name
+        for field in Party._meta.concrete_fields
+        if field.is_relation
+        and (
+            field.many_to_one
+            or field.one_to_one
+        )
+    ]
+
+    if related_fields:
+        parties = parties.select_related(
+            *related_fields
+        )
+
+    # Detect related QR model.
+    qr_model = None
+
+    try:
+        qr_model = Party._meta.get_field(
+            "payment_qrs"
+        ).related_model
+
+    except (FieldDoesNotExist, AttributeError):
+        pass
+
+    # Create workbook.
+    workbook = Workbook()
+
+    party_sheet = workbook.active
+    party_sheet.title = "Parties"
+
+    party_columns = _get_export_columns(Party)
+
+    party_sheet.append([
+        label
+        for _field, _value_type, label in party_columns
+    ])
+
+    # Create QR worksheet.
+    qr_sheet = None
+    qr_columns = []
+
+    if qr_model is not None:
+
+        qr_sheet = workbook.create_sheet(
+            "Payment QRs"
+        )
+
+        qr_columns = _get_export_columns(
+            qr_model
+        )
+
+        qr_sheet.append(
+            ["Party ID", "Party Name"]
+            + [
+                label
+                for _field, _value_type, label
+                in qr_columns
+            ]
+        )
+
+    # Export parties and their QR records.
+    for party in parties.iterator(chunk_size=500):
+
+        party_sheet.append([
+            _excel_safe_value(
+                _get_export_value(
+                    party,
+                    field,
+                    value_type,
+                )
+            )
+            for field, value_type, _label in party_columns
+        ])
+
+        if qr_sheet is not None:
+
+            qr_manager = getattr(
+                party,
+                "payment_qrs",
+                None,
+            )
+
+            if qr_manager is not None:
+
+                for qr_record in qr_manager.all():
+
+                    qr_sheet.append(
+                        [
+                            _excel_safe_value(party.pk),
+                            _excel_safe_value(party.name),
+                        ]
+                        + [
+                            _excel_safe_value(
+                                _get_export_value(
+                                    qr_record,
+                                    field,
+                                    value_type,
+                                )
+                            )
+                            for field, value_type, _label
+                            in qr_columns
+                        ]
+                    )
+
+    _style_excel_sheet(party_sheet)
+
+    if qr_sheet is not None:
+        _style_excel_sheet(qr_sheet)
+
+    # Generate filename.
+    timestamp = timezone.now().strftime(
+        "%Y%m%d_%H%M%S"
+    )
+
+    filename = f"parties_export_{timestamp}.xlsx"
+
+    response = HttpResponse(
+        content_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        )
+    )
+
+    response["Content-Disposition"] = (
+        f'attachment; filename="{filename}"'
+    )
+
+    workbook.save(response)
+
+    return response
+
+
+# ==========================================================
+# 13. FINANCE HELPER FUNCTIONS
+# ==========================================================
 
 
 def _amount_total(queryset, field_name):
+    """
+    Calculate the sum of a monetary field.
+    Returns zero when no records are available.
+    """
+
     return queryset.aggregate(
-        total=Coalesce(Sum(field_name), ZERO, output_field=MONEY_FIELD)
+        total=Coalesce(
+            Sum(field_name),
+            ZERO,
+            output_field=MONEY_FIELD,
+        )
     )["total"] or Decimal("0.00")
 
 
 def _percentage(numerator, denominator):
+    """
+    Calculate percentage safely.
+    """
+
     numerator = Decimal(str(numerator or 0))
     denominator = Decimal(str(denominator or 0))
+
     if denominator <= 0:
         return 0.0
-    return round(float(numerator / denominator * Decimal("100")), 1)
+
+    return round(
+        float(numerator / denominator * Decimal("100")),
+        1,
+    )
 
 
 def _first_date_field(model, candidates):
-    """Find the first real DateField/DateTimeField from an ordered list."""
+    """
+    Find the first existing DateField or DateTimeField.
+    """
+
     for name in candidates:
+
         try:
             field = model._meta.get_field(name)
+
         except Exception:
             continue
-        if isinstance(field, (models.DateField, models.DateTimeField)):
+
+        if isinstance(
+            field,
+            (models.DateField, models.DateTimeField),
+        ):
             return name
+
     return None
 
 
 def _all_field_names(model):
-    names = set()
-    for field in model._meta.get_fields():
-        if getattr(field, "concrete", False):
-            names.add(field.name)
-    return names
+    """
+    Return all concrete field names of a model.
+    """
+
+    return {
+        field.name
+        for field in model._meta.get_fields()
+        if getattr(field, "concrete", False)
+    }
+
+
+# ==========================================================
+# 14. FINANCE DATE UTILITIES
+# ==========================================================
 
 
 def _month_start(value):
+    """Return the first date of the month."""
+
     return value.replace(day=1)
 
 
 def _previous_month_range(today):
+    """Return the previous month's date range."""
+
     first_this_month = today.replace(day=1)
-    last_previous_month = first_this_month - timedelta(days=1)
-    return last_previous_month.replace(day=1), last_previous_month
+
+    last_previous_month = (
+        first_this_month - timedelta(days=1)
+    )
+
+    return (
+        last_previous_month.replace(day=1),
+        last_previous_month,
+    )
 
 
 def _quarter_start(value):
+    """Return the first date of the current quarter."""
+
     month = ((value.month - 1) // 3) * 3 + 1
-    return date(value.year, month, 1)
+
+    return date(
+        value.year,
+        month,
+        1,
+    )
 
 
 def _previous_quarter_range(today):
+    """Return the previous quarter's date range."""
+
     start_this_quarter = _quarter_start(today)
-    end_previous_quarter = start_this_quarter - timedelta(days=1)
-    return _quarter_start(end_previous_quarter), end_previous_quarter
+
+    end_previous_quarter = (
+        start_this_quarter - timedelta(days=1)
+    )
+
+    return (
+        _quarter_start(end_previous_quarter),
+        end_previous_quarter,
+    )
 
 
 def _date_range_from_request(request, today=None):
-    """Return (period, start_date, end_date, label, validation_message)."""
+    """
+    Resolve the finance date range from GET parameters.
+
+    Supports today, week, month, quarter, year,
+    last 30/90 days, previous month/quarter and custom dates.
+    """
+
     today = today or timezone.localdate()
-    raw_period = (request.GET.get("period") or "").strip()
-    valid_periods = {item[0] for item in PERIOD_OPTIONS}
-    period = raw_period if raw_period in valid_periods else ""
-    start_date = parse_date((request.GET.get("start_date") or "").strip())
-    end_date = parse_date((request.GET.get("end_date") or "").strip())
+
+    raw_period = (
+        request.GET.get("period") or ""
+    ).strip()
+
+    valid_periods = {
+        item[0]
+        for item in PERIOD_OPTIONS
+    }
+
+    period = (
+        raw_period
+        if raw_period in valid_periods
+        else ""
+    )
+
+    start_date = parse_date(
+        (request.GET.get("start_date") or "").strip()
+    )
+
+    end_date = parse_date(
+        (request.GET.get("end_date") or "").strip()
+    )
+
     message = ""
 
     if period == "today":
+
         start_date = end_date = today
+
     elif period == "week":
-        start_date, end_date = today - timedelta(days=6), today
+
+        start_date = today - timedelta(days=6)
+        end_date = today
+
     elif period == "month":
-        start_date, end_date = _month_start(today), today
+
+        start_date = _month_start(today)
+        end_date = today
+
     elif period == "quarter":
-        start_date, end_date = _quarter_start(today), today
+
+        start_date = _quarter_start(today)
+        end_date = today
+
     elif period == "year":
-        start_date, end_date = date(today.year, 1, 1), today
+
+        start_date = date(today.year, 1, 1)
+        end_date = today
+
     elif period == "last_30":
-        start_date, end_date = today - timedelta(days=29), today
+
+        start_date = today - timedelta(days=29)
+        end_date = today
+
     elif period == "last_90":
-        start_date, end_date = today - timedelta(days=89), today
+
+        start_date = today - timedelta(days=89)
+        end_date = today
+
     elif period == "previous_month":
+
         start_date, end_date = _previous_month_range(today)
+
     elif period == "previous_quarter":
+
         start_date, end_date = _previous_quarter_range(today)
+
     elif period == "custom":
+
         pass
+
     elif start_date or end_date:
+
         period = "custom"
+
     else:
+
         start_date = end_date = None
 
-    if start_date and end_date and start_date > end_date:
-        start_date, end_date = end_date, start_date
-        period = "custom"
-        message = "Start and end dates were reversed, so the range has been corrected."
+    # Correct reversed date ranges.
+    if (
+        start_date
+        and end_date
+        and start_date > end_date
+    ):
 
+        start_date, end_date = end_date, start_date
+
+        period = "custom"
+
+        message = (
+            "Start and end dates were reversed, "
+            "so the range has been corrected."
+        )
+
+    # Generate readable label.
     if start_date and end_date:
+
         if start_date == end_date:
+
             label = start_date.strftime("%d %b %Y")
+
         else:
-            label = f"{start_date:%d %b %Y} – {end_date:%d %b %Y}"
+
+            label = (
+                f"{start_date:%d %b %Y} "
+                f"– {end_date:%d %b %Y}"
+            )
+
     elif start_date:
+
         label = f"From {start_date:%d %b %Y}"
+
     elif end_date:
+
         label = f"Through {end_date:%d %b %Y}"
+
     else:
+
         label = "All time"
 
     return period, start_date, end_date, label, message
 
 
-def _filter_dates(queryset, model, field_name, start_date, end_date):
-    if not field_name or not (start_date or end_date):
+def _filter_dates(
+    queryset,
+    model,
+    field_name,
+    start_date,
+    end_date,
+):
+    """
+    Apply date filters to DateField or DateTimeField.
+    """
+
+    if not field_name or not (
+        start_date or end_date
+    ):
         return queryset
+
     try:
         field = model._meta.get_field(field_name)
+
     except Exception:
         return queryset
 
-    lookup_base = f"{field_name}__date" if isinstance(field, models.DateTimeField) else field_name
+    lookup_base = (
+        f"{field_name}__date"
+        if isinstance(field, models.DateTimeField)
+        else field_name
+    )
+
     filters = {}
+
     if start_date:
         filters[f"{lookup_base}__gte"] = start_date
+
     if end_date:
         filters[f"{lookup_base}__lte"] = end_date
+
     return queryset.filter(**filters)
 
 
 def _querystring_without(request, *keys):
+    """
+    Preserve query parameters except specified keys.
+    """
+
     params = request.GET.copy()
+
     for key in keys:
         params.pop(key, None)
+
     return params.urlencode()
 
 
-def _add_filter_context(context, request, period, start_date, end_date, label, message=""):
+def _add_filter_context(
+    context,
+    request,
+    period,
+    start_date,
+    end_date,
+    label,
+    message="",
+):
+    """
+    Add common date-filter values to template context.
+    """
+
     context.update({
         "period_options": PERIOD_OPTIONS,
+
         "selected_period": period,
-        "start_date": start_date.isoformat() if start_date else "",
-        "end_date": end_date.isoformat() if end_date else "",
+
+        "start_date": (
+            start_date.isoformat()
+            if start_date
+            else ""
+        ),
+
+        "end_date": (
+            end_date.isoformat()
+            if end_date
+            else ""
+        ),
+
         "period_label": label,
         "filter_message": message,
-        "pagination_query": _querystring_without(request, "page", "export"),
+
+        "pagination_query": _querystring_without(
+            request,
+            "page",
+            "export",
+        ),
     })
+
     return context
 
 
+# ==========================================================
+# 15. FINANCE EXCEL EXPORT
+# ==========================================================
+
+
 def _xlsx_response(filename, headers, rows):
-    """Create a formatted .xlsx file that opens in Microsoft Excel/LibreOffice."""
+    """
+    Generate a formatted Excel response.
+
+    Includes currency formatting, column widths,
+    frozen headers and automatic filters.
+    """
+
     workbook = Workbook()
+
     sheet = workbook.active
     sheet.title = "Transactions"
+
     sheet.append(list(headers))
 
-    header_fill = PatternFill(fill_type="solid", fgColor="153030")
+    header_fill = PatternFill(
+        fill_type="solid",
+        fgColor="153030",
+    )
+
     for cell in sheet[1]:
+
         cell.fill = header_fill
-        cell.font = Font(bold=True, color="FFFFFF")
-        cell.alignment = Alignment(vertical="center", wrap_text=True)
+
+        cell.font = Font(
+            bold=True,
+            color="FFFFFF",
+        )
+
+        cell.alignment = Alignment(
+            vertical="center",
+            wrap_text=True,
+        )
+
     sheet.row_dimensions[1].height = 26
 
+    # Add records.
     for row in rows:
+
         cleaned = []
+
         for value in row:
-            if isinstance(value, datetime) and timezone.is_aware(value):
+
+            if (
+                isinstance(value, datetime)
+                and timezone.is_aware(value)
+            ):
                 value = timezone.make_naive(value)
+
             if isinstance(value, UUID):
                 value = str(value)
+
             cleaned.append(value)
+
         sheet.append(cleaned)
 
     sheet.freeze_panes = "A2"
     sheet.auto_filter.ref = sheet.dimensions
+
+    # Currency columns.
     currency_columns = []
+
     for idx, header in enumerate(headers, start=1):
+
         normalized = str(header).lower()
-        if any(word in normalized for word in ("amount", "grand total", "purchase value", "paid", "due")):
+
+        if any(
+            word in normalized
+            for word in (
+                "amount",
+                "grand total",
+                "purchase value",
+                "paid",
+                "due",
+            )
+        ):
             currency_columns.append(idx)
+
     for column_index in currency_columns:
+
         for row_index in range(2, sheet.max_row + 1):
-            sheet.cell(row=row_index, column=column_index).number_format = '"₹"#,##0.00;[Red]-"₹"#,##0.00'
+
+            sheet.cell(
+                row=row_index,
+                column=column_index,
+            ).number_format = (
+                '"₹"#,##0.00;[Red]-"₹"#,##0.00'
+            )
+
+    # Automatic column widths.
     for column_cells in sheet.columns:
-        values = [str(cell.value or "") for cell in column_cells[:250]]
-        width = min(max(max((len(value) for value in values), default=10) + 2, 12), 42)
-        sheet.column_dimensions[get_column_letter(column_cells[0].column)].width = width
+
+        values = [
+            str(cell.value or "")
+            for cell in column_cells[:250]
+        ]
+
+        width = min(
+            max(
+                max(
+                    (len(value) for value in values),
+                    default=10,
+                ) + 2,
+                12,
+            ),
+            42,
+        )
+
+        sheet.column_dimensions[
+            get_column_letter(column_cells[0].column)
+        ].width = width
 
     output = BytesIO()
+
     workbook.save(output)
+
     output.seek(0)
+
     response = HttpResponse(
         output.getvalue(),
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        content_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        ),
     )
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    response["Content-Disposition"] = (
+        f'attachment; filename="{filename}"'
+    )
+
     return response
 
 
-def _trend_data(queryset, model, date_field_name, amount_field, start_date, end_date):
+# ==========================================================
+# 16. FINANCE CHART UTILITIES
+# ==========================================================
+
+
+def _trend_data(
+    queryset,
+    model,
+    date_field_name,
+    amount_field,
+    start_date,
+    end_date,
+):
+    """
+    Generate daily or monthly financial trend data.
+
+    Up to 62 days: daily grouping.
+    More than 62 days: monthly grouping.
+    """
+
     if not date_field_name:
         return {}, "month"
-    span = (end_date - start_date).days if start_date and end_date else 3650
+
+    span = (
+        (end_date - start_date).days
+        if start_date and end_date
+        else 3650
+    )
+
     grouping = "day" if span <= 62 else "month"
+
     trunc = TruncDay if grouping == "day" else TruncMonth
+
     rows = (
-        _filter_dates(queryset, model, date_field_name, start_date, end_date)
+        _filter_dates(
+            queryset,
+            model,
+            date_field_name,
+            start_date,
+            end_date,
+        )
         .order_by()
         .annotate(bucket=trunc(date_field_name))
         .values("bucket")
-        .annotate(total=Coalesce(Sum(amount_field), ZERO, output_field=MONEY_FIELD))
+        .annotate(
+            total=Coalesce(
+                Sum(amount_field),
+                ZERO,
+                output_field=MONEY_FIELD,
+            )
+        )
         .order_by("bucket")
     )
+
     result = {}
+
     for row in rows:
+
         bucket = row["bucket"]
+
         if bucket is None:
             continue
+
         if isinstance(bucket, datetime):
-            bucket = timezone.localtime(bucket).date() if timezone.is_aware(bucket) else bucket.date()
-        result[bucket] = float(row["total"] or 0)
+
+            bucket = (
+                timezone.localtime(bucket).date()
+                if timezone.is_aware(bucket)
+                else bucket.date()
+            )
+
+        result[bucket] = float(
+            row["total"] or 0
+        )
+
     return result, grouping
 
 
 def _trend_label(bucket, grouping):
+    """Format trend dates for chart labels."""
+
     if grouping == "day":
         return bucket.strftime("%d %b")
+
     return bucket.strftime("%b %Y")
 
 
+# ==========================================================
+# 17. PURCHASE TRANSACTION UTILITIES
+# ==========================================================
+
+
 def _searchable_purchase_q(model, search):
-    """Build safe search Q objects only for actual text fields in this model."""
+    """
+    Build search conditions for purchase model fields
+    and related model text fields.
+    """
+
     query = Q()
     found = False
+
     for field in model._meta.fields:
-        if isinstance(field, (models.CharField, models.TextField)):
-            query |= Q(**{f"{field.name}__icontains": search})
+
+        if isinstance(
+            field,
+            (models.CharField, models.TextField),
+        ):
+
+            query |= Q(
+                **{
+                    f"{field.name}__icontains": search
+                }
+            )
+
             found = True
+
         elif field.is_relation and field.related_model:
+
             related = field.related_model
+
             for related_field in related._meta.fields:
-                if isinstance(related_field, (models.CharField, models.TextField)):
-                    query |= Q(**{f"{field.name}__{related_field.name}__icontains": search})
+
+                if isinstance(
+                    related_field,
+                    (models.CharField, models.TextField),
+                ):
+
+                    query |= Q(
+                        **{
+                            (
+                                f"{field.name}__"
+                                f"{related_field.name}__icontains"
+                            ): search
+                        }
+                    )
+
                     found = True
+
     return query if found else None
 
 
 def _party_field_info(model):
+    """
+    Retrieve the party relationship and related model.
+    """
+
     try:
+
         field = model._meta.get_field("party")
+
         if field.is_relation and field.related_model:
             return field, field.related_model
+
     except Exception:
         pass
+
     return None, None
 
 
 def _purchase_field_values(purchase, date_field):
-    purchase_date = getattr(purchase, date_field, None) if date_field else None
-    number = getattr(purchase, "purchase_number", None) or str(purchase.pk)
+    """
+    Return standardized purchase transaction values.
+    """
+
+    purchase_date = (
+        getattr(purchase, date_field, None)
+        if date_field
+        else None
+    )
+
+    number = (
+        getattr(purchase, "purchase_number", None)
+        or str(purchase.pk)
+    )
+
     party = getattr(purchase, "party", None)
-    grand_total = getattr(purchase, "grand_total", Decimal("0.00")) or Decimal("0.00")
-    paid_amount = getattr(purchase, "paid_amount", Decimal("0.00")) or Decimal("0.00")
-    due_amount = getattr(purchase, "due_amount", Decimal("0.00")) or Decimal("0.00")
-    status_field = "status" if "status" in _all_field_names(purchase.__class__) else None
-    status_value = getattr(purchase, status_field, "") if status_field else ""
-    status_label = purchase.get_status_display() if status_field and hasattr(purchase, "get_status_display") else status_value
-    return purchase_date, number, party, grand_total, paid_amount, due_amount, status_value, status_label
+
+    grand_total = (
+        getattr(purchase, "grand_total", Decimal("0.00"))
+        or Decimal("0.00")
+    )
+
+    paid_amount = (
+        getattr(purchase, "paid_amount", Decimal("0.00"))
+        or Decimal("0.00")
+    )
+
+    due_amount = (
+        getattr(purchase, "due_amount", Decimal("0.00"))
+        or Decimal("0.00")
+    )
+
+    status_field = (
+        "status"
+        if "status" in _all_field_names(purchase.__class__)
+        else None
+    )
+
+    status_value = (
+        getattr(purchase, status_field, "")
+        if status_field
+        else ""
+    )
+
+    status_label = (
+        purchase.get_status_display()
+        if (
+            status_field
+            and hasattr(purchase, "get_status_display")
+        )
+        else status_value
+    )
+
+    return (
+        purchase_date,
+        number,
+        party,
+        grand_total,
+        paid_amount,
+        due_amount,
+        status_value,
+        status_label,
+    )
 
 
-# ---------------------------------------------------------------------------
-# 1. FINANCE DASHBOARD — numbers and charts only; no transaction records.
-# ---------------------------------------------------------------------------
+# ==========================================================
+# 18. FINANCE DASHBOARD
+# ==========================================================
+
+
 @dashboard_access_required
 def finance_dashboard(request):
+    """
+    Main finance analytics dashboard.
+
+    Displays:
+        - Income statistics.
+        - Purchase statistics.
+        - Installment statistics.
+        - Overdue installments.
+        - Income and purchase trends.
+        - Income source chart.
+        - Payment status and method charts.
+        - Smart financial insights.
+    """
+
     today = timezone.localdate()
-    period, start_date, end_date, period_label, filter_message = _date_range_from_request(request, today)
 
-    income_date_field = _first_date_field(IncomePayment, ["payment_date", "created_at", "created_on"])
-    purchase_date_field = _first_date_field(PartyPurchase, ["purchase_date", "order_date", "date", "created_at", "created_on", "created"])
-    installment_date_field = _first_date_field(PurchasePaymentInstallment, ["payment_date", "due_date", "created_at", "created_on"])
+    (
+        period,
+        start_date,
+        end_date,
+        period_label,
+        filter_message,
+    ) = _date_range_from_request(request, today)
 
-    income_all = IncomePayment.objects.select_related("income_source")
-    income_period = _filter_dates(income_all, IncomePayment, income_date_field, start_date, end_date)
-    completed = income_period.filter(payment_status=IncomePayment.PaymentStatus.COMPLETED)
-    pending = income_period.filter(payment_status=IncomePayment.PaymentStatus.PENDING)
-    failed = income_period.filter(payment_status=IncomePayment.PaymentStatus.FAILED)
-    cancelled = income_period.filter(payment_status=IncomePayment.PaymentStatus.CANCELLED)
+    # Detect model date fields.
+    income_date_field = _first_date_field(
+        IncomePayment,
+        ["payment_date", "created_at", "created_on"],
+    )
 
+    purchase_date_field = _first_date_field(
+        PartyPurchase,
+        [
+            "purchase_date",
+            "order_date",
+            "date",
+            "created_at",
+            "created_on",
+            "created",
+        ],
+    )
+
+    installment_date_field = _first_date_field(
+        PurchasePaymentInstallment,
+        [
+            "payment_date",
+            "due_date",
+            "created_at",
+            "created_on",
+        ],
+    )
+
+    # Income querysets.
+    income_all = IncomePayment.objects.select_related(
+        "income_source"
+    )
+
+    income_period = _filter_dates(
+        income_all,
+        IncomePayment,
+        income_date_field,
+        start_date,
+        end_date,
+    )
+
+    completed = income_period.filter(
+        payment_status=IncomePayment.PaymentStatus.COMPLETED
+    )
+
+    pending = income_period.filter(
+        payment_status=IncomePayment.PaymentStatus.PENDING
+    )
+
+    failed = income_period.filter(
+        payment_status=IncomePayment.PaymentStatus.FAILED
+    )
+
+    cancelled = income_period.filter(
+        payment_status=IncomePayment.PaymentStatus.CANCELLED
+    )
+
+    # Purchase querysets.
     purchases_all = PartyPurchase.objects.all()
-    purchases_period = _filter_dates(purchases_all, PartyPurchase, purchase_date_field, start_date, end_date)
-    installments_all = PurchasePaymentInstallment.objects.select_related("purchase", "purchase__party", "payment_method")
-    installments_period = _filter_dates(installments_all, PurchasePaymentInstallment, installment_date_field, start_date, end_date)
 
+    purchases_period = _filter_dates(
+        purchases_all,
+        PartyPurchase,
+        purchase_date_field,
+        start_date,
+        end_date,
+    )
+
+    # Installment querysets.
+    installments_all = (
+        PurchasePaymentInstallment.objects
+        .select_related(
+            "purchase",
+            "purchase__party",
+            "payment_method",
+        )
+    )
+
+    installments_period = _filter_dates(
+        installments_all,
+        PurchasePaymentInstallment,
+        installment_date_field,
+        start_date,
+        end_date,
+    )
+
+    # Income statistics.
     income_stats = {
         "total_count": income_period.count(),
         "total_amount": _amount_total(income_period, "amount"),
+
         "completed_count": completed.count(),
         "completed_amount": _amount_total(completed, "amount"),
+
         "pending_count": pending.count(),
         "pending_amount": _amount_total(pending, "amount"),
+
         "failed_count": failed.count(),
         "failed_amount": _amount_total(failed, "amount"),
+
         "cancelled_count": cancelled.count(),
         "cancelled_amount": _amount_total(cancelled, "amount"),
     }
-    income_stats["completion_percentage"] = _percentage(income_stats["completed_count"], income_stats["total_count"])
 
+    income_stats["completion_percentage"] = _percentage(
+        income_stats["completed_count"],
+        income_stats["total_count"],
+    )
+
+    # Purchase statistics.
     purchase_stats = {
         "purchase_count": purchases_period.count(),
-        "total_purchase": _amount_total(purchases_period, "grand_total"),
-        "purchase_paid": _amount_total(purchases_period, "paid_amount"),
-        "purchase_due": _amount_total(purchases_period, "due_amount"),
-    }
-    purchase_stats["collection_percentage"] = _percentage(purchase_stats["purchase_paid"], purchase_stats["total_purchase"])
 
+        "total_purchase": _amount_total(
+            purchases_period,
+            "grand_total",
+        ),
+
+        "purchase_paid": _amount_total(
+            purchases_period,
+            "paid_amount",
+        ),
+
+        "purchase_due": _amount_total(
+            purchases_period,
+            "due_amount",
+        ),
+    }
+
+    purchase_stats["collection_percentage"] = _percentage(
+        purchase_stats["purchase_paid"],
+        purchase_stats["total_purchase"],
+    )
+
+    # Installment statistics.
     installment_stats = {
         "installment_count": installments_period.count(),
-        "scheduled_amount": _amount_total(installments_period, "installment_amount"),
-        "paid_amount": _amount_total(installments_period, "paid_amount"),
-        "remaining_amount": _amount_total(installments_period, "remaining_amount"),
-    }
-    installment_stats["collection_percentage"] = _percentage(installment_stats["paid_amount"], installment_stats["scheduled_amount"])
 
-    # Overdue is an all-open-items risk indicator, independent of the selected period.
-    installment_fields = _all_field_names(PurchasePaymentInstallment)
+        "scheduled_amount": _amount_total(
+            installments_period,
+            "installment_amount",
+        ),
+
+        "paid_amount": _amount_total(
+            installments_period,
+            "paid_amount",
+        ),
+
+        "remaining_amount": _amount_total(
+            installments_period,
+            "remaining_amount",
+        ),
+    }
+
+    installment_stats["collection_percentage"] = _percentage(
+        installment_stats["paid_amount"],
+        installment_stats["scheduled_amount"],
+    )
+
+    # Overdue installments.
+    installment_fields = _all_field_names(
+        PurchasePaymentInstallment
+    )
+
     if "due_date" in installment_fields:
-        overdue = installments_all.filter(due_date__lt=today, remaining_amount__gt=0)
+
+        overdue = installments_all.filter(
+            due_date__lt=today,
+            remaining_amount__gt=0,
+        )
+
         installment_stats["overdue_count"] = overdue.count()
-        installment_stats["overdue_amount"] = _amount_total(overdue, "remaining_amount")
+
+        installment_stats["overdue_amount"] = _amount_total(
+            overdue,
+            "remaining_amount",
+        )
+
     else:
+
         installment_stats["overdue_count"] = 0
         installment_stats["overdue_amount"] = Decimal("0.00")
 
-    income_trend, grouping = _trend_data(completed, IncomePayment, income_date_field, "amount", start_date, end_date)
-    purchase_trend, purchase_grouping = _trend_data(purchases_period, PartyPurchase, purchase_date_field, "grand_total", start_date, end_date)
-    # Both series use the same grouping rule so the combined chart aligns.
+    # Income and purchase trends.
+    income_trend, grouping = _trend_data(
+        completed,
+        IncomePayment,
+        income_date_field,
+        "amount",
+        start_date,
+        end_date,
+    )
+
+    purchase_trend, purchase_grouping = _trend_data(
+        purchases_period,
+        PartyPurchase,
+        purchase_date_field,
+        "grand_total",
+        start_date,
+        end_date,
+    )
+
+    # Maintain original grouping compatibility.
     if grouping != purchase_grouping:
-        grouping = "month" if grouping == "month" or purchase_grouping == "month" else "day"
-        income_trend, _ = _trend_data(completed, IncomePayment, income_date_field, "amount", start_date, end_date)
-        purchase_trend, _ = _trend_data(purchases_period, PartyPurchase, purchase_date_field, "grand_total", start_date, end_date)
-    buckets = sorted(set(income_trend) | set(purchase_trend))
+
+        grouping = (
+            "month"
+            if (
+                grouping == "month"
+                or purchase_grouping == "month"
+            )
+            else "day"
+        )
+
+        income_trend, _ = _trend_data(
+            completed,
+            IncomePayment,
+            income_date_field,
+            "amount",
+            start_date,
+            end_date,
+        )
+
+        purchase_trend, _ = _trend_data(
+            purchases_period,
+            PartyPurchase,
+            purchase_date_field,
+            "grand_total",
+            start_date,
+            end_date,
+        )
+
+    buckets = sorted(
+        set(income_trend) | set(purchase_trend)
+    )
+
     trend_chart = {
-        "labels": [_trend_label(bucket, grouping) for bucket in buckets],
-        "income": [income_trend.get(bucket, 0) for bucket in buckets],
-        "purchases": [purchase_trend.get(bucket, 0) for bucket in buckets],
+        "labels": [
+            _trend_label(bucket, grouping)
+            for bucket in buckets
+        ],
+
+        "income": [
+            income_trend.get(bucket, 0)
+            for bucket in buckets
+        ],
+
+        "purchases": [
+            purchase_trend.get(bucket, 0)
+            for bucket in buckets
+        ],
     }
 
+    # Income source chart.
     source_rows = list(
-        completed.values("income_source__name")
-        .annotate(total=Coalesce(Sum("amount"), ZERO, output_field=MONEY_FIELD), count=Count("pk"))
+        completed
+        .values("income_source__name")
+        .annotate(
+            total=Coalesce(
+                Sum("amount"),
+                ZERO,
+                output_field=MONEY_FIELD,
+            ),
+            count=Count("pk"),
+        )
         .order_by("-total")
     )
+
     source_chart = {
-        "labels": [row["income_source__name"] or "Unassigned" for row in source_rows],
-        "values": [float(row["total"] or 0) for row in source_rows],
+        "labels": [
+            row["income_source__name"] or "Unassigned"
+            for row in source_rows
+        ],
+
+        "values": [
+            float(row["total"] or 0)
+            for row in source_rows
+        ],
     }
 
-    status_choices = list(IncomePayment.PaymentStatus.choices)
+    # Payment status chart.
+    status_choices = list(
+        IncomePayment.PaymentStatus.choices
+    )
+
     status_chart = {
-        "labels": [label for value, label in status_choices],
-        "values": [income_period.filter(payment_status=value).count() for value, label in status_choices],
+        "labels": [
+            label
+            for value, label in status_choices
+        ],
+
+        "values": [
+            income_period.filter(
+                payment_status=value
+            ).count()
+            for value, label in status_choices
+        ],
     }
 
+    # Payment method chart.
     method_rows = list(
-        completed.values("payment_method")
-        .annotate(total=Coalesce(Sum("amount"), ZERO, output_field=MONEY_FIELD), count=Count("pk"))
+        completed
+        .values("payment_method")
+        .annotate(
+            total=Coalesce(
+                Sum("amount"),
+                ZERO,
+                output_field=MONEY_FIELD,
+            ),
+            count=Count("pk"),
+        )
         .order_by("-total")
     )
-    method_labels = dict(IncomePayment.PaymentMethod.choices)
+
+    method_labels = dict(
+        IncomePayment.PaymentMethod.choices
+    )
+
     method_chart = {
-        "labels": [method_labels.get(row["payment_method"], row["payment_method"] or "Unspecified") for row in method_rows],
-        "values": [float(row["total"] or 0) for row in method_rows],
+        "labels": [
+            method_labels.get(
+                row["payment_method"],
+                row["payment_method"] or "Unspecified",
+            )
+            for row in method_rows
+        ],
+
+        "values": [
+            float(row["total"] or 0)
+            for row in method_rows
+        ],
     }
 
+    # Installment payment method chart.
     installment_methods = list(
-        installments_period.filter(paid_amount__gt=0)
+        installments_period
+        .filter(paid_amount__gt=0)
         .values("payment_method__name")
-        .annotate(total=Coalesce(Sum("paid_amount"), ZERO, output_field=MONEY_FIELD))
+        .annotate(
+            total=Coalesce(
+                Sum("paid_amount"),
+                ZERO,
+                output_field=MONEY_FIELD,
+            )
+        )
         .order_by("-total")
     )
+
     installment_method_chart = {
-        "labels": [row["payment_method__name"] or "Unspecified" for row in installment_methods],
-        "values": [float(row["total"] or 0) for row in installment_methods],
+        "labels": [
+            row["payment_method__name"] or "Unspecified"
+            for row in installment_methods
+        ],
+
+        "values": [
+            float(row["total"] or 0)
+            for row in installment_methods
+        ],
     }
 
+    # Financial indicators.
     income_received = income_stats["completed_amount"]
-    estimated_cash_movement = income_received - purchase_stats["purchase_paid"]
-    leading_source = source_rows[0] if source_rows else None
-    smart_insights = []
-    if installment_stats["overdue_count"]:
-        smart_insights.append({"type": "warning", "title": "Overdue installments", "message": f'{installment_stats["overdue_count"]} open installment(s) have ₹{installment_stats["overdue_amount"]:,.2f} outstanding.'})
-    if income_stats["pending_count"]:
-        smart_insights.append({"type": "info", "title": "Pending income", "message": f'{income_stats["pending_count"]} transaction(s), totalling ₹{income_stats["pending_amount"]:,.2f}, are pending in this period.'})
-    if estimated_cash_movement < 0:
-        smart_insights.append({"type": "warning", "title": "Cash movement needs attention", "message": "Recorded purchase payments exceed completed income for the selected period. This is an operational indicator, not net profit."})
-    if leading_source:
-        smart_insights.append({"type": "success", "title": "Leading income source", "message": f'{leading_source["income_source__name"] or "Unassigned"} is the leading source by completed income in this period.'})
-    if not smart_insights:
-        smart_insights.append({"type": "info", "title": "No immediate alerts", "message": "No pending income or overdue installment alerts were found in the available data."})
 
+    estimated_cash_movement = (
+        income_received - purchase_stats["purchase_paid"]
+    )
+
+    leading_source = (
+        source_rows[0]
+        if source_rows
+        else None
+    )
+
+    # Smart insights.
+    smart_insights = []
+
+    if installment_stats["overdue_count"]:
+
+        smart_insights.append({
+            "type": "warning",
+            "title": "Overdue installments",
+            "message": (
+                f'{installment_stats["overdue_count"]} '
+                f'open installment(s) have '
+                f'₹{installment_stats["overdue_amount"]:,.2f} '
+                "outstanding."
+            ),
+        })
+
+    if income_stats["pending_count"]:
+
+        smart_insights.append({
+            "type": "info",
+            "title": "Pending income",
+            "message": (
+                f'{income_stats["pending_count"]} '
+                "transaction(s), totalling "
+                f'₹{income_stats["pending_amount"]:,.2f}, '
+                "are pending in this period."
+            ),
+        })
+
+    if estimated_cash_movement < 0:
+
+        smart_insights.append({
+            "type": "warning",
+            "title": "Cash movement needs attention",
+            "message": (
+                "Recorded purchase payments exceed completed "
+                "income for the selected period. This is an "
+                "operational indicator, not net profit."
+            ),
+        })
+
+    if leading_source:
+
+        smart_insights.append({
+            "type": "success",
+            "title": "Leading income source",
+            "message": (
+                f'{leading_source["income_source__name"] or "Unassigned"} '
+                "is the leading source by completed income "
+                "in this period."
+            ),
+        })
+
+    if not smart_insights:
+
+        smart_insights.append({
+            "type": "info",
+            "title": "No immediate alerts",
+            "message": (
+                "No pending income or overdue installment "
+                "alerts were found in the available data."
+            ),
+        })
+
+    # Template context.
     context = {
         "today": today,
+
         "financial_stats": {
             "total_income_received": income_received,
             "total_income_recorded": income_stats["total_amount"],
+
             "total_purchase_value": purchase_stats["total_purchase"],
             "total_purchase_paid": purchase_stats["purchase_paid"],
             "total_purchase_due": purchase_stats["purchase_due"],
+
             "estimated_cash_surplus": estimated_cash_movement,
-            "estimated_margin_percentage": _percentage(income_received - purchase_stats["total_purchase"], income_received),
+
+            "estimated_margin_percentage": _percentage(
+                income_received - purchase_stats["total_purchase"],
+                income_received,
+            ),
         },
+
         "income_stats": income_stats,
         "purchase_stats": purchase_stats,
         "installment_stats": installment_stats,
+
         "smart_insights": smart_insights,
+
         "trend_chart": trend_chart,
         "source_chart": source_chart,
         "status_chart": status_chart,
         "method_chart": method_chart,
         "installment_method_chart": installment_method_chart,
+
         "purchase_date_filter_supported": bool(purchase_date_field),
         "purchase_date_field": purchase_date_field or "",
         "income_date_field": income_date_field or "",
     }
-    _add_filter_context(context, request, period, start_date, end_date, period_label, filter_message)
-    return render(request, "dashboard/finance_dashboard.html", context)
+
+    _add_filter_context(
+        context,
+        request,
+        period,
+        start_date,
+        end_date,
+        period_label,
+        filter_message,
+    )
+
+    return render(
+        request,
+        "dashboard/finance_dashboard.html",
+        context,
+    )
 
 
-# ---------------------------------------------------------------------------
-# 2. INCOME TRANSACTIONS — filtered/paginated records plus Excel export.
-# ---------------------------------------------------------------------------
+# ==========================================================
+# 19. INCOME TRANSACTIONS
+# ==========================================================
+
+
 @dashboard_access_required
 def income_transactions(request):
+    """
+    Display income transactions with search, filters,
+    statistics, pagination and Excel export.
+    """
+
     today = timezone.localdate()
-    period, start_date, end_date, period_label, filter_message = _date_range_from_request(request, today)
+
+    (
+        period,
+        start_date,
+        end_date,
+        period_label,
+        filter_message,
+    ) = _date_range_from_request(request, today)
+
     search = (request.GET.get("q") or "").strip()
     status = (request.GET.get("status") or "").strip()
     method = (request.GET.get("method") or "").strip()
     source = (request.GET.get("source") or "").strip()
-    date_field = _first_date_field(IncomePayment, ["payment_date", "created_at", "created_on"])
 
-    payments = IncomePayment.objects.select_related("income_source")
+    date_field = _first_date_field(
+        IncomePayment,
+        ["payment_date", "created_at", "created_on"],
+    )
+
+    payments = IncomePayment.objects.select_related(
+        "income_source"
+    )
+
+    # Search.
     if search:
+
         payments = payments.filter(
             Q(income_source__name__icontains=search)
             | Q(transaction_id__icontains=search)
             | Q(description__icontains=search)
         )
-    valid_statuses = dict(IncomePayment.PaymentStatus.choices)
+
+    # Status filter.
+    valid_statuses = dict(
+        IncomePayment.PaymentStatus.choices
+    )
+
     if status in valid_statuses:
-        payments = payments.filter(payment_status=status)
+
+        payments = payments.filter(
+            payment_status=status
+        )
+
     else:
+
         status = ""
-    valid_methods = dict(IncomePayment.PaymentMethod.choices)
+
+    # Payment method filter.
+    valid_methods = dict(
+        IncomePayment.PaymentMethod.choices
+    )
+
     if method in valid_methods:
-        payments = payments.filter(payment_method=method)
+
+        payments = payments.filter(
+            payment_method=method
+        )
+
     else:
+
         method = ""
+
+    # Income source filter.
     if source:
+
         try:
-            source_exists = IncomeSource.objects.filter(pk=source).exists()
+
+            source_exists = IncomeSource.objects.filter(
+                pk=source
+            ).exists()
+
         except (ValueError, TypeError, ValidationError):
+
             source_exists = False
+
         if source_exists:
-            payments = payments.filter(income_source_id=source)
+
+            payments = payments.filter(
+                income_source_id=source
+            )
+
         else:
+
             source = ""
-    payments = _filter_dates(payments, IncomePayment, date_field, start_date, end_date).order_by("-" + date_field if date_field else "-pk", "-pk")
+
+    # Date filtering and ordering.
+    payments = _filter_dates(
+        payments,
+        IncomePayment,
+        date_field,
+        start_date,
+        end_date,
+    ).order_by(
+        "-" + date_field if date_field else "-pk",
+        "-pk",
+    )
+
+    # Statistics.
+    completed_payments = payments.filter(
+        payment_status=IncomePayment.PaymentStatus.COMPLETED
+    )
+
+    pending_payments = payments.filter(
+        payment_status=IncomePayment.PaymentStatus.PENDING
+    )
 
     stats = {
         "count": payments.count(),
         "amount": _amount_total(payments, "amount"),
-        "completed_count": payments.filter(payment_status=IncomePayment.PaymentStatus.COMPLETED).count(),
-        "completed_amount": _amount_total(payments.filter(payment_status=IncomePayment.PaymentStatus.COMPLETED), "amount"),
-        "pending_count": payments.filter(payment_status=IncomePayment.PaymentStatus.PENDING).count(),
-        "pending_amount": _amount_total(payments.filter(payment_status=IncomePayment.PaymentStatus.PENDING), "amount"),
+
+        "completed_count": completed_payments.count(),
+        "completed_amount": _amount_total(
+            completed_payments,
+            "amount",
+        ),
+
+        "pending_count": pending_payments.count(),
+        "pending_amount": _amount_total(
+            pending_payments,
+            "amount",
+        ),
     }
 
+    # Excel export.
     if request.GET.get("export") == "xlsx":
+
         def rows():
+
             for payment in payments.iterator(chunk_size=1000):
+
                 yield [
                     payment.payment_date,
-                    payment.income_source.name if payment.income_source else "",
+
+                    (
+                        payment.income_source.name
+                        if payment.income_source
+                        else ""
+                    ),
+
                     float(payment.amount or 0),
-                    payment.get_payment_method_display() if hasattr(payment, "get_payment_method_display") else getattr(payment, "payment_method", ""),
+
+                    (
+                        payment.get_payment_method_display()
+                        if hasattr(
+                            payment,
+                            "get_payment_method_display",
+                        )
+                        else getattr(
+                            payment,
+                            "payment_method",
+                            "",
+                        )
+                    ),
+
                     getattr(payment, "transaction_id", ""),
-                    payment.get_payment_status_display() if hasattr(payment, "get_payment_status_display") else getattr(payment, "payment_status", ""),
+
+                    (
+                        payment.get_payment_status_display()
+                        if hasattr(
+                            payment,
+                            "get_payment_status_display",
+                        )
+                        else getattr(
+                            payment,
+                            "payment_status",
+                            "",
+                        )
+                    ),
+
                     getattr(payment, "description", ""),
                     payment.pk,
                 ]
-        return _xlsx_response("yaarlynx_income_transactions.xlsx", ["Payment Date", "Income Source", "Amount", "Payment Method", "Transaction ID", "Status", "Description", "Record ID"], rows())
 
-    page_obj = Paginator(payments, 25).get_page(request.GET.get("page"))
+        return _xlsx_response(
+            "yaarlynx_income_transactions.xlsx",
+            [
+                "Payment Date",
+                "Income Source",
+                "Amount",
+                "Payment Method",
+                "Transaction ID",
+                "Status",
+                "Description",
+                "Record ID",
+            ],
+            rows(),
+        )
+
+    # Pagination.
+    page_obj = Paginator(
+        payments,
+        25,
+    ).get_page(
+        request.GET.get("page")
+    )
+
     context = {
         "payments": page_obj.object_list,
         "page_obj": page_obj,
+
         "stats": stats,
+
         "search_query": search,
         "selected_status": status,
         "selected_method": method,
         "selected_source": source,
+
         "payment_statuses": IncomePayment.PaymentStatus.choices,
         "payment_methods": IncomePayment.PaymentMethod.choices,
-        "income_sources": IncomeSource.objects.filter(is_active=True).order_by("name") if "is_active" in _all_field_names(IncomeSource) else IncomeSource.objects.all().order_by("name"),
+
+        "income_sources": (
+            IncomeSource.objects
+            .filter(is_active=True)
+            .order_by("name")
+            if "is_active" in _all_field_names(IncomeSource)
+            else IncomeSource.objects.all().order_by("name")
+        ),
+
         "date_field": date_field or "",
     }
-    _add_filter_context(context, request, period, start_date, end_date, period_label, filter_message)
-    return render(request, "dashboard/income_transactions.html", context)
+
+    _add_filter_context(
+        context,
+        request,
+        period,
+        start_date,
+        end_date,
+        period_label,
+        filter_message,
+    )
+
+    return render(
+        request,
+        "dashboard/income_transactions.html",
+        context,
+    )
 
 
-# ---------------------------------------------------------------------------
-# 3. PURCHASE TRANSACTIONS — filtered/paginated records plus Excel export.
-# ---------------------------------------------------------------------------
+# ==========================================================
+# 20. PURCHASE TRANSACTIONS
+# ==========================================================
+
+
 @dashboard_access_required
 def purchase_transactions(request):
+    """
+    Display purchase transactions with search, filters,
+    financial summaries, pagination and Excel export.
+    """
+
     today = timezone.localdate()
-    period, start_date, end_date, period_label, filter_message = _date_range_from_request(request, today)
+
+    (
+        period,
+        start_date,
+        end_date,
+        period_label,
+        filter_message,
+    ) = _date_range_from_request(request, today)
+
     search = (request.GET.get("q") or "").strip()
     selected_party = (request.GET.get("party") or "").strip()
     selected_status = (request.GET.get("status") or "").strip()
-    date_field = _first_date_field(PartyPurchase, ["purchase_date", "order_date", "date", "created_at", "created_on", "created"])
-    purchase_fields = _all_field_names(PartyPurchase)
 
-    party_field, party_model = _party_field_info(PartyPurchase)
+    date_field = _first_date_field(
+        PartyPurchase,
+        [
+            "purchase_date",
+            "order_date",
+            "date",
+            "created_at",
+            "created_on",
+            "created",
+        ],
+    )
+
+    party_field, party_model = _party_field_info(
+        PartyPurchase
+    )
+
     purchases = PartyPurchase.objects.all()
+
     if party_field:
         purchases = purchases.select_related("party")
+
+    # Search.
     if search:
-        search_q = _searchable_purchase_q(PartyPurchase, search)
+
+        search_q = _searchable_purchase_q(
+            PartyPurchase,
+            search,
+        )
+
         if search_q is not None:
             purchases = purchases.filter(search_q)
+
+    # Party filter.
     if selected_party and party_field:
+
         try:
-            party_exists = party_model.objects.filter(pk=selected_party).exists()
+
+            party_exists = party_model.objects.filter(
+                pk=selected_party
+            ).exists()
+
         except (ValueError, TypeError, ValidationError):
+
             party_exists = False
+
         if party_exists:
-            purchases = purchases.filter(party_id=selected_party)
+
+            purchases = purchases.filter(
+                party_id=selected_party
+            )
+
         else:
+
             selected_party = ""
 
+    # Status filter.
     status_field = None
+
     try:
+
         candidate = PartyPurchase._meta.get_field("status")
+
         if getattr(candidate, "choices", None):
             status_field = "status"
+
     except Exception:
         pass
-    purchase_statuses = list(PartyPurchase._meta.get_field(status_field).choices) if status_field else []
-    valid_purchase_statuses = dict(purchase_statuses)
-    if status_field and selected_status in valid_purchase_statuses:
-        purchases = purchases.filter(**{status_field: selected_status})
+
+    purchase_statuses = (
+        list(
+            PartyPurchase._meta.get_field(
+                status_field
+            ).choices
+        )
+        if status_field
+        else []
+    )
+
+    valid_purchase_statuses = dict(
+        purchase_statuses
+    )
+
+    if (
+        status_field
+        and selected_status in valid_purchase_statuses
+    ):
+
+        purchases = purchases.filter(
+            **{
+                status_field: selected_status
+            }
+        )
+
     else:
+
         selected_status = ""
 
-    purchases = _filter_dates(purchases, PartyPurchase, date_field, start_date, end_date)
+    # Date filter and ordering.
+    purchases = _filter_dates(
+        purchases,
+        PartyPurchase,
+        date_field,
+        start_date,
+        end_date,
+    )
+
     if date_field:
-        purchases = purchases.order_by("-" + date_field, "-pk")
+
+        purchases = purchases.order_by(
+            "-" + date_field,
+            "-pk",
+        )
+
     else:
+
         purchases = purchases.order_by("-pk")
 
+    # Purchase statistics.
     stats = {
         "count": purchases.count(),
-        "value": _amount_total(purchases, "grand_total"),
-        "paid": _amount_total(purchases, "paid_amount"),
-        "due": _amount_total(purchases, "due_amount"),
+
+        "value": _amount_total(
+            purchases,
+            "grand_total",
+        ),
+
+        "paid": _amount_total(
+            purchases,
+            "paid_amount",
+        ),
+
+        "due": _amount_total(
+            purchases,
+            "due_amount",
+        ),
     }
-    stats["collection_percentage"] = _percentage(stats["paid"], stats["value"])
 
-    # If export is selected, export the complete filtered queryset, not just the visible page.
+    stats["collection_percentage"] = _percentage(
+        stats["paid"],
+        stats["value"],
+    )
+
+    # Excel export.
     if request.GET.get("export") == "xlsx":
-        def rows():
-            for purchase in purchases.iterator(chunk_size=1000):
-                values = _purchase_field_values(purchase, date_field)
-                p_date, number, party, grand_total, paid_amount, due_amount, status_value, status_label = values
-                yield [p_date, number, str(party) if party else "", float(grand_total), float(paid_amount), float(due_amount), status_label, purchase.pk]
-        return _xlsx_response("yaarlynx_purchase_transactions.xlsx", ["Purchase Date", "Purchase Number", "Party / Supplier", "Grand Total", "Paid Amount", "Due Amount", "Status", "Record ID"], rows())
 
-    page_obj = Paginator(purchases, 25).get_page(request.GET.get("page"))
+        def rows():
+
+            for purchase in purchases.iterator(chunk_size=1000):
+
+                values = _purchase_field_values(
+                    purchase,
+                    date_field,
+                )
+
+                (
+                    p_date,
+                    number,
+                    party,
+                    grand_total,
+                    paid_amount,
+                    due_amount,
+                    status_value,
+                    status_label,
+                ) = values
+
+                yield [
+                    p_date,
+                    number,
+                    str(party) if party else "",
+                    float(grand_total),
+                    float(paid_amount),
+                    float(due_amount),
+                    status_label,
+                    purchase.pk,
+                ]
+
+        return _xlsx_response(
+            "yaarlynx_purchase_transactions.xlsx",
+            [
+                "Purchase Date",
+                "Purchase Number",
+                "Party / Supplier",
+                "Grand Total",
+                "Paid Amount",
+                "Due Amount",
+                "Status",
+                "Record ID",
+            ],
+            rows(),
+        )
+
+    # Pagination.
+    page_obj = Paginator(
+        purchases,
+        25,
+    ).get_page(
+        request.GET.get("page")
+    )
+
+    # Add standardized finance attributes.
     for purchase in page_obj.object_list:
-        values = _purchase_field_values(purchase, date_field)
+
+        values = _purchase_field_values(
+            purchase,
+            date_field,
+        )
+
         purchase.finance_date = values[0]
         purchase.finance_number = values[1]
         purchase.finance_party = values[2]
@@ -1760,42 +3160,61 @@ def purchase_transactions(request):
         purchase.finance_due_amount = values[5]
         purchase.finance_status_label = values[7]
 
+    # Party filter options.
     party_choices = []
+
     if party_model:
-        party_choices = list(party_model.objects.all().order_by("pk"))
+
+        party_choices = list(
+            party_model.objects.all().order_by("pk")
+        )
 
     context = {
         "purchases": page_obj.object_list,
         "page_obj": page_obj,
+
         "stats": stats,
+
         "search_query": search,
         "selected_party": selected_party,
         "selected_status": selected_status,
+
         "parties": party_choices,
         "purchase_statuses": purchase_statuses,
+
         "date_field": date_field or "",
         "party_filter_supported": bool(party_field),
     }
-    _add_filter_context(context, request, period, start_date, end_date, period_label, filter_message)
-    return render(request, "dashboard/purchase_transactions.html", context)
+
+    _add_filter_context(
+        context,
+        request,
+        period,
+        start_date,
+        end_date,
+        period_label,
+        filter_message,
+    )
+
+    return render(
+        request,
+        "dashboard/purchase_transactions.html",
+        context,
+    )
 
 
 # ==========================================================
-# USER PROFILE
+# 21. USER PROFILE
 # ==========================================================
+
+
 @login_required
 def profile_view(request):
-
-    # ------------------------------------------------------
-    # GET CURRENT LOGGED-IN USER
-    # ------------------------------------------------------
+    """
+    Display the current logged-in user's profile.
+    """
 
     user = request.current_user
-
-
-    # ------------------------------------------------------
-    # RENDER PROFILE PAGE
-    # ------------------------------------------------------
 
     return render(
         request,
@@ -1805,7 +3224,18 @@ def profile_view(request):
         }
     )
 
+
+# ==========================================================
+# 22. QUICK LINKS
+# ==========================================================
+
+
 def quick_links(request):
+    """
+    Display active quick links grouped by category.
+
+    Categories without active links are excluded.
+    """
 
     active_quick_links = (
         QuickLink.objects
@@ -1820,13 +3250,12 @@ def quick_links(request):
             Prefetch(
                 "quick_links",
                 queryset=active_quick_links,
-                to_attr="active_quick_links"
+                to_attr="active_quick_links",
             )
         )
         .order_by("display_order", "name")
     )
 
-    # Remove categories that have no active quick links
     categories = [
         category
         for category in categories
@@ -1841,19 +3270,29 @@ def quick_links(request):
         }
     )
 
+
+# ==========================================================
+# 23. NOTIFICATION LIST
+# ==========================================================
+
+
 def notification_list(request):
     """
-    Display notifications available for the logged-in user.
+    Display published notifications for the current user.
+
+    Shows total notifications and unread notifications.
     """
 
-    user_id = request.session.get("yaarlynx_user_id")
+    user_id = request.session.get(
+        "yaarlynx_user_id"
+    )
 
     if not user_id:
         return redirect("login")
 
     user = get_object_or_404(
         UserAccount,
-        id=user_id
+        id=user_id,
     )
 
     recipients = (
@@ -1871,7 +3310,6 @@ def notification_list(request):
         )
     )
 
-    # Remove expired notifications
     recipients = [
         recipient
         for recipient in recipients
@@ -1895,22 +3333,30 @@ def notification_list(request):
     return render(
         request,
         "dashboard/notifications.html",
-        context
+        context,
     )
+
+
+# ==========================================================
+# 24. NOTIFICATION DETAIL
+# ==========================================================
+
 
 def notification_detail(request, notification_id):
     """
-    Display notification details and mark notification as read.
+    Display notification details and mark it as read.
     """
 
-    user_id = request.session.get("yaarlynx_user_id")
+    user_id = request.session.get(
+        "yaarlynx_user_id"
+    )
 
     if not user_id:
         return redirect("login")
 
     user = get_object_or_404(
         UserAccount,
-        id=user_id
+        id=user_id,
     )
 
     recipient = get_object_or_404(
@@ -1924,28 +3370,30 @@ def notification_detail(request, notification_id):
 
     notification = recipient.notification
 
-    # Check publication status
     if not notification.is_published:
-
         return redirect("notification_list")
 
-    # Mark as read
     recipient.mark_as_read()
-
-    context = {
-        "notification": notification,
-        "recipient": recipient,
-    }
 
     return render(
         request,
         "dashboard/notification_detail.html",
-        context
+        {
+            "notification": notification,
+            "recipient": recipient,
+        }
     )
+
+
+# ==========================================================
+# 25. MARK NOTIFICATION AS READ
+# ==========================================================
+
 
 def mark_notification_read(request, notification_id):
     """
-    Mark a notification as read.
+    Mark an individual notification as read.
+    Accepts POST requests only.
     """
 
     if request.method != "POST":
@@ -1953,9 +3401,9 @@ def mark_notification_read(request, notification_id):
         return JsonResponse(
             {
                 "success": False,
-                "message": "Invalid request method."
+                "message": "Invalid request method.",
             },
-            status=400
+            status=400,
         )
 
     user_id = request.session.get(
@@ -1967,9 +3415,9 @@ def mark_notification_read(request, notification_id):
         return JsonResponse(
             {
                 "success": False,
-                "message": "Authentication required."
+                "message": "Authentication required.",
             },
-            status=401
+            status=401,
         )
 
     recipient = get_object_or_404(
@@ -1983,13 +3431,20 @@ def mark_notification_read(request, notification_id):
     return JsonResponse(
         {
             "success": True,
-            "message": "Notification marked as read."
+            "message": "Notification marked as read.",
         }
     )
 
+
+# ==========================================================
+# 26. MARK ALL NOTIFICATIONS AS READ
+# ==========================================================
+
+
 def mark_all_notifications_read(request):
     """
-    Mark all notifications of the logged-in user as read.
+    Mark all active unread notifications as read.
+    Uses bulk update for efficiency.
     """
 
     if request.method != "POST":
@@ -1997,9 +3452,9 @@ def mark_all_notifications_read(request):
         return JsonResponse(
             {
                 "success": False,
-                "message": "Invalid request method."
+                "message": "Invalid request method.",
             },
-            status=400
+            status=400,
         )
 
     user_id = request.session.get(
@@ -2011,9 +3466,9 @@ def mark_all_notifications_read(request):
         return JsonResponse(
             {
                 "success": False,
-                "message": "Authentication required."
+                "message": "Authentication required.",
             },
-            status=401
+            status=401,
         )
 
     recipients = NotificationRecipient.objects.filter(
@@ -2035,9 +3490,16 @@ def mark_all_notifications_read(request):
         }
     )
 
+
+# ==========================================================
+# 27. MARK NOTIFICATION AS UNREAD
+# ==========================================================
+
+
 def mark_notification_unread(request, notification_id):
     """
-    Mark a notification as unread.
+    Mark an individual notification as unread.
+    Accepts POST requests only.
     """
 
     if request.method != "POST":
@@ -2045,9 +3507,9 @@ def mark_notification_unread(request, notification_id):
         return JsonResponse(
             {
                 "success": False,
-                "message": "Invalid request method."
+                "message": "Invalid request method.",
             },
-            status=400
+            status=400,
         )
 
     user_id = request.session.get(
@@ -2059,9 +3521,9 @@ def mark_notification_unread(request, notification_id):
         return JsonResponse(
             {
                 "success": False,
-                "message": "Authentication required."
+                "message": "Authentication required.",
             },
-            status=401
+            status=401,
         )
 
     recipient = get_object_or_404(
@@ -2075,50 +3537,45 @@ def mark_notification_unread(request, notification_id):
     return JsonResponse(
         {
             "success": True,
-            "message": "Notification marked as unread."
+            "message": "Notification marked as unread.",
         }
     )
 
 
+# ==========================================================
+# 28. PDF OVERLAY
+# ==========================================================
 
 
 def pdf_overlay_view(request):
+    """
+    Upload a PDF and apply a selected overlay image.
 
-    # ========================================================
-    # GET ALL OVERLAY IMAGES
-    # ========================================================
+    Features:
+        - Display available overlay images.
+        - Display default overlay.
+        - Validate uploaded PDF.
+        - Validate selected overlay.
+        - Support seven overlay positions.
+        - Process PDF using apply_overlay service.
+        - Download processed PDF.
+    """
 
+    # Available overlay images.
     overlay_images = OverlayImage.objects.all()
-
-
-    # ========================================================
-    # GET DEFAULT OVERLAY
-    # ========================================================
 
     default_overlay = OverlayImage.objects.filter(
         is_default=True
     ).first()
 
-
-    # ========================================================
-    # POST
-    # ========================================================
-
+    # Handle PDF upload.
     if request.method == "POST":
-
-        # ----------------------------------------------------
-        # GET UPLOADED PDF
-        # ----------------------------------------------------
 
         pdf_file = request.FILES.get(
             "pdf_file"
         )
 
-
-        # ----------------------------------------------------
-        # Validate PDF
-        # ----------------------------------------------------
-
+        # Validate PDF file.
         if not pdf_file:
 
             return render(
@@ -2131,14 +3588,8 @@ def pdf_overlay_view(request):
                 }
             )
 
-
-        # ----------------------------------------------------
-        # Check extension
-        # ----------------------------------------------------
-
-        if not pdf_file.name.lower().endswith(
-            ".pdf"
-        ):
+        # Validate extension.
+        if not pdf_file.name.lower().endswith(".pdf"):
 
             return render(
                 request,
@@ -2150,15 +3601,10 @@ def pdf_overlay_view(request):
                 }
             )
 
-
-        # ====================================================
-        # GET SELECTED OVERLAY
-        # ====================================================
-
+        # Selected overlay.
         overlay_id = request.POST.get(
             "overlay_image"
         )
-
 
         if not overlay_id:
 
@@ -2172,11 +3618,7 @@ def pdf_overlay_view(request):
                 }
             )
 
-
-        # ====================================================
-        # GET OVERLAY OBJECT
-        # ====================================================
-
+        # Retrieve overlay.
         try:
 
             overlay = OverlayImage.objects.get(
@@ -2191,24 +3633,17 @@ def pdf_overlay_view(request):
                 {
                     "overlay_images": overlay_images,
                     "default_overlay": default_overlay,
-                    "error": "Selected overlay image was not found.",
+                    "error": (
+                        "Selected overlay image was not found."
+                    ),
                 }
             )
 
-
-        # ====================================================
-        # GET POSITION
-        # ====================================================
-
+        # Overlay position.
         position = request.POST.get(
             "position",
-            "bottom_center"
+            "bottom_center",
         )
-
-
-        # ====================================================
-        # ALLOWED POSITIONS
-        # ====================================================
 
         allowed_positions = {
             "bottom_left",
@@ -2220,16 +3655,10 @@ def pdf_overlay_view(request):
             "center",
         }
 
-
         if position not in allowed_positions:
-
             position = "bottom_center"
 
-
-        # ====================================================
-        # PROCESS PDF
-        # ====================================================
-
+        # Process PDF.
         try:
 
             result = apply_overlay(
@@ -2252,11 +3681,7 @@ def pdf_overlay_view(request):
                 }
             )
 
-
-        # ====================================================
-        # DOWNLOAD
-        # ====================================================
-
+        # Download processed PDF.
         return FileResponse(
             result,
             as_attachment=True,
@@ -2264,14 +3689,10 @@ def pdf_overlay_view(request):
             content_type="application/pdf",
         )
 
-
-    # ========================================================
-    # GET REQUEST
-    # ========================================================
-
+    # Display PDF overlay page.
     return render(
         request,
-    "dashboard/overlay.html",
+        "dashboard/overlay.html",
         {
             "overlay_images": overlay_images,
             "default_overlay": default_overlay,
