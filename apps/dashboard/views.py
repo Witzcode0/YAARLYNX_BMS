@@ -3715,7 +3715,6 @@ def pdf_overlay_view(request):
 
 def marketplace_courier_dashboard(request):
 
-    print("hi-1")
 
     # ------------------------------------------------------
     # GET PARAMETERS
@@ -3966,9 +3965,6 @@ def marketplace_courier_dashboard(request):
         # Additional information
         "current_date": timezone.now(),
     }
-
-    print("hi-2")
-
     return render(
         request,
         "dashboard/marketplace_courier_dashboard.html",

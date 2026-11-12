@@ -1,215 +1,277 @@
 {% extends "dashboard/layout.html" %}
 {% block content %}
 
-<style>
-    .ycourier-page { --yc-ink:#153030; --yc-ink-2:#204747; --yc-muted:#74818a; --yc-line:#e8edef; color:#243438; }
-    .ycourier-page * { box-sizing:border-box; }
-    .ycourier-page .yc-hero { position:relative; overflow:hidden; isolation:isolate; background:linear-gradient(118deg,#102626 0%,#153030 52%,#28504d 100%); border-radius:26px; color:#fff; }
-    .ycourier-page .yc-hero:before,.ycourier-page .yc-hero:after { content:""; position:absolute; z-index:-1; border:1px solid rgba(255,255,255,.10); border-radius:50%; pointer-events:none; }
-    .ycourier-page .yc-hero:before { width:350px;height:350px;right:-100px;top:-210px; }
-    .ycourier-page .yc-hero:after { width:250px;height:250px;right:55px;bottom:-205px; }
-    .ycourier-page .yc-eyebrow { color:#b7d1cc; font-size:10px; font-weight:800; letter-spacing:.17em; text-transform:uppercase; }
-    .ycourier-page .yc-card { background:#fff; border:1px solid var(--yc-line); border-radius:20px; box-shadow:0 5px 22px rgba(21,48,48,.035); }
-    .ycourier-page .yc-section-title { display:flex; align-items:center; gap:11px; color:var(--yc-ink); font-size:15px; font-weight:800; letter-spacing:-.02em; }
-    .ycourier-page .yc-section-icon { display:grid; place-items:center; width:38px;height:38px; flex:0 0 38px; border-radius:12px; background:#edf4f2;color:var(--yc-ink);font-size:18px; }
-    .ycourier-page .yc-label { color:#89969b; font-size:10px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
-    .ycourier-page .yc-value { color:#26383b; font-size:13px; font-weight:700; overflow-wrap:anywhere; }
-    .ycourier-page .yc-info-cell { min-width:0; padding:13px 14px; background:#f8faf9; border:1px solid #eef2f1; border-radius:13px; }
-    .ycourier-page .yc-contact-row { display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px solid #f0f3f2; }
-    .ycourier-page .yc-contact-row:last-child { border-bottom:0; padding-bottom:0; }
-    .ycourier-page .yc-contact-icon { display:grid; place-items:center; width:36px;height:36px; flex:0 0 36px; border-radius:11px; background:#f0f5f4;color:#315c56;font-size:16px; }
-    .ycourier-page .yc-stat { position:relative; overflow:hidden; }
-    .ycourier-page .yc-stat:after { content:""; position:absolute; width:84px;height:84px;right:-30px;bottom:-38px;border-radius:50%;background:currentColor;opacity:.045; }
-    .ycourier-page .yc-table th { padding:13px 16px; color:#78868b; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; }
-    .ycourier-page .yc-table td { padding:15px 16px; vertical-align:middle; border-top:1px solid #eef2f1; }
-    .ycourier-page .yc-mapping-mobile { display:none; }
-    .ycourier-page a { transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .18s ease; }
-    .ycourier-page .yc-action:hover { transform:translateY(-1px); }
-    @media (max-width:767px) {
-        .ycourier-page .yc-hero { border-radius:20px; }
-        .ycourier-page .yc-table-wrap { display:none; }
-        .ycourier-page .yc-mapping-mobile { display:grid; gap:10px; padding:14px; }
-        .ycourier-page .yc-mobile-map-card { border:1px solid #e9efed; border-radius:15px; padding:14px; background:#fff; }
-    }
-</style>
-
-<div class="ycourier-page min-h-screen bg-slate-50/80 p-3 sm:p-4 lg:p-6">
+<div class="ycourier-page min-h-screen px-3 py-5 sm:px-5 lg:px-8">
+    <style>
+        .ycourier-page {
+            --brand:#153030; --brand-light:#315d54; --ink:#203b39;
+            --muted:#788783; --line:#dfe8e3;
+            color:var(--ink);
+            background:
+                radial-gradient(ellipse at 5% 0%,rgba(204,224,211,.52),transparent 34%),
+                linear-gradient(135deg,#f6f9f6 0%,#edf4ef 55%,#f8faf8 100%);
+        }
+        .ycourier-page * { box-sizing:border-box; }
+        .ycourier-page .yc-hero {
+            position:relative;isolation:isolate;overflow:hidden;
+            color:#fff;border-radius:23px;
+            background:
+                radial-gradient(circle at 88% 15%,rgba(132,177,157,.23),transparent 25%),
+                linear-gradient(118deg,#102626 0%,#153030 55%,#28504d 100%);
+            box-shadow:0 16px 35px rgba(21,48,48,.13);
+        }
+        .ycourier-page .yc-hero:before,.ycourier-page .yc-hero:after {
+            content:"";position:absolute;z-index:-1;border:1px solid rgba(255,255,255,.1);
+            border-radius:50%;pointer-events:none;
+        }
+        .ycourier-page .yc-hero:before { width:350px;height:350px;right:-100px;top:-210px; }
+        .ycourier-page .yc-hero:after { width:250px;height:250px;right:55px;bottom:-205px; }
+        .ycourier-page .yc-eyebrow { color:#a9c7bd;font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase; }
+        .ycourier-page .yc-heading { color:var(--brand);font-size:15px;font-weight:850;letter-spacing:-.02em; }
+        .ycourier-page .yc-section-head {
+            display:flex;align-items:center;gap:11px;
+            padding-bottom:13px;margin-bottom:18px;border-bottom:1px solid var(--line);
+        }
+        .ycourier-page .yc-section-icon {
+            display:grid;place-items:center;width:35px;height:35px;flex:0 0 35px;
+            border-radius:11px;background:#e4eee8;color:var(--brand);font-size:17px;
+        }
+        .ycourier-page .yc-label { color:#83918b;font-size:10px;font-weight:850;letter-spacing:.09em;text-transform:uppercase; }
+        .ycourier-page .yc-value { color:#263d39;font-size:13px;font-weight:700;overflow-wrap:anywhere; }
+        .ycourier-page .yc-stat-strip {
+            display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+            border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+            background:rgba(255,255,255,.42);
+        }
+        .ycourier-page .yc-stat-item { display:flex;align-items:center;gap:13px;min-width:0;padding:16px 18px; }
+        .ycourier-page .yc-stat-item + .yc-stat-item { border-left:1px solid var(--line); }
+        .ycourier-page .yc-stat-icon {
+            display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;
+            border-radius:12px;font-size:18px;
+        }
+        .ycourier-page .yc-stat-number { color:var(--brand);font-size:25px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums; }
+        .ycourier-page .yc-stat-caption { margin-top:4px;color:#7b8983;font-size:10px;font-weight:700; }
+        .ycourier-page .yc-detail-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 26px; }
+        .ycourier-page .yc-detail-item { min-width:0;padding:12px 0;border-bottom:1px solid #e5ede8; }
+        .ycourier-page .yc-detail-item .yc-label { display:flex;align-items:center;gap:7px;margin-bottom:7px; }
+        .ycourier-page .yc-detail-item .yc-label i { color:#82968c;font-size:14px; }
+        .ycourier-page .yc-contact-row {
+            display:flex;align-items:flex-start;gap:12px;padding:12px 0;
+            border-bottom:1px solid #e5ede8;
+        }
+        .ycourier-page .yc-contact-row:last-child { border-bottom:0; }
+        .ycourier-page .yc-contact-icon {
+            display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;
+            border-radius:10px;background:#eaf1ed;color:#315d54;font-size:15px;
+        }
+        .ycourier-page .yc-table { width:100%;border-collapse:collapse;text-align:left; }
+        .ycourier-page .yc-table th {
+            padding:12px 14px;background:#eaf1ed;color:#75867e;
+            font-size:9px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
+        }
+        .ycourier-page .yc-table td { padding:14px;border-bottom:1px solid #e3ebe6;vertical-align:middle;font-size:12px; }
+        .ycourier-page .yc-table tbody tr:hover { background:rgba(255,255,255,.65); }
+        .ycourier-page .yc-status { display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:850;white-space:nowrap; }
+        .ycourier-page .yc-status.active { color:#23734e; }
+        .ycourier-page .yc-status.inactive { color:#b34f50; }
+        .ycourier-page .yc-link { color:#315d54;font-size:11px;font-weight:850;text-decoration:none; }
+        .ycourier-page .yc-link:hover { color:#153030;text-decoration:underline;text-underline-offset:3px; }
+        .ycourier-page .yc-back { display:inline-flex;align-items:center;gap:7px;color:#61746c;font-size:12px;font-weight:800; }
+        .ycourier-page .yc-back:hover { color:#153030; }
+        .ycourier-page .yc-mapping-mobile { display:none; }
+        .ycourier-page a { transition:color .18s ease,background-color .18s ease; }
+        @media(max-width:900px) { .ycourier-page .yc-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+        @media(max-width:767px) {
+            .ycourier-page { border-radius:16px; }
+            .ycourier-page .yc-hero { border-radius:19px; }
+            .ycourier-page .yc-table-wrap { display:none; }
+            .ycourier-page .yc-mapping-mobile { display:block; }
+            .ycourier-page .yc-stat-strip { grid-template-columns:1fr; }
+            .ycourier-page .yc-stat-item { padding:12px 5px; }
+            .ycourier-page .yc-stat-item + .yc-stat-item { border-left:0;border-top:1px solid var(--line); }
+        }
+        @media(min-width:768px) { .ycourier-page .yc-mapping-mobile { display:none; } }
+        @media(max-width:420px) { .ycourier-page .yc-detail-grid { grid-template-columns:1fr; } }
+        @media(prefers-reduced-motion:reduce) { .ycourier-page * { transition:none!important; } }
+    </style>
 
     <!-- PAGE HEADER -->
-    <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-            <a href="{% url 'marketplace_courier_dashboard' %}?section=couriers"
-               class="mb-3 inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#153030]">
-                <i class="ri-arrow-left-line"></i> Back to Courier Partners
-            </a>
-            <div class="yc-eyebrow text-slate-400">Marketplace & Courier Management</div>
-            <h1 class="mt-1 text-2xl font-black tracking-tight text-[#153030] sm:text-3xl">Courier Partner Profile</h1>
-            <p class="mt-1 text-sm text-slate-500">A complete overview of partner details, contact information and marketplace connections.</p>
-        </div>
-        <a href="{% url 'admin:master_courierpartner_change' courier.pk %}"
-           class="yc-action inline-flex items-center justify-center gap-2 rounded-xl bg-[#153030] px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-[#204747]">
-            <i class="ri-edit-line"></i> Edit Courier Partner
+    <header class="mb-7">
+        <a href="{% url 'marketplace_courier_dashboard' %}?section=couriers" class="yc-back mb-5">
+            <i class="ri-arrow-left-line"></i> Back to Courier Partners
         </a>
-    </div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="yc-eyebrow text-slate-500"><i class="ri-route-line mr-1"></i> Marketplace & Courier Management</p>
+                <h1 class="mt-1 text-2xl font-black tracking-tight text-[#153030] sm:text-3xl">Courier Partner Profile</h1>
+                <p class="mt-1 text-sm text-slate-500">Partner details, contact information and marketplace connections.</p>
+            </div>
+            <div class="flex flex-wrap gap-3 text-xs font-bold text-[#315d54]">
+                {% if courier.website %}
+                <a href="{{ courier.website }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5"><i class="ri-global-line text-base"></i> Website <i class="ri-external-link-line"></i></a>
+                {% endif %}
+                {% if courier.tracking_url %}
+                <a href="{{ courier.tracking_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5"><i class="ri-map-pin-line text-base"></i> Track shipment <i class="ri-external-link-line"></i></a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
 
-    <!-- COURIER HERO -->
-    <section class="yc-hero mb-5 p-5 sm:p-6 lg:p-7">
+    <!-- COURIER PROFILE HERO -->
+    <section class="yc-hero mb-7 px-5 py-5 sm:px-7 sm:py-6">
         <div class="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex min-w-0 items-center gap-4">
-                <div class="grid h-16 w-16 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 text-3xl text-white shadow-inner sm:h-[76px] sm:w-[76px]">
+                <div class="grid h-14 w-14 shrink-0 place-items-center rounded-xl border border-white/15 bg-white/10 text-2xl text-white sm:h-16 sm:w-16">
                     <i class="ri-truck-line"></i>
                 </div>
                 <div class="min-w-0">
-                    <div class="yc-eyebrow">Courier partner</div>
+                    <p class="yc-eyebrow">Courier partner</p>
                     <h2 class="mt-1 break-words text-xl font-black tracking-tight sm:text-2xl">{{ courier.name }}</h2>
-                    <div class="mt-2 flex flex-wrap items-center gap-2">
-                        <span class="rounded-lg border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/90">{{ courier.code }}</span>
+                    <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-white/75">
+                        <span><i class="ri-hashtag mr-1"></i>{{ courier.code }}</span>
                         {% if courier.is_active %}
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-300/15 px-3 py-1 text-[10px] font-extrabold text-emerald-100"><i class="ri-checkbox-circle-fill"></i> Active partner</span>
+                            <span class="inline-flex items-center gap-1.5 text-emerald-200"><i class="ri-checkbox-circle-fill"></i> Active partner</span>
                         {% else %}
-                            <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-300/15 px-3 py-1 text-[10px] font-extrabold text-rose-100"><i class="ri-close-circle-fill"></i> Inactive partner</span>
+                            <span class="inline-flex items-center gap-1.5 text-rose-200"><i class="ri-close-circle-fill"></i> Inactive partner</span>
                         {% endif %}
                     </div>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-2">
-                {% if courier.website %}
-                    <a href="{{ courier.website }}" target="_blank" rel="noopener noreferrer" class="yc-action inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/20"><i class="ri-global-line"></i> Website <i class="ri-external-link-line text-[10px]"></i></a>
-                {% endif %}
-                {% if courier.tracking_url %}
-                    <a href="{{ courier.tracking_url }}" target="_blank" rel="noopener noreferrer" class="yc-action inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-extrabold text-[#153030] hover:bg-emerald-50"><i class="ri-map-pin-line"></i> Track Shipment <i class="ri-arrow-up-right-line text-[10px]"></i></a>
-                {% endif %}
+            <div class="flex flex-wrap gap-x-7 gap-y-3 border-t border-white/15 pt-4 sm:border-l sm:border-t-0 sm:pl-7 sm:pt-0">
+                <div><p class="yc-eyebrow">Contact person</p><p class="mt-1 text-sm font-bold text-white">{{ courier.contact_person_name|default:"Not Available" }}</p></div>
+                <div><p class="yc-eyebrow">Primary contact</p><p class="mt-1 text-sm font-bold text-white">{{ courier.contact_number|default:"Not Available" }}</p></div>
             </div>
-        </div>
-        <div class="relative mt-6 grid grid-cols-1 gap-3 border-t border-white/15 pt-5 sm:grid-cols-3">
-            <div><div class="yc-eyebrow">Partner code</div><div class="mt-1 text-sm font-bold text-white">{{ courier.code }}</div></div>
-            <div><div class="yc-eyebrow">Contact person</div><div class="mt-1 text-sm font-bold text-white">{{ courier.contact_person_name|default:"Not Available" }}</div></div>
-            <div><div class="yc-eyebrow">Primary contact</div><div class="mt-1 text-sm font-bold text-white">{{ courier.contact_number|default:"Not Available" }}</div></div>
         </div>
     </section>
 
-    <!-- MARKETPLACE STATS -->
-    <section class="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div class="yc-card yc-stat p-4 sm:p-5">
-            <div class="flex items-center justify-between"><span class="yc-label">Total marketplaces</span><span class="grid h-10 w-10 place-items-center rounded-xl bg-sky-50 text-lg text-sky-700"><i class="ri-store-2-line"></i></span></div>
-            <div class="mt-3 flex items-end justify-between"><div class="text-3xl font-black tracking-tight text-[#153030]">{{ total_marketplaces }}</div><span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Connected</span></div>
-        </div>
-        <div class="yc-card yc-stat p-4 text-emerald-700 sm:p-5">
-            <div class="flex items-center justify-between"><span class="yc-label">Active marketplaces</span><span class="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-lg text-emerald-700"><i class="ri-checkbox-circle-line"></i></span></div>
-            <div class="mt-3 flex items-end justify-between"><div class="text-3xl font-black tracking-tight">{{ active_marketplaces }}</div><span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700/60">Active</span></div>
-        </div>
-        <div class="yc-card yc-stat p-4 text-rose-700 sm:p-5">
-            <div class="flex items-center justify-between"><span class="yc-label">Inactive marketplaces</span><span class="grid h-10 w-10 place-items-center rounded-xl bg-rose-50 text-lg text-rose-700"><i class="ri-close-circle-line"></i></span></div>
-            <div class="mt-3 flex items-end justify-between"><div class="text-3xl font-black tracking-tight">{{ inactive_marketplaces }}</div><span class="text-[10px] font-bold uppercase tracking-wider text-rose-700/60">Inactive</span></div>
+    <!-- MARKETPLACE STATISTICS -->
+    <section class="mb-8">
+        <div class="mb-3 flex items-center gap-2"><i class="ri-bar-chart-grouped-line text-lg text-[#54766b]"></i><h3 class="yc-heading">Marketplace overview</h3></div>
+        <div class="yc-stat-strip">
+            <div class="yc-stat-item">
+                <span class="yc-stat-icon bg-sky-100 text-sky-700"><i class="ri-store-2-line"></i></span>
+                <div><p class="yc-stat-number">{{ total_marketplaces }}</p><p class="yc-stat-caption">Total marketplaces</p></div>
+            </div>
+            <div class="yc-stat-item">
+                <span class="yc-stat-icon bg-emerald-100 text-emerald-700"><i class="ri-checkbox-circle-line"></i></span>
+                <div><p class="yc-stat-number">{{ active_marketplaces }}</p><p class="yc-stat-caption">Active marketplaces</p></div>
+            </div>
+            <div class="yc-stat-item">
+                <span class="yc-stat-icon bg-rose-100 text-rose-700"><i class="ri-close-circle-line"></i></span>
+                <div><p class="yc-stat-number">{{ inactive_marketplaces }}</p><p class="yc-stat-caption">Inactive marketplaces</p></div>
+            </div>
         </div>
     </section>
 
-    <!-- INFORMATION PANELS -->
-    <section class="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div class="yc-card p-5 sm:p-6">
-            <div class="mb-5 flex items-center justify-between gap-3">
-                <div class="yc-section-title"><span class="yc-section-icon"><i class="ri-building-2-line"></i></span><span>Partner Information</span></div>
-                <span class="rounded-lg bg-slate-100 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-slate-500">Profile</span>
-            </div>
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div class="yc-info-cell"><div class="yc-label">Partner name</div><div class="yc-value mt-1.5">{{ courier.name }}</div></div>
-                <div class="yc-info-cell"><div class="yc-label">Partner code</div><div class="yc-value mt-1.5">{{ courier.code }}</div></div>
-                <div class="yc-info-cell"><div class="yc-label">Partner status</div><div class="mt-1.5 text-xs font-extrabold {% if courier.is_active %}text-emerald-700{% else %}text-rose-600{% endif %}">{% if courier.is_active %}<i class="ri-checkbox-circle-fill mr-1"></i>Active{% else %}<i class="ri-close-circle-fill mr-1"></i>Inactive{% endif %}</div></div>
-                <div class="yc-info-cell"><div class="yc-label">Created date</div><div class="yc-value mt-1.5">{{ courier.created_at|date:"d M Y" }}</div></div>
-                <div class="yc-info-cell sm:col-span-2"><div class="yc-label">Last updated</div><div class="yc-value mt-1.5">{{ courier.updated_at|date:"d M Y, h:i A" }}</div></div>
-            </div>
-            <div class="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 p-4">
-                <div class="yc-label mb-2">Description</div>
-                <p class="text-sm leading-6 text-slate-600">{{ courier.description|default:"No description available."|linebreaksbr }}</p>
-            </div>
+    <!-- PARTNER INFORMATION -->
+    <section class="mb-8">
+        <div class="yc-section-head">
+            <span class="yc-section-icon"><i class="ri-building-2-line"></i></span>
+            <div><h3 class="yc-heading">Partner information</h3><p class="mt-0.5 text-xs text-slate-500">Basic profile and record history</p></div>
         </div>
+        <div class="yc-detail-grid">
+            <div class="yc-detail-item"><p class="yc-label"><i class="ri-truck-line"></i> Partner name</p><p class="yc-value">{{ courier.name }}</p></div>
+            <div class="yc-detail-item"><p class="yc-label"><i class="ri-hashtag"></i> Partner code</p><p class="yc-value">{{ courier.code }}</p></div>
+            <div class="yc-detail-item"><p class="yc-label"><i class="ri-shield-check-line"></i> Partner status</p><p class="yc-value">{% if courier.is_active %}<span class="text-emerald-700"><i class="ri-checkbox-circle-fill mr-1"></i>Active</span>{% else %}<span class="text-rose-600"><i class="ri-close-circle-fill mr-1"></i>Inactive</span>{% endif %}</p></div>
+            <div class="yc-detail-item"><p class="yc-label"><i class="ri-calendar-line"></i> Created date</p><p class="yc-value">{{ courier.created_at|date:"d M Y" }}</p></div>
+            <div class="yc-detail-item"><p class="yc-label"><i class="ri-history-line"></i> Last updated</p><p class="yc-value">{{ courier.updated_at|date:"d M Y, h:i A" }}</p></div>
+        </div>
+        <div class="mt-5 border-l-2 border-[#9bb8a8] pl-4">
+            <p class="yc-label mb-2"><i class="ri-file-text-line mr-1"></i>Description</p>
+            <p class="text-sm leading-6 text-slate-600">{{ courier.description|default:"No description available."|linebreaksbr }}</p>
+        </div>
+    </section>
 
-        <div class="yc-card p-5 sm:p-6">
-            <div class="mb-4 yc-section-title"><span class="yc-section-icon"><i class="ri-contacts-line"></i></span><span>Contact Person Information</span></div>
-            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-user-line"></i></span><div class="min-w-0"><div class="yc-label">Contact person name</div><div class="yc-value mt-1">{{ courier.contact_person_name|default:"Not Available" }}</div></div></div>
-            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-briefcase-line"></i></span><div class="min-w-0"><div class="yc-label">Designation</div><div class="yc-value mt-1">{{ courier.designation|default:"Not Available" }}</div></div></div>
-            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-phone-line"></i></span><div class="min-w-0"><div class="yc-label">Primary contact number</div>{% if courier.contact_number %}<a href="tel:{{ courier.contact_number }}" class="yc-value mt-1 block text-[#153030] hover:underline">{{ courier.contact_number }}</a>{% else %}<div class="yc-value mt-1 text-slate-400">Not Available</div>{% endif %}</div></div>
-            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-phone-fill"></i></span><div class="min-w-0"><div class="yc-label">Alternate contact number</div>{% if courier.alternate_contact_number %}<a href="tel:{{ courier.alternate_contact_number }}" class="yc-value mt-1 block text-[#153030] hover:underline">{{ courier.alternate_contact_number }}</a>{% else %}<div class="yc-value mt-1 text-slate-400">Not Available</div>{% endif %}</div></div>
-            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-mail-line"></i></span><div class="min-w-0"><div class="yc-label">Email address</div>{% if courier.email %}<a href="mailto:{{ courier.email }}" class="yc-value mt-1 block break-all text-[#153030] hover:underline">{{ courier.email }}</a>{% else %}<div class="yc-value mt-1 text-slate-400">Not Available</div>{% endif %}</div></div>
+    <!-- CONTACT PERSON -->
+    <section class="mb-8">
+        <div class="yc-section-head">
+            <span class="yc-section-icon"><i class="ri-contacts-line"></i></span>
+            <div><h3 class="yc-heading">Contact person information</h3><p class="mt-0.5 text-xs text-slate-500">Reach the courier partner directly</p></div>
+        </div>
+        <div class="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-user-line"></i></span><div><p class="yc-label">Contact person name</p><p class="yc-value mt-1">{{ courier.contact_person_name|default:"Not Available" }}</p></div></div>
+            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-briefcase-line"></i></span><div><p class="yc-label">Designation</p><p class="yc-value mt-1">{{ courier.designation|default:"Not Available" }}</p></div></div>
+            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-phone-line"></i></span><div><p class="yc-label">Primary contact number</p>{% if courier.contact_number %}<a href="tel:{{ courier.contact_number }}" class="yc-value mt-1 block text-[#315d54]">{{ courier.contact_number }}</a>{% else %}<p class="yc-value mt-1 text-slate-400">Not Available</p>{% endif %}</div></div>
+            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-phone-fill"></i></span><div><p class="yc-label">Alternate contact number</p>{% if courier.alternate_contact_number %}<a href="tel:{{ courier.alternate_contact_number }}" class="yc-value mt-1 block text-[#315d54]">{{ courier.alternate_contact_number }}</a>{% else %}<p class="yc-value mt-1 text-slate-400">Not Available</p>{% endif %}</div></div>
+            <div class="yc-contact-row sm:col-span-2"><span class="yc-contact-icon"><i class="ri-mail-line"></i></span><div class="min-w-0"><p class="yc-label">Email address</p>{% if courier.email %}<a href="mailto:{{ courier.email }}" class="yc-value mt-1 block break-all text-[#315d54]">{{ courier.email }}</a>{% else %}<p class="yc-value mt-1 text-slate-400">Not Available</p>{% endif %}</div></div>
         </div>
     </section>
 
     <!-- ADDRESS INFORMATION -->
-    <section class="yc-card mb-5 p-5 sm:p-6">
-        <div class="mb-5 yc-section-title"><span class="yc-section-icon"><i class="ri-map-pin-2-line"></i></span><span>Address Information</span></div>
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div class="yc-info-cell sm:col-span-3"><div class="yc-label">Office address</div><div class="mt-1.5 text-sm font-semibold leading-6 text-slate-700">{{ courier.address|default:"Address not provided."|linebreaksbr }}</div></div>
-            <div class="yc-info-cell"><div class="yc-label">City</div><div class="yc-value mt-1.5">{{ courier.city|default:"—" }}</div></div>
-            <div class="yc-info-cell"><div class="yc-label">State</div><div class="yc-value mt-1.5">{{ courier.state|default:"—" }}</div></div>
-            <div class="yc-info-cell"><div class="yc-label">Pincode</div><div class="yc-value mt-1.5">{{ courier.pincode|default:"—" }}</div></div>
+    <section class="mb-8">
+        <div class="yc-section-head">
+            <span class="yc-section-icon"><i class="ri-map-pin-2-line"></i></span>
+            <div><h3 class="yc-heading">Address information</h3><p class="mt-0.5 text-xs text-slate-500">Registered office and location details</p></div>
+        </div>
+        <div class="mb-4 border-l-2 border-[#9bb8a8] pl-4">
+            <p class="yc-label mb-1.5"><i class="ri-map-pin-line mr-1"></i>Office address</p>
+            <p class="text-sm font-semibold leading-6 text-slate-700">{{ courier.address|default:"Address not provided."|linebreaksbr }}</p>
+        </div>
+        <div class="yc-detail-grid">
+            <div class="yc-detail-item"><p class="yc-label"><i class="ri-building-line"></i> City</p><p class="yc-value">{{ courier.city|default:"—" }}</p></div>
+            <div class="yc-detail-item"><p class="yc-label"><i class="ri-map-2-line"></i> State</p><p class="yc-value">{{ courier.state|default:"—" }}</p></div>
+            <div class="yc-detail-item"><p class="yc-label"><i class="ri-mail-send-line"></i> Pincode</p><p class="yc-value">{{ courier.pincode|default:"—" }}</p></div>
         </div>
     </section>
 
     <!-- WEBSITE AND TRACKING -->
-    <section class="yc-card mb-5 p-5 sm:p-6">
-        <div class="mb-5 yc-section-title"><span class="yc-section-icon"><i class="ri-global-line"></i></span><span>Website & Tracking Information</span></div>
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div class="yc-info-cell">
-                <div class="yc-label mb-2">Official website</div>
-                {% if courier.website %}<a href="{{ courier.website }}" target="_blank" rel="noopener noreferrer" class="inline-flex max-w-full items-center gap-2 break-all text-sm font-bold text-sky-700 hover:underline">{{ courier.website }} <i class="ri-external-link-line shrink-0"></i></a>{% else %}<p class="text-sm font-medium text-slate-400">Not provided</p>{% endif %}
-            </div>
-            <div class="yc-info-cell">
-                <div class="yc-label mb-2">Shipment tracking URL</div>
-                {% if courier.tracking_url %}<a href="{{ courier.tracking_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-sm font-bold text-sky-700 hover:underline">Open Tracking Website <i class="ri-external-link-line"></i></a>{% else %}<p class="text-sm font-medium text-slate-400">Not provided</p>{% endif %}
-            </div>
+    <section class="mb-8">
+        <div class="yc-section-head">
+            <span class="yc-section-icon"><i class="ri-global-line"></i></span>
+            <div><h3 class="yc-heading">Website & tracking information</h3><p class="mt-0.5 text-xs text-slate-500">Online services and shipment tracking</p></div>
+        </div>
+        <div class="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
+            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-global-line"></i></span><div class="min-w-0"><p class="yc-label">Official website</p>{% if courier.website %}<a href="{{ courier.website }}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-flex max-w-full items-center gap-2 break-all text-sm font-bold text-[#315d54]">{{ courier.website }} <i class="ri-external-link-line"></i></a>{% else %}<p class="yc-value mt-1 text-slate-400">Not provided</p>{% endif %}</div></div>
+            <div class="yc-contact-row"><span class="yc-contact-icon"><i class="ri-map-pin-line"></i></span><div><p class="yc-label">Shipment tracking URL</p>{% if courier.tracking_url %}<a href="{{ courier.tracking_url }}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-flex items-center gap-2 text-sm font-bold text-[#315d54]">Open tracking website <i class="ri-external-link-line"></i></a>{% else %}<p class="yc-value mt-1 text-slate-400">Not provided</p>{% endif %}</div></div>
         </div>
     </section>
 
-    <!-- MARKETPLACE MAPPINGS -->
-    <section class="yc-card overflow-hidden">
-        <div class="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div>
-                <div class="yc-section-title"><span class="yc-section-icon"><i class="ri-links-line"></i></span><span>Associated Marketplaces</span></div>
-                <p class="mt-1.5 pl-[49px] text-xs text-slate-400">Marketplaces connected with {{ courier.name }}.</p>
-            </div>
-            <a href="{% url 'admin:master_marketplacecourierpartner_add' %}" class="yc-action inline-flex items-center justify-center gap-2 rounded-xl bg-[#153030] px-4 py-2.5 text-xs font-extrabold text-white hover:bg-[#204747]"><i class="ri-add-line"></i> Add Mapping</a>
+    <!-- ASSOCIATED MARKETPLACES -->
+    <section>
+        <div class="yc-section-head">
+            <span class="yc-section-icon"><i class="ri-links-line"></i></span>
+            <div><h3 class="yc-heading">Associated marketplaces</h3><p class="mt-0.5 text-xs text-slate-500">Marketplaces connected with {{ courier.name }}.</p></div>
         </div>
-
-        <!-- Desktop table -->
         <div class="yc-table-wrap overflow-x-auto">
-            <table class="yc-table w-full border-collapse text-left text-sm">
-                <thead class="bg-slate-50/80"><tr><th>Marketplace</th><th>Marketplace code</th><th>Website</th><th>Mapping description</th><th>Status</th><th class="text-right">Action</th></tr></thead>
+            <table class="yc-table">
+                <thead><tr><th>Marketplace</th><th>Code</th><th>Website</th><th>Mapping description</th><th>Status</th><th class="text-right">Details</th></tr></thead>
                 <tbody>
                     {% for mapping in mappings %}
-                    <tr class="hover:bg-slate-50/70">
-                        <td><div class="font-extrabold text-[#153030]">{{ mapping.marketplace.name }}</div></td>
-                        <td><span class="rounded-lg bg-slate-100 px-2.5 py-1 text-[10px] font-extrabold text-slate-600">{{ mapping.marketplace.code }}</span></td>
-                        <td>{% if mapping.marketplace.website %}<a href="{{ mapping.marketplace.website }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-bold text-sky-700 hover:underline">Visit Website <i class="ri-external-link-line"></i></a>{% else %}<span class="text-slate-300">—</span>{% endif %}</td>
+                    <tr>
+                        <td><div class="flex items-center gap-2.5"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#e7f0ea] text-[#315d54]"><i class="ri-store-2-line"></i></span><span class="font-extrabold text-[#153030]">{{ mapping.marketplace.name }}</span></div></td>
+                        <td class="font-bold text-slate-600">{{ mapping.marketplace.code }}</td>
+                        <td>{% if mapping.marketplace.website %}<a href="{{ mapping.marketplace.website }}" target="_blank" rel="noopener noreferrer" class="yc-link">Visit website <i class="ri-external-link-line"></i></a>{% else %}<span class="text-slate-300">—</span>{% endif %}</td>
                         <td class="max-w-[240px] text-xs leading-5 text-slate-500">{{ mapping.description|default:"—" }}</td>
-                        <td>{% if mapping.is_active and mapping.marketplace.is_active %}<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-extrabold text-emerald-700"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Active</span>{% else %}<span class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-extrabold text-rose-700"><span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>Inactive</span>{% endif %}</td>
-                        <td class="text-right"><a href="{% url 'marketplace_detail' mapping.marketplace.pk %}" class="inline-flex items-center gap-1 whitespace-nowrap text-xs font-extrabold text-[#153030] hover:text-[#39736a]">View Marketplace <i class="ri-arrow-right-line"></i></a></td>
+                        <td>{% if mapping.is_active and mapping.marketplace.is_active %}<span class="yc-status active"><i class="ri-checkbox-circle-fill"></i> Active</span>{% else %}<span class="yc-status inactive"><i class="ri-close-circle-fill"></i> Inactive</span>{% endif %}</td>
+                        <td class="text-right"><a href="{% url 'marketplace_detail' mapping.marketplace.pk %}" class="yc-link whitespace-nowrap">View marketplace <i class="ri-arrow-right-line"></i></a></td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="px-5 py-14 text-center"><div class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-2xl text-slate-400"><i class="ri-store-2-line"></i></div><p class="mt-3 text-sm font-extrabold text-slate-700">No marketplaces mapped</p><p class="mt-1 text-xs text-slate-400">Connect this courier partner with a marketplace.</p></td></tr>
+                    <tr><td colspan="6" class="py-12 text-center"><i class="ri-store-2-line text-3xl text-slate-300"></i><p class="mt-2 text-sm font-extrabold text-slate-600">No marketplaces mapped</p><p class="mt-1 text-xs text-slate-400">There are no marketplaces connected to this courier partner yet.</p></td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <!-- Mobile mapping cards -->
         <div class="yc-mapping-mobile">
             {% for mapping in mappings %}
-            <article class="yc-mobile-map-card">
+            <article class="border-b border-[#dfe8e3] py-4 last:border-0">
                 <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0"><h4 class="break-words text-sm font-extrabold text-[#153030]">{{ mapping.marketplace.name }}</h4><span class="mt-1.5 inline-flex rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-600">{{ mapping.marketplace.code }}</span></div>
-                    {% if mapping.is_active and mapping.marketplace.is_active %}<span class="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-extrabold text-emerald-700">Active</span>{% else %}<span class="shrink-0 rounded-full bg-rose-50 px-2.5 py-1 text-[9px] font-extrabold text-rose-700">Inactive</span>{% endif %}
+                    <div class="flex min-w-0 items-center gap-2.5">
+                        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#e7f0ea] text-[#315d54]"><i class="ri-store-2-line"></i></span>
+                        <div class="min-w-0"><h4 class="break-words text-sm font-extrabold text-[#153030]">{{ mapping.marketplace.name }}</h4><p class="mt-0.5 text-xs text-slate-500">{{ mapping.marketplace.code }}</p></div>
+                    </div>
+                    {% if mapping.is_active and mapping.marketplace.is_active %}<span class="yc-status active"><i class="ri-checkbox-circle-fill"></i> Active</span>{% else %}<span class="yc-status inactive"><i class="ri-close-circle-fill"></i> Inactive</span>{% endif %}
                 </div>
-                <p class="mt-3 text-xs leading-5 text-slate-500">{{ mapping.description|default:"No mapping description." }}</p>
-                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
-                    {% if mapping.marketplace.website %}<a href="{{ mapping.marketplace.website }}" target="_blank" rel="noopener noreferrer" class="text-[11px] font-bold text-sky-700">Visit Website <i class="ri-external-link-line"></i></a>{% else %}<span class="text-[11px] text-slate-400">Website not provided</span>{% endif %}
-                    <a href="{% url 'marketplace_detail' mapping.marketplace.pk %}" class="inline-flex items-center gap-1 text-[11px] font-extrabold text-[#153030]">View Marketplace <i class="ri-arrow-right-line"></i></a>
+                <p class="mt-3 pl-10 text-xs leading-5 text-slate-500">{{ mapping.description|default:"No mapping description." }}</p>
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 pl-10">
+                    {% if mapping.marketplace.website %}<a href="{{ mapping.marketplace.website }}" target="_blank" rel="noopener noreferrer" class="yc-link">Visit website <i class="ri-external-link-line"></i></a>{% else %}<span class="text-[11px] text-slate-400">Website not provided</span>{% endif %}
+                    <a href="{% url 'marketplace_detail' mapping.marketplace.pk %}" class="yc-link">View marketplace <i class="ri-arrow-right-line"></i></a>
                 </div>
             </article>
             {% empty %}
-            <div class="rounded-xl bg-slate-50 px-4 py-10 text-center"><div class="text-2xl text-slate-300"><i class="ri-store-2-line"></i></div><p class="mt-2 text-sm font-extrabold text-slate-700">No marketplaces mapped</p><p class="mt-1 text-xs text-slate-400">Connect this courier partner with a marketplace.</p></div>
+            <div class="py-10 text-center"><i class="ri-store-2-line text-3xl text-slate-300"></i><p class="mt-2 text-sm font-extrabold text-slate-600">No marketplaces mapped</p><p class="mt-1 text-xs text-slate-400">There are no marketplaces connected to this courier partner yet.</p></div>
             {% endfor %}
         </div>
     </section>
 </div>
-
 {% endblock %}

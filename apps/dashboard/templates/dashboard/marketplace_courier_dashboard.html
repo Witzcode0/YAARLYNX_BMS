@@ -174,6 +174,302 @@
     @media (prefers-reduced-motion: reduce) {
         .mc-page *, .mc-page *::before, .mc-page *::after { scroll-behavior: auto !important; transition: none !important; }
     }
+
+/* ============================================================
+   YAARLYNX — ICON LEDGER / SECTION-FIRST INTERFACE
+   Flat sections only. No cards, tile grids or boxed KPI panels.
+   ============================================================ */
+.mc-page {
+    --mc-ink:#153030; --mc-ink-soft:#244747; --mc-muted:#7a8b87;
+    --mc-line:#e3ebe6; --mc-green:#2b8a64;
+    font-family:inherit;
+}
+.mc-wrap { max-width:1600px; padding:22px 26px 42px; }
+
+/* Header: editorial command banner */
+.mc-hero {
+    min-height:190px; align-items:center; padding:32px 36px;
+    border-radius:5px 22px 5px 22px; box-shadow:none;
+    background:linear-gradient(112deg,#102727 0%,#153b38 65%,#37665b 100%);
+}
+.mc-hero::before { width:430px;height:430px;right:10%;top:-335px; }
+.mc-hero::after { width:260px;height:260px;right:-75px;bottom:-190px; }
+.mc-breadcrumb { gap:10px; font-size:9px; letter-spacing:.15em; }
+.mc-breadcrumb i { color:#8eb7a6;font-size:14px; }
+.mc-hero-title { font-size:clamp(27px,3.2vw,40px); letter-spacing:-.05em; }
+.mc-hero-description { max-width:670px;font-size:12px; }
+.mc-hero-link { min-height:42px;border-radius:6px;font-size:10px; }
+.mc-hero-link-primary { background:#dcece4;border-color:#dcece4; }
+
+/* Summary becomes a single ledger-like row, never three cards */
+.mc-kpis {
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;
+    margin:22px 0 0;padding:0;border-top:1px solid var(--mc-line);
+    border-bottom:1px solid var(--mc-line);background:transparent;
+}
+.mc-kpi {
+    display:flex;align-items:center;gap:15px;min-width:0;overflow:visible;
+    padding:19px 22px;border:0;border-radius:0;background:transparent;box-shadow:none;
+}
+.mc-kpi + .mc-kpi { border-left:1px solid var(--mc-line); }
+.mc-kpi::before { display:none; }
+.mc-kpi-icon {
+    width:45px;height:45px;border-radius:50%;font-size:19px;
+    background:#edf4f0!important;color:#28664f!important;
+}
+.mc-kpi-courier .mc-kpi-icon { background:#edf3fa!important;color:#426fa8!important; }
+.mc-kpi-mapping .mc-kpi-icon { background:#f2eff9!important;color:#7961aa!important; }
+.mc-kpi-content { display:flex;min-width:0;flex-direction:column;align-items:flex-start; }
+.mc-kpi-label { margin:0;color:#82918b;font-size:9px;letter-spacing:.13em; }
+.mc-kpi-value { margin:4px 0 3px;font-size:30px;line-height:1;font-weight:900;color:var(--mc-ink); }
+.mc-kpi-foot { display:flex;align-items:center;gap:5px;margin-top:3px;color:#81918a;font-size:9px; }
+.mc-kpi-foot i { color:#23835b;font-size:12px; }
+.mc-kpi-foot b { color:#c0cbc5;font-weight:500; }
+
+/* Section navigation: icon rail with active marker */
+.mc-tabs-shell {
+    margin-top:22px;padding:0;border:0;border-bottom:1px solid var(--mc-line);
+    border-radius:0;background:transparent;box-shadow:none;
+}
+.mc-tabs { gap:26px; }
+.mc-tab {
+    position:relative;min-height:48px;padding:12px 3px;border-radius:0;
+    color:#7a8984;font-size:10px;letter-spacing:.01em;
+}
+.mc-tab i { font-size:16px; }
+.mc-tab:hover { color:var(--mc-ink);background:transparent; }
+.mc-tab.is-active {
+    color:var(--mc-ink);background:transparent;box-shadow:none;
+}
+.mc-tab.is-active i { color:#25835d; }
+.mc-tab.is-active::after {
+    position:absolute;right:0;bottom:-1px;left:0;height:3px;
+    content:"";background:#25835d;border-radius:3px 3px 0 0;
+}
+
+/* Filters: compact toolbar, not a panel */
+.mc-filter {
+    margin-top:17px;padding:0 0 15px;border:0;border-bottom:1px solid var(--mc-line);
+    border-radius:0;background:transparent;
+}
+.mc-filter-grid { grid-template-columns:minmax(0,1fr) 190px auto;gap:9px; }
+.mc-field { min-height:40px;border-radius:5px;background:#fff; }
+.mc-btn { min-height:40px;border-radius:5px; }
+
+/* Every panel is flattened into a section with a rule and whitespace */
+.mc-panel {
+    overflow:visible;border:0;border-radius:0;background:transparent;box-shadow:none;
+}
+.mc-overview-grid { gap:34px;margin-top:28px; }
+.mc-panel-head,.mc-record-header {
+    min-height:56px;padding:0 0 13px;border:0;border-bottom:1px solid var(--mc-line);
+    background:transparent;
+}
+.mc-panel-title {
+    display:flex;align-items:center;gap:9px;margin:0;
+    font-size:14px;letter-spacing:-.025em;
+}
+.mc-panel-title i { color:#2b8060;font-size:17px; }
+.mc-panel-subtitle { margin-top:5px;font-size:10px; }
+.mc-panel-link { color:#28664f;font-size:10px; }
+.mc-list-item {
+    min-height:63px;padding:12px 2px;border-bottom:1px solid #edf1ee;
+    background:transparent;
+}
+.mc-list-item:hover { background:#f7faf8; }
+.mc-list-icon { width:36px;height:36px;border-radius:9px;font-size:17px; }
+.mc-list-name { font-size:11px;color:#29423b; }
+.mc-list-code { font-size:9px; }
+.mc-status { border-radius:4px;padding:5px 8px;font-size:8px;letter-spacing:.02em; }
+.mc-section-gap { margin-top:31px; }
+
+/* Mapping table and directory are full-width data sections */
+.mc-table-wrap { overflow-x:auto;border-top:1px solid #e8eeea; }
+.mc-table { min-width:740px;border-collapse:collapse; }
+.mc-table th {
+    padding:13px 14px;color:#71827b;background:#f4f7f5;
+    border-bottom:1px solid #e3ebe6;font-size:8px;letter-spacing:.12em;
+}
+.mc-table td { padding:14px;border-top:0;border-bottom:1px solid #edf1ee;font-size:10px; }
+.mc-table tbody tr:nth-child(even) { background:#fafcfb; }
+.mc-table tbody tr:hover { background:#edf5f0; }
+.mc-table tbody tr:hover td { background:transparent; }
+.mc-table-primary { color:#153030!important; }
+.mc-code { border-radius:4px;background:#eff4f1; }
+.mc-action { border-radius:5px; }
+
+/* Relationship view changes from tiles into a structured directory list */
+.mc-relationship-grid {
+    display:block;margin-top:12px;border-top:1px solid var(--mc-line);
+}
+.mc-relationship {
+    display:grid;grid-template-columns:minmax(190px,.75fr) minmax(0,1.8fr) auto;
+    align-items:center;gap:18px;min-height:68px;padding:13px 5px;
+    border:0;border-bottom:1px solid var(--mc-line);border-radius:0;
+    background:transparent;box-shadow:none;transition:background .15s ease;
+}
+.mc-relationship:hover { transform:none;border-color:var(--mc-line);box-shadow:none;background:#f7faf8; }
+.mc-relationship > .flex { display:flex;align-items:center;justify-content:space-between;gap:12px;grid-column:1; }
+.mc-relationship-name { display:flex;align-items:center;gap:8px;font-size:11px; }
+.mc-relationship-name::before {
+    content:"";width:7px;height:7px;flex:0 0 auto;border-radius:50%;background:#2b8a64;
+}
+.mc-relationship-code { margin:4px 0 0 15px; }
+.mc-relationship > div:nth-child(2) { grid-column:2; }
+.mc-relationship .rounded-lg {
+    flex:0 0 auto;white-space:nowrap;
+    color:#537268!important;background:#edf4f0!important;
+}
+.mc-partner-chips { margin:0;gap:6px; }
+.mc-partner-chip { display:inline-flex;align-items:center;gap:5px;border-radius:4px;padding:6px 8px;font-size:9px; }
+.mc-partner-chip::before { content:"\f0d1";font-family:remixicon;font-size:11px; }
+.mc-relationship > a { grid-column:3;grid-row:1;justify-self:end;margin:0!important;white-space:nowrap; }
+
+/* Mobile records: list rows, not card-like boxes */
+.mc-mobile-card {
+    padding:14px 3px;border:0;border-bottom:1px solid var(--mc-line);
+    border-radius:0;background:transparent;
+}
+.mc-mobile-card:hover { background:#f7faf8; }
+.mc-mobile-meta { gap:12px; }
+.mc-mobile-meta > div { padding:8px 0;border:0;border-top:1px solid #edf1ee;border-radius:0;background:transparent; }
+.mc-mobile-actions { margin-top:10px; }
+.mc-mobile-actions .mc-action { border-radius:4px; }
+.mc-pagination {
+    padding:13px 0;border:0;border-top:1px solid var(--mc-line);
+    border-bottom:1px solid var(--mc-line);border-radius:0;background:transparent;
+}
+.mc-page-current { border-radius:4px; }
+.mc-empty { padding:28px 5px;text-align:left; }
+footer { margin-top:30px!important; }
+
+@media(max-width:900px) {
+    .mc-wrap { padding:18px 17px 32px; }
+    .mc-hero { align-items:flex-start;flex-direction:column; }
+    .mc-relationship { grid-template-columns:minmax(150px,.8fr) minmax(0,1.5fr); }
+    .mc-relationship .rounded-lg { grid-column:1;grid-row:2;justify-self:start;margin-left:15px; }
+    .mc-relationship > a { grid-column:2;grid-row:2; }
+}
+@media(max-width:700px) {
+    .mc-wrap { padding:13px 11px 26px; }
+    .mc-hero { padding:23px 18px;border-radius:4px 15px 4px 15px; }
+    .mc-hero-title { font-size:24px; }
+    .mc-kpis { grid-template-columns:1fr;margin-top:14px; }
+    .mc-kpi { min-height:75px;padding:12px 5px; }
+    .mc-kpi + .mc-kpi { border-left:0;border-top:1px solid var(--mc-line); }
+    .mc-kpi-value { font-size:26px; }
+    .mc-tabs { gap:17px; }
+    .mc-tab { min-height:44px;padding:11px 1px;font-size:9px; }
+    .mc-filter-grid { grid-template-columns:1fr; }
+    .mc-filter-actions { grid-column:auto; }
+    .mc-filter-actions .mc-btn-primary { flex:1; }
+    .mc-overview-grid { grid-template-columns:1fr;gap:27px; }
+    .mc-panel-head,.mc-record-header { padding-bottom:11px; }
+    .mc-relationship { grid-template-columns:1fr;gap:8px;padding:14px 3px; }
+    .mc-relationship > .flex { display:flex;align-items:center;justify-content:space-between;gap:10px; }
+    .mc-relationship > div:nth-child(2) { grid-column:1; }
+    .mc-relationship .rounded-lg { margin-left:8px; }
+    .mc-relationship > a { grid-column:1;grid-row:auto;justify-self:start; }
+    .mc-table-wrap { display:none; }
+    .mc-mobile-records { display:block; }
+    .mc-pagination { align-items:flex-start;flex-direction:column; }
+    .mc-page-links { width:100%;justify-content:space-between; }
+}
+@media(max-width:420px) {
+    .mc-wrap { padding-left:8px;padding-right:8px; }
+    .mc-hero { padding:19px 15px; }
+    .mc-hero-title { font-size:22px; }
+    .mc-hero-actions { display:grid;grid-template-columns:1fr 1fr;width:100%; }
+    .mc-hero-link { padding:9px 7px;font-size:9px; }
+    .mc-tabs { gap:12px; }
+    .mc-tab { gap:5px;font-size:8px; }
+}
+
+
+
+/* Premium YAARLYNX page background and balanced section surfaces */
+.mc-page {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 100vh;
+    background:
+        radial-gradient(ellipse at 8% 4%, rgba(111, 158, 137, .16) 0, rgba(111, 158, 137, 0) 34%),
+        radial-gradient(ellipse at 94% 22%, rgba(190, 211, 199, .30) 0, rgba(190, 211, 199, 0) 30%),
+        linear-gradient(145deg, #f3f7f4 0%, #edf3ef 48%, #f7f8f5 100%);
+}
+.mc-page::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 360px;
+    right: -180px;
+    width: 420px;
+    height: 420px;
+    border: 1px solid rgba(21, 48, 48, .045);
+    border-radius: 50%;
+    box-shadow: 0 0 0 42px rgba(21, 48, 48, .018), 0 0 0 84px rgba(21, 48, 48, .012);
+    pointer-events: none;
+}
+.mc-wrap { position: relative; z-index: 1; padding-top: 24px; }
+.mc-hero {
+    background: linear-gradient(115deg, #102b2b 0%, #153b39 52%, #2e6253 100%);
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 18px 42px rgba(17, 48, 43, .16), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.mc-kpis {
+    margin-top: 18px;
+    padding: 12px 20px;
+    border: 1px solid rgba(218, 230, 222, .95);
+    border-radius: 16px;
+    background: rgba(255,255,255,.82);
+    box-shadow: 0 8px 24px rgba(26, 61, 49, .045);
+    backdrop-filter: blur(10px);
+}
+.mc-tabs {
+    margin-top: 24px;
+    padding: 0 16px;
+    border: 1px solid #e0e9e2;
+    border-radius: 13px 13px 0 0;
+    background: rgba(255,255,255,.72);
+}
+.mc-filter-grid {
+    padding: 16px;
+    border: 1px solid #e0e9e2;
+    border-top: 0;
+    border-radius: 0 0 13px 13px;
+    background: rgba(255,255,255,.78);
+    box-shadow: 0 8px 22px rgba(26, 61, 49, .035);
+}
+.mc-overview-grid { margin-top: 24px; }
+.mc-overview-grid > .mc-panel,
+.mc-page > .mc-wrap > .mc-panel,
+.mc-section-gap {
+    border: 1px solid #e1eae3;
+    border-radius: 16px;
+    background: rgba(255,255,255,.88);
+    box-shadow: 0 10px 28px rgba(25, 58, 47, .045);
+}
+.mc-overview-grid > .mc-panel { padding: 19px 21px; }
+.mc-section-gap { margin-top: 22px; padding: 20px 21px; }
+.mc-panel-head,.mc-record-header { border-bottom-color: #e6eee8; }
+.mc-table-wrap { border: 1px solid #e6eee8; border-radius: 11px; background: #fff; }
+.mc-table th { background: #edf4ef; color: #526c60; }
+.mc-table tbody tr:nth-child(even) { background: #f8fbf8; }
+.mc-table tbody tr:hover { background: #edf6ef; }
+.mc-relationship-grid { border-top-color: #e6eee8; }
+.mc-relationship:hover,.mc-list-item:hover,.mc-mobile-card:hover { background: #f1f7f2; }
+.mc-mobile-card { padding-left: 12px; padding-right: 12px; }
+.mc-pagination { margin-top: 12px; }
+@media(max-width:700px) {
+    .mc-wrap { padding-top: 13px; }
+    .mc-kpis { padding: 8px 14px; border-radius: 13px; }
+    .mc-tabs { padding: 0 12px; margin-top: 17px; }
+    .mc-filter-grid { padding: 12px; }
+    .mc-overview-grid > .mc-panel { padding: 15px 14px; }
+    .mc-section-gap { padding: 15px 13px; border-radius: 13px; }
+}
+
 </style>
 
 <div class="mc-page">
@@ -191,40 +487,32 @@
             </div>
         </section>
 
-        <!-- SUMMARY CARDS -->
+        <!-- SUMMARY STRIP: flat metrics, no cards -->
         <section class="mc-kpis" aria-label="Marketplace and courier summary">
-            <article class="mc-kpi mc-kpi-market">
-                <div class="mc-kpi-top">
-                    <span class="mc-kpi-icon"><i class="ri-store-2-line"></i></span>
-                    <span class="mc-kpi-active">{{ active_marketplaces|default:0 }} Active</span>
+            <div class="mc-kpi mc-kpi-market">
+                <span class="mc-kpi-icon"><i class="ri-store-2-line"></i></span>
+                <div class="mc-kpi-content">
+                    <span class="mc-kpi-label">Marketplace channels</span>
+                    <strong class="mc-kpi-value">{{ total_marketplaces|default:0 }}</strong>
+                    <span class="mc-kpi-foot"><i class="ri-checkbox-circle-line"></i> {{ active_marketplaces|default:0 }} active <b>·</b> {{ inactive_marketplaces|default:0 }} inactive</span>
                 </div>
-                <p class="mc-kpi-label">Total marketplaces</p>
-                <p class="mc-kpi-value">{{ total_marketplaces|default:0 }}</p>
-                <div class="mc-kpi-foot"><span>{{ inactive_marketplaces|default:0 }} inactive</span><span>Marketplace coverage</span></div>
-                <div class="mc-progress"><span style="width:{% widthratio active_marketplaces|default:0 total_marketplaces|default:1 100 %}%"></span></div>
-            </article>
-
-            <article class="mc-kpi mc-kpi-courier">
-                <div class="mc-kpi-top">
-                    <span class="mc-kpi-icon"><i class="ri-truck-line"></i></span>
-                    <span class="mc-kpi-active">{{ active_couriers|default:0 }} Active</span>
+            </div>
+            <div class="mc-kpi mc-kpi-courier">
+                <span class="mc-kpi-icon"><i class="ri-truck-line"></i></span>
+                <div class="mc-kpi-content">
+                    <span class="mc-kpi-label">Courier partners</span>
+                    <strong class="mc-kpi-value">{{ total_couriers|default:0 }}</strong>
+                    <span class="mc-kpi-foot"><i class="ri-checkbox-circle-line"></i> {{ active_couriers|default:0 }} active <b>·</b> {{ inactive_couriers|default:0 }} inactive</span>
                 </div>
-                <p class="mc-kpi-label">Courier partners</p>
-                <p class="mc-kpi-value">{{ total_couriers|default:0 }}</p>
-                <div class="mc-kpi-foot"><span>{{ inactive_couriers|default:0 }} inactive</span><span>Partner coverage</span></div>
-                <div class="mc-progress"><span style="width:{% widthratio active_couriers|default:0 total_couriers|default:1 100 %}%"></span></div>
-            </article>
-
-            <article class="mc-kpi mc-kpi-mapping">
-                <div class="mc-kpi-top">
-                    <span class="mc-kpi-icon"><i class="ri-git-merge-line"></i></span>
-                    <span class="mc-kpi-active">{{ active_mappings|default:0 }} Active</span>
+            </div>
+            <div class="mc-kpi mc-kpi-mapping">
+                <span class="mc-kpi-icon"><i class="ri-git-merge-line"></i></span>
+                <div class="mc-kpi-content">
+                    <span class="mc-kpi-label">Courier connections</span>
+                    <strong class="mc-kpi-value">{{ total_mappings|default:0 }}</strong>
+                    <span class="mc-kpi-foot"><i class="ri-checkbox-circle-line"></i> {{ active_mappings|default:0 }} active <b>·</b> {{ inactive_mappings|default:0 }} inactive</span>
                 </div>
-                <p class="mc-kpi-label">Courier mappings</p>
-                <p class="mc-kpi-value">{{ total_mappings|default:0 }}</p>
-                <div class="mc-kpi-foot"><span>{{ inactive_mappings|default:0 }} inactive</span><span>Channel connections</span></div>
-                <div class="mc-progress"><span style="width:{% widthratio active_mappings|default:0 total_mappings|default:1 100 %}%"></span></div>
-            </article>
+            </div>
         </section>
 
         <!-- SECTION NAVIGATION -->
@@ -264,7 +552,7 @@
             <div class="mc-overview-grid">
                 <section class="mc-panel">
                     <div class="mc-panel-head">
-                        <div><h2 class="mc-panel-title">Marketplace channels</h2><p class="mc-panel-subtitle">Your recently added sales channels</p></div>
+                        <div><h2 class="mc-panel-title"><i class="ri-store-2-line"></i> Marketplace channels</h2><p class="mc-panel-subtitle">Your recently added sales channels</p></div>
                         <a href="?section=marketplaces" class="mc-panel-link">View all <i class="ri-arrow-right-line"></i></a>
                     </div>
                     <div>
@@ -284,7 +572,7 @@
 
                 <section class="mc-panel">
                     <div class="mc-panel-head">
-                        <div><h2 class="mc-panel-title">Courier network</h2><p class="mc-panel-subtitle">Your recently added logistics partners</p></div>
+                        <div><h2 class="mc-panel-title"><i class="ri-truck-line"></i> Courier network</h2><p class="mc-panel-subtitle">Your recently added logistics partners</p></div>
                         <a href="?section=couriers" class="mc-panel-link">View all <i class="ri-arrow-right-line"></i></a>
                     </div>
                     <div>
@@ -305,7 +593,7 @@
 
             <section class="mc-panel mc-section-gap">
                 <div class="mc-panel-head">
-                    <div><h2 class="mc-panel-title">Recent courier mappings</h2><p class="mc-panel-subtitle">Marketplace-to-courier relationships at a glance</p></div>
+                    <div><h2 class="mc-panel-title"><i class="ri-git-merge-line"></i> Recent courier mappings</h2><p class="mc-panel-subtitle">Marketplace-to-courier relationships at a glance</p></div>
                     <a href="?section=mappings" class="mc-panel-link">View all mappings <i class="ri-arrow-right-line"></i></a>
                 </div>
                 <div class="mc-table-wrap">
@@ -367,7 +655,7 @@
             {% if section == 'marketplaces' %}
                 <section class="mc-panel mc-section-gap">
                     <div class="mc-record-header">
-                        <div><h2 class="mc-panel-title">Marketplace directory</h2><p class="mc-panel-subtitle">Registered marketplaces and their courier coverage</p></div>
+                        <div><h2 class="mc-panel-title"><i class="ri-store-2-line"></i> Marketplace directory</h2><p class="mc-panel-subtitle">Registered marketplaces and their courier coverage</p></div>
                         <span class="mc-record-count">{{ paginator.count|default:0 }} Records</span>
                     </div>
                     <div class="mc-table-wrap">
@@ -402,7 +690,7 @@
             {% elif section == 'couriers' %}
                 <section class="mc-panel mc-section-gap">
                     <div class="mc-record-header">
-                        <div><h2 class="mc-panel-title">Courier partner directory</h2><p class="mc-panel-subtitle">Logistics contacts, service locations and marketplace connections</p></div>
+                        <div><h2 class="mc-panel-title"><i class="ri-truck-line"></i> Courier partner directory</h2><p class="mc-panel-subtitle">Logistics contacts, service locations and marketplace connections</p></div>
                         <span class="mc-record-count">{{ paginator.count|default:0 }} Records</span>
                     </div>
                     <div class="mc-table-wrap">
@@ -438,12 +726,12 @@
             {% elif section == 'mappings' %}
                 <section class="mc-panel mc-section-gap">
                     <div class="mc-record-header">
-                        <div><h2 class="mc-panel-title">Marketplace courier mappings</h2><p class="mc-panel-subtitle">Manage and review channel-to-logistics relationships</p></div>
+                        <div><h2 class="mc-panel-title"><i class="ri-node-tree"></i> Marketplace courier mappings</h2><p class="mc-panel-subtitle">Manage and review channel-to-logistics relationships</p></div>
                         <span class="mc-record-count">{{ paginator.count|default:0 }} Records</span>
                     </div>
                     <div class="mc-table-wrap">
                         <table class="mc-table">
-                            <thead><tr><th>Marketplace</th><th>Courier partner</th><th>Description</th><th>Created date</th><th>Status</th><th class="text-right">Action</th></tr></thead>
+                            <thead><tr><th>Marketplace</th><th>Courier partner</th><th>Description</th><th>Created date</th><th>Status</th></tr></thead>
                             <tbody>
                                 {% for mapping in records %}
                                     <tr>
@@ -452,9 +740,8 @@
                                         <td>{{ mapping.description|default:"—" }}</td>
                                         <td>{{ mapping.created_at|date:"d M Y" }}</td>
                                         <td>{% if mapping.is_active %}<span class="mc-status mc-status-active">Active</span>{% else %}<span class="mc-status mc-status-inactive">Inactive</span>{% endif %}</td>
-                                        <td class="text-right"><a href="{% url 'master_marketplacecourierpartner_change' mapping.pk %}" class="mc-action"><i class="ri-edit-line"></i> Edit mapping</a></td>
                                     </tr>
-                                {% empty %}<tr><td colspan="6" class="py-12 text-center text-slate-400">No mappings found. Try changing your search or status filter.</td></tr>{% endfor %}
+                                {% empty %}<tr><td colspan="5" class="py-12 text-center text-slate-400">No mappings found. Try changing your search or status filter.</td></tr>{% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -463,7 +750,6 @@
                             <article class="mc-mobile-card">
                                 <div class="mc-mobile-top"><div class="min-w-0"><h3 class="mc-mobile-title">{{ mapping.marketplace.name }}</h3><p class="mt-1 text-[9px] text-slate-400">Courier relationship</p></div>{% if mapping.is_active %}<span class="mc-status mc-status-active">Active</span>{% else %}<span class="mc-status mc-status-inactive">Inactive</span>{% endif %}</div>
                                 <div class="mc-mobile-meta"><div><span>Courier partner</span><strong>{{ mapping.courier_partner.name }}</strong></div><div><span>Created date</span><strong>{{ mapping.created_at|date:"d M Y" }}</strong></div><div class="col-span-2"><span>Description</span><strong>{{ mapping.description|default:"—" }}</strong></div></div>
-                                <div class="mc-mobile-actions"><a href="{% url 'master_marketplacecourierpartner_change' mapping.pk %}" class="mc-action"><i class="ri-edit-line"></i> Edit mapping</a></div>
                             </article>
                         {% empty %}<div class="mc-empty"><i class="ri-git-merge-line"></i>No mappings found. Try changing your filters.</div>{% endfor %}
                     </div>
