@@ -45,7 +45,8 @@ INSTALLED_APPS_CUSTOM = [
     'apps.master',
     'apps.dashboard',
     'apps.accounts',
-    'apps.pdf_overlay'
+    'apps.pdf_overlay',
+    'apps.marketplace',
 ]
 
 INSTALLED_APPS += INSTALLED_APPS_CUSTOM

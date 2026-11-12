@@ -70,5 +70,22 @@ path(
         pdf_overlay_view,
         name="pdf_overlay"
     ),
+    path(
+        "marketplace-courier/",
+        marketplace_courier_dashboard,
+        name="marketplace_courier_dashboard"
+    ),
+
+    path(
+        "marketplace-courier/marketplace/<uuid:pk>/",
+        marketplace_detail,
+        name="marketplace_detail"
+    ),
+
+    path(
+        "marketplace-courier/partner/<uuid:pk>/",
+        courier_partner_detail,
+        name="courier_partner_detail"
+    ),
     
 ]

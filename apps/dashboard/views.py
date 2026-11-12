@@ -133,6 +133,14 @@ from apps.dashboard.decorators import (
 )
 
 
+
+
+from apps.marketplace.models import (
+    Marketplace,
+    CourierPartner,
+    MarketplaceCourierPartner,
+)
+
 # ==========================================================
 # 06. COMMON FINANCE CONSTANTS
 # ==========================================================
@@ -3697,4 +3705,356 @@ def pdf_overlay_view(request):
             "overlay_images": overlay_images,
             "default_overlay": default_overlay,
         }
+    )
+
+
+
+# ==========================================================
+# MARKETPLACE & COURIER DASHBOARD
+# ==========================================================
+
+def marketplace_courier_dashboard(request):
+
+    print("hi-1")
+
+    # ------------------------------------------------------
+    # GET PARAMETERS
+    # ------------------------------------------------------
+
+    search = request.GET.get("q", "").strip()
+    section = request.GET.get("section", "overview")
+    status = request.GET.get("status", "all")
+    page_number = request.GET.get("page", 1)
+
+    allowed_sections = [
+        "overview",
+        "marketplaces",
+        "couriers",
+        "mappings",
+    ]
+
+    if section not in allowed_sections:
+        section = "overview"
+
+    # ------------------------------------------------------
+    # BASE QUERYSETS
+    # ------------------------------------------------------
+
+    marketplace_qs = Marketplace.objects.all()
+
+    courier_qs = CourierPartner.objects.all()
+
+    mapping_qs = MarketplaceCourierPartner.objects.select_related(
+        "marketplace",
+        "courier_partner",
+    )
+
+    # ------------------------------------------------------
+    # DASHBOARD STATISTICS
+    # ------------------------------------------------------
+
+    total_marketplaces = Marketplace.objects.count()
+
+    active_marketplaces = Marketplace.objects.filter(
+        is_active=True
+    ).count()
+
+    inactive_marketplaces = Marketplace.objects.filter(
+        is_active=False
+    ).count()
+
+    total_couriers = CourierPartner.objects.count()
+
+    active_couriers = CourierPartner.objects.filter(
+        is_active=True
+    ).count()
+
+    inactive_couriers = CourierPartner.objects.filter(
+        is_active=False
+    ).count()
+
+    total_mappings = MarketplaceCourierPartner.objects.count()
+
+    active_mappings = MarketplaceCourierPartner.objects.filter(
+        is_active=True
+    ).count()
+
+    inactive_mappings = total_mappings - active_mappings
+
+    # ------------------------------------------------------
+    # MARKETPLACE COURIER COUNTS
+    # ------------------------------------------------------
+
+    marketplace_qs = marketplace_qs.annotate(
+        total_courier_partners=Count(
+            "courier_mappings",
+            distinct=True
+        ),
+        active_courier_partners=Count(
+            "courier_mappings",
+            filter=Q(courier_mappings__is_active=True),
+            distinct=True
+        )
+    )
+
+    # ------------------------------------------------------
+    # COURIER MARKETPLACE COUNTS
+    # ------------------------------------------------------
+
+    courier_qs = courier_qs.annotate(
+        total_marketplaces=Count(
+            "marketplace_mappings",
+            distinct=True
+        ),
+        active_marketplaces_count=Count(
+            "marketplace_mappings",
+            filter=Q(marketplace_mappings__is_active=True),
+            distinct=True
+        )
+    )
+
+    # ------------------------------------------------------
+    # STATUS FILTER
+    # ------------------------------------------------------
+
+    if status == "active":
+        marketplace_qs = marketplace_qs.filter(is_active=True)
+        courier_qs = courier_qs.filter(is_active=True)
+        mapping_qs = mapping_qs.filter(is_active=True)
+
+    elif status == "inactive":
+        marketplace_qs = marketplace_qs.filter(is_active=False)
+        courier_qs = courier_qs.filter(is_active=False)
+        mapping_qs = mapping_qs.filter(is_active=False)
+
+    # ------------------------------------------------------
+    # SEARCH FILTER
+    # ------------------------------------------------------
+
+    if search:
+
+        marketplace_qs = marketplace_qs.filter(
+            Q(name__icontains=search) |
+            Q(code__icontains=search) |
+            Q(website__icontains=search)
+        )
+
+        courier_qs = courier_qs.filter(
+            Q(name__icontains=search) |
+            Q(code__icontains=search) |
+            Q(contact_person_name__icontains=search) |
+            Q(designation__icontains=search) |
+            Q(contact_number__icontains=search) |
+            Q(alternate_contact_number__icontains=search) |
+            Q(email__icontains=search) |
+            Q(city__icontains=search) |
+            Q(state__icontains=search) |
+            Q(pincode__icontains=search)
+        )
+
+        mapping_qs = mapping_qs.filter(
+            Q(marketplace__name__icontains=search) |
+            Q(courier_partner__name__icontains=search) |
+            Q(description__icontains=search)
+        )
+
+    # ------------------------------------------------------
+    # ORDERING
+    # ------------------------------------------------------
+
+    marketplace_qs = marketplace_qs.order_by("name")
+
+    courier_qs = courier_qs.order_by("name")
+
+    mapping_qs = mapping_qs.order_by("-created_at")
+
+    # ------------------------------------------------------
+    # RECENT RECORDS
+    # ------------------------------------------------------
+
+    recent_marketplaces = Marketplace.objects.order_by(
+        "-created_at"
+    )[:5]
+
+    recent_couriers = CourierPartner.objects.order_by(
+        "-created_at"
+    )[:5]
+
+    recent_mappings = MarketplaceCourierPartner.objects.select_related(
+        "marketplace",
+        "courier_partner",
+    ).order_by("-created_at")[:5]
+
+    # ------------------------------------------------------
+    # PAGINATION
+    # ------------------------------------------------------
+
+    if section == "marketplaces":
+        selected_queryset = marketplace_qs
+
+    elif section == "couriers":
+        selected_queryset = courier_qs
+
+    elif section == "mappings":
+        selected_queryset = mapping_qs
+
+    else:
+        selected_queryset = None
+
+    paginator = None
+    page_obj = None
+
+    if selected_queryset is not None:
+        paginator = Paginator(selected_queryset, 20)
+        page_obj = paginator.get_page(page_number)
+
+    # ------------------------------------------------------
+    # MARKETPLACE DETAILS WITH COURIER MAPPINGS
+    # ------------------------------------------------------
+
+    marketplace_details = Marketplace.objects.prefetch_related(
+        Prefetch(
+            "courier_mappings",
+            queryset=MarketplaceCourierPartner.objects.select_related(
+                "courier_partner"
+            ).order_by("courier_partner__name"),
+        )
+    ).order_by("name")
+
+    # ------------------------------------------------------
+    # DASHBOARD CONTEXT
+    # ------------------------------------------------------
+
+    context = {
+
+        # Filters
+        "search": search,
+        "section": section,
+        "status": status,
+
+        # General statistics
+        "total_marketplaces": total_marketplaces,
+        "active_marketplaces": active_marketplaces,
+        "inactive_marketplaces": inactive_marketplaces,
+
+        "total_couriers": total_couriers,
+        "active_couriers": active_couriers,
+        "inactive_couriers": inactive_couriers,
+
+        "total_mappings": total_mappings,
+        "active_mappings": active_mappings,
+        "inactive_mappings": inactive_mappings,
+
+        # Querysets
+        "marketplaces": marketplace_qs,
+        "couriers": courier_qs,
+        "mappings": mapping_qs,
+
+        # Recent records
+        "recent_marketplaces": recent_marketplaces,
+        "recent_couriers": recent_couriers,
+        "recent_mappings": recent_mappings,
+
+        # Detailed relationship data
+        "marketplace_details": marketplace_details,
+
+        # Pagination
+        "paginator": paginator,
+        "page_obj": page_obj,
+        "records": page_obj.object_list if page_obj else [],
+
+        # Additional information
+        "current_date": timezone.now(),
+    }
+
+    print("hi-2")
+
+    return render(
+        request,
+        "dashboard/marketplace_courier_dashboard.html",
+        context
+    )
+
+
+# ==========================================================
+# MARKETPLACE DETAIL VIEW
+# ==========================================================
+
+def marketplace_detail(request, pk):
+
+    marketplace = get_object_or_404(
+        Marketplace.objects.prefetch_related(
+            Prefetch(
+                "courier_mappings",
+                queryset=MarketplaceCourierPartner.objects.select_related(
+                    "courier_partner"
+                ).order_by("courier_partner__name"),
+            )
+        ),
+        pk=pk
+    )
+
+    mappings = marketplace.courier_mappings.all()
+
+    context = {
+        "marketplace": marketplace,
+        "mappings": mappings,
+
+        "total_couriers": mappings.count(),
+
+        "active_couriers": mappings.filter(
+            is_active=True
+        ).count(),
+
+        "inactive_couriers": mappings.filter(
+            is_active=False
+        ).count(),
+    }
+
+    return render(
+        request,
+        "dashboard/marketplace_detail.html",
+        context
+    )
+
+
+# ==========================================================
+# COURIER PARTNER DETAIL VIEW
+# ==========================================================
+
+def courier_partner_detail(request, pk):
+
+    courier = get_object_or_404(
+        CourierPartner.objects.prefetch_related(
+            Prefetch(
+                "marketplace_mappings",
+                queryset=MarketplaceCourierPartner.objects.select_related(
+                    "marketplace"
+                ).order_by("marketplace__name"),
+            )
+        ),
+        pk=pk
+    )
+
+    mappings = courier.marketplace_mappings.all()
+
+    context = {
+        "courier": courier,
+        "mappings": mappings,
+
+        "total_marketplaces": mappings.count(),
+
+        "active_marketplaces": mappings.filter(
+            is_active=True
+        ).count(),
+
+        "inactive_marketplaces": mappings.filter(
+            is_active=False
+        ).count(),
+    }
+
+    return render(
+        request,
+        "dashboard/courier_partner_detail.html",
+        context
     )

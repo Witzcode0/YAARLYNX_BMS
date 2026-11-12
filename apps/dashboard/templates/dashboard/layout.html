@@ -455,6 +455,17 @@
 
                     </a>
 
+                    <a
+    href="{% url 'marketplace_courier_dashboard' %}"
+    class="yx-nav-link {% if request.resolver_match.url_name == 'marketplace_courier_dashboard' %}is-active{% endif %}"
+    {% if request.resolver_match.url_name == 'marketplace_courier_dashboard' %}aria-current="page"{% endif %}
+>
+    <span class="yx-nav-icon">
+        <i class="ri-truck-line"></i>
+    </span>
+    <span class="flex-1">Marketplace & Courier</span>
+</a>
+
                 </section>
 
                 {% if request.session.yaarlynx_user_role_code == "ADMIN" or request.session.yaarlynx_user_role_code == "SUPER_ADMIN" %}
