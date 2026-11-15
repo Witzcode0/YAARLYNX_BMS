@@ -1211,11 +1211,9 @@
 
                             <td class="whitespace-nowrap px-5 py-4">
 
-                                <p class="text-sm font-extrabold text-[#153030]">
+                               
 
-                                    {{ purchase.finance_number|default:"—" }}
-
-                                </p>
+                                <a href="{% url 'party_purchase_detail' purchase.pk %}" class="text-sm font-extrabold text-[#153030]">{{ purchase.purchase_number|default:"Order reference unavailable" }}</a>
 
                                 <p class="mt-1 text-[10px] text-slate-400">
 
@@ -1241,7 +1239,7 @@
 
                                     <span class="max-w-[240px] truncate text-sm font-semibold text-slate-700">
 
-                                        {{ purchase.finance_party|default:"Unassigned supplier" }}
+                                        {{ purchase.finance_party|upper|default:"Unassigned supplier" }}
 
                                     </span>
 

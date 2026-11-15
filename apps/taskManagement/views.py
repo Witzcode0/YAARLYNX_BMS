@@ -745,3 +745,43 @@ def task_revoke_approval(request, task_id):
         log_task_activity(task, request.user, "approval_revoked", "Task approval revoked.")
         messages.success(request, "Task approval revoked.")
     return redirect_task(task)
+
+
+# -----------------------------------------------------------------------------
+# Delete task
+# -----------------------------------------------------------------------------
+@task_login_required
+@require_POST
+def task_delete(request, task_id):
+    check_task_admin(request.user)
+
+    task = get_object_or_404(Task, pk=task_id)
+
+    task_number = task.task_number
+    task_title = task.title
+
+    try:
+        with transaction.atomic():
+            # Record deletion before deleting the task.
+            # This activity is also deleted if it has a CASCADE relationship.
+            log_task_activity(
+                task=task,
+                user=request.user,
+                action="deleted",
+                description=f"Task {task_number} - {task_title} was deleted."
+            )
+
+            task.delete()
+
+        messages.success(
+            request,
+            f"Task {task_number} deleted successfully."
+        )
+
+    except (IntegrityError, ValidationError) as exc:
+        messages.error(
+            request,
+            f"Unable to delete task: {exc}"
+        )
+
+    return redirect("taskManagement:task_list")

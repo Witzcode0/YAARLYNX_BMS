@@ -130,6 +130,22 @@
             <a href="{% url 'taskManagement:task_list' %}" class="yx-btn yx-btn-light"><i class="ri-arrow-left-line"></i> All tasks</a>
             {% if is_task_admin %}
                 <a href="{% url 'taskManagement:task_edit' task.pk %}" class="yx-btn yx-btn-light"><i class="ri-edit-line"></i> Edit task</a>
+
+                <form
+    method="POST"
+    action="{% url 'taskManagement:task_delete' task.pk %}"
+    onsubmit="return confirm('Are you sure you want to permanently delete this task? This action cannot be undone.');"
+>
+    {% csrf_token %}
+
+    <button
+        type="submit"
+        class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+    >
+        <i class="ri-delete-bin-line"></i>
+        Delete Task
+    </button>
+</form>
                 {% if task.is_approved %}
                     <form method="post" action="{% url 'taskManagement:task_revoke_approval' task.pk %}">{% csrf_token %}
                         <button class="yx-btn yx-btn-light" type="submit"><i class="ri-shield-cross-line"></i> Revoke approval</button>

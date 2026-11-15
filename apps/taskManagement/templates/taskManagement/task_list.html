@@ -1,773 +1,6639 @@
 {% extends "dashboard/layout.html" %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {% block title %}All Tasks | YAARLYNX{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 {% block page_heading %}Task Management{% endblock %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {% block extra_css %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 {% include "taskManagement/_task_styles.html" %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     .yx-list-hero {
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         position: relative;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         overflow: hidden;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         border-radius: 20px;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         background: linear-gradient(118deg, #153030 0%, #204747 68%, #315d55 100%);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         color: #fff;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         isolation: isolate;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     .yx-list-hero::before,
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     .yx-list-hero::after {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         content: "";
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         position: absolute;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         z-index: -1;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         border: 1px solid rgba(255,255,255,.11);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         border-radius: 50%;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        pointer-events: none;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .yx-list-hero::before { width: 260px; height: 260px; right: -70px; top: -155px; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .yx-list-hero::after { width: 190px; height: 190px; right: 36px; bottom: -150px; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .yx-filter-card { background: #fff; border: 1px solid #e4ebe8; border-radius: 17px; box-shadow: 0 5px 22px rgba(21,48,48,.035); }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .yx-filter-label { display:block; margin-bottom:7px; color:#52635d; font-size:11px; font-weight:800; letter-spacing:.02em; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .yx-task-mobile-card { background:#fff; border:1px solid #e6ede9; border-radius:15px; padding:15px; box-shadow:0 3px 12px rgba(21,48,48,.03); }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .yx-task-mobile-card:active { background:#fbfdfc; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .yx-list-table .yx-table th:last-child,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .yx-list-table .yx-table td:last-child { text-align:right; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .yx-filter-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @media (max-width: 639px) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        .yx-list-hero { border-radius:16px; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        .yx-filter-actions { display:grid; grid-template-columns:1fr 1fr; width:100%; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        .yx-filter-actions .yx-btn { width:100%; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* Smart directory analytics */
+
+
+
+
+
+
+
+    .yx-directory-insights { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(270px,1fr); gap:16px; }
+
+
+
+
+
+
+
+    .yx-insight-bar { display:grid; grid-template-columns:82px minmax(0,1fr) 34px; align-items:center; gap:10px; }
+
+
+
+
+
+
+
+    .yx-insight-track { height:9px; border-radius:99px; overflow:hidden; background:#edf2ef; }
+
+
+
+
+
+
+
+    .yx-insight-fill { display:block; width:0; height:100%; border-radius:inherit; transition:width .35s ease; }
+
+
+
+
+
+
+
+    .yx-insight-fill.urgent { background:linear-gradient(90deg,#b42318,#e36b5f); }
+
+
+
+
+
+
+
+    .yx-insight-fill.high { background:linear-gradient(90deg,#b95b22,#e9a06b); }
+
+
+
+
+
+
+
+    .yx-insight-fill.medium { background:linear-gradient(90deg,#9b741b,#e6c36b); }
+
+
+
+
+
+
+
+    .yx-insight-fill.low { background:linear-gradient(90deg,#26734a,#79b594); }
+
+
+
+
+
+
+
+    .yx-approval-donut { --approved-angle:0deg; position:relative; display:grid; width:124px; height:124px; flex:0 0 124px; place-items:center; border-radius:50%; background:conic-gradient(#247653 0deg var(--approved-angle),#edc16d var(--approved-angle) 360deg); }
+
+
+
+
+
+
+
+    .yx-approval-donut::before { content:""; position:absolute; inset:12px; border-radius:50%; background:#fff; }
+
+
+
+
+
+
+
+    .yx-approval-donut-center { position:relative; z-index:1; text-align:center; }
+
+
+
+
+
+
+
+    .yx-deadline-tile { border:1px solid #e8eeeb; border-radius:13px; padding:12px; background:#fbfdfc; min-width:0; }
+
+
+
+
+
+
+
+    .yx-quick-link { display:flex; align-items:center; gap:10px; min-width:0; padding:11px 12px; border:1px solid #e7eeea; border-radius:12px; color:#29463e; background:#fff; font-size:11px; font-weight:800; transition:background .16s,border-color .16s,transform .16s; text-decoration:none; }
+
+
+
+
+
+
+
+    .yx-quick-link:hover { background:#f5f9f7; border-color:#cbdad2; transform:translateY(-1px); }
+
+
+
+
+
+
+
+    .yx-quick-link .yx-quick-icon { display:grid; width:34px; height:34px; flex:0 0 34px; place-items:center; border-radius:10px; background:#eaf1ef; color:#153030; font-size:16px; }
+
+
+
+
+
+
+
+    .yx-quick-link .yx-quick-arrow { margin-left:auto; color:#91a099; }
+
+
+
+
+
+
+
+    .yx-chart-empty { color:#94a39c; font-size:11px; }
+
+
+
+
+
+
+
+    @media (max-width: 1023px) { .yx-directory-insights { grid-template-columns:1fr; } }
+
+
+
+
+
+
+
+    @media (max-width: 639px) {
+
+
+
+
+
+
+
+        .yx-insight-bar { grid-template-columns:70px minmax(0,1fr) 28px; gap:7px; }
+
+
+
+
+
+
+
+        .yx-approval-donut { width:108px; height:108px; flex-basis:108px; }
+
+
+
+
+
+
+
+        .yx-directory-insights { gap:12px; }
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+    @media (prefers-reduced-motion: reduce) {
+
+
+
+
+
+
+
+        .yx-insight-fill,.yx-quick-link { transition:none; }
+
+
+
+
+
+
+
+        .yx-quick-link:hover { transform:none; }
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /* Bottom-right Django message notifications */
+
+    .yx-toast-stack {
+
+        position: fixed;
+
+        right: 20px;
+
+        bottom: 20px;
+
+        z-index: 99999;
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 10px;
+
+        width: min(390px, calc(100vw - 28px));
 
         pointer-events: none;
 
     }
 
-    .yx-list-hero::before { width: 260px; height: 260px; right: -70px; top: -155px; }
+    .yx-toast {
 
-    .yx-list-hero::after { width: 190px; height: 190px; right: 36px; bottom: -150px; }
+        position: relative;
 
-    .yx-filter-card { background: #fff; border: 1px solid #e4ebe8; border-radius: 17px; box-shadow: 0 5px 22px rgba(21,48,48,.035); }
+        display: flex;
 
-    .yx-filter-label { display:block; margin-bottom:7px; color:#52635d; font-size:11px; font-weight:800; letter-spacing:.02em; }
+        align-items: flex-start;
 
-    .yx-task-mobile-card { background:#fff; border:1px solid #e6ede9; border-radius:15px; padding:15px; box-shadow:0 3px 12px rgba(21,48,48,.03); }
+        gap: 12px;
 
-    .yx-task-mobile-card:active { background:#fbfdfc; }
+        padding: 15px 14px;
 
-    .yx-list-table .yx-table th:last-child,
+        overflow: hidden;
 
-    .yx-list-table .yx-table td:last-child { text-align:right; }
+        border: 1px solid #dce8e2;
 
-    .yx-filter-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+        border-radius: 14px;
 
-    @media (max-width: 639px) {
+        background: #fff;
 
-        .yx-list-hero { border-radius:16px; }
+        color: #243b34;
 
-        .yx-filter-actions { display:grid; grid-template-columns:1fr 1fr; width:100%; }
+        box-shadow: 0 14px 40px rgba(21,48,48,.18);
 
-        .yx-filter-actions .yx-btn { width:100%; }
+        pointer-events: auto;
+
+        animation: yx-toast-in .28s ease-out both;
+
+    }
+
+    .yx-toast-success { border-left: 4px solid #16834a; }
+
+    .yx-toast-error { border-left: 4px solid #dc2626; }
+
+    .yx-toast-warning { border-left: 4px solid #d97706; }
+
+    .yx-toast-info { border-left: 4px solid #2563eb; }
+
+    .yx-toast-icon {
+
+        display: grid;
+
+        width: 34px;
+
+        height: 34px;
+
+        flex: 0 0 34px;
+
+        place-items: center;
+
+        border-radius: 10px;
+
+        background: #eaf7ef;
+
+        color: #16834a;
+
+        font-size: 18px;
+
+    }
+
+    .yx-toast-error .yx-toast-icon { background:#fef2f2; color:#dc2626; }
+
+    .yx-toast-warning .yx-toast-icon { background:#fffbeb; color:#d97706; }
+
+    .yx-toast-info .yx-toast-icon { background:#eff6ff; color:#2563eb; }
+
+    .yx-toast-content { min-width: 0; flex: 1; }
+
+    .yx-toast-title { margin:0 0 3px; font-size:12px; font-weight:900; color:#153030; }
+
+    .yx-toast-message { margin:0; font-size:12px; line-height:1.55; color:#64736c; overflow-wrap:anywhere; }
+
+    .yx-toast-close {
+
+        display:grid; width:26px; height:26px; flex:0 0 26px;
+
+        place-items:center; border:0; border-radius:8px;
+
+        background:transparent; color:#829088; cursor:pointer;
+
+    }
+
+    .yx-toast-close:hover { background:#f1f5f3; color:#153030; }
+
+    .yx-toast-progress {
+
+        position:absolute; left:0; bottom:0; height:3px; width:100%;
+
+        background:#16834a; transform-origin:left;
+
+        animation: yx-toast-countdown 5.5s linear forwards;
+
+    }
+
+    .yx-toast-error .yx-toast-progress { background:#dc2626; }
+
+    .yx-toast-warning .yx-toast-progress { background:#d97706; }
+
+    .yx-toast-info .yx-toast-progress { background:#2563eb; }
+
+    .yx-toast.is-leaving { animation: yx-toast-out .22s ease-in forwards; }
+
+    @keyframes yx-toast-in { from { opacity:0; transform:translate3d(20px,12px,0); } to { opacity:1; transform:translate3d(0,0,0); } }
+
+    @keyframes yx-toast-out { to { opacity:0; transform:translate3d(20px,8px,0); } }
+
+    @keyframes yx-toast-countdown { to { transform:scaleX(0); } }
+
+    @media (max-width:639px) {
+
+        .yx-toast-stack { right:14px; bottom:14px; width:calc(100vw - 28px); }
+
+        .yx-toast { padding:13px 12px; }
+
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+
+        .yx-toast, .yx-toast.is-leaving, .yx-toast-progress { animation:none; }
 
     }
 
 
-    /* Smart directory analytics */
-    .yx-directory-insights { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(270px,1fr); gap:16px; }
-    .yx-insight-bar { display:grid; grid-template-columns:82px minmax(0,1fr) 34px; align-items:center; gap:10px; }
-    .yx-insight-track { height:9px; border-radius:99px; overflow:hidden; background:#edf2ef; }
-    .yx-insight-fill { display:block; width:0; height:100%; border-radius:inherit; transition:width .35s ease; }
-    .yx-insight-fill.urgent { background:linear-gradient(90deg,#b42318,#e36b5f); }
-    .yx-insight-fill.high { background:linear-gradient(90deg,#b95b22,#e9a06b); }
-    .yx-insight-fill.medium { background:linear-gradient(90deg,#9b741b,#e6c36b); }
-    .yx-insight-fill.low { background:linear-gradient(90deg,#26734a,#79b594); }
-    .yx-approval-donut { --approved-angle:0deg; position:relative; display:grid; width:124px; height:124px; flex:0 0 124px; place-items:center; border-radius:50%; background:conic-gradient(#247653 0deg var(--approved-angle),#edc16d var(--approved-angle) 360deg); }
-    .yx-approval-donut::before { content:""; position:absolute; inset:12px; border-radius:50%; background:#fff; }
-    .yx-approval-donut-center { position:relative; z-index:1; text-align:center; }
-    .yx-deadline-tile { border:1px solid #e8eeeb; border-radius:13px; padding:12px; background:#fbfdfc; min-width:0; }
-    .yx-quick-link { display:flex; align-items:center; gap:10px; min-width:0; padding:11px 12px; border:1px solid #e7eeea; border-radius:12px; color:#29463e; background:#fff; font-size:11px; font-weight:800; transition:background .16s,border-color .16s,transform .16s; text-decoration:none; }
-    .yx-quick-link:hover { background:#f5f9f7; border-color:#cbdad2; transform:translateY(-1px); }
-    .yx-quick-link .yx-quick-icon { display:grid; width:34px; height:34px; flex:0 0 34px; place-items:center; border-radius:10px; background:#eaf1ef; color:#153030; font-size:16px; }
-    .yx-quick-link .yx-quick-arrow { margin-left:auto; color:#91a099; }
-    .yx-chart-empty { color:#94a39c; font-size:11px; }
-    @media (max-width: 1023px) { .yx-directory-insights { grid-template-columns:1fr; } }
-    @media (max-width: 639px) {
-        .yx-insight-bar { grid-template-columns:70px minmax(0,1fr) 28px; gap:7px; }
-        .yx-approval-donut { width:108px; height:108px; flex-basis:108px; }
-        .yx-directory-insights { gap:12px; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-        .yx-insight-fill,.yx-quick-link { transition:none; }
-        .yx-quick-link:hover { transform:none; }
-    }
 
 </style>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 {% block content %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <div class="task-page space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+
+
+
+<div class="yx-toast-stack" id="yx-toast-stack" aria-live="polite" aria-atomic="true">
+
+    {% for message in messages %}
+
+        <div class="yx-toast yx-toast-{{ message.tags|default:'info' }}" role="status">
+
+            <span class="yx-toast-icon" aria-hidden="true">
+
+                {% if 'success' in message.tags %}
+
+                    <i class="ri-check-line"></i>
+
+                {% elif 'error' in message.tags %}
+
+                    <i class="ri-close-circle-line"></i>
+
+                {% elif 'warning' in message.tags %}
+
+                    <i class="ri-alert-line"></i>
+
+                {% else %}
+
+                    <i class="ri-information-line"></i>
+
+                {% endif %}
+
+            </span>
+
+            <div class="yx-toast-content">
+
+                <p class="yx-toast-title">
+
+                    {% if 'success' in message.tags %}Success
+
+                    {% elif 'error' in message.tags %}Something went wrong
+
+                    {% elif 'warning' in message.tags %}Attention
+
+                    {% else %}Notification{% endif %}
+
+                </p>
+
+                <p class="yx-toast-message">{{ message }}</p>
+
+            </div>
+
+            <button type="button" class="yx-toast-close" aria-label="Close notification">
+
+                <i class="ri-close-line"></i>
+
+            </button>
+
+            <span class="yx-toast-progress" aria-hidden="true"></span>
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
     <!-- Page header -->
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     <section class="yx-list-hero p-5 sm:p-6 lg:p-7">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         <div class="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <div class="min-w-0">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <div class="flex items-center gap-2 text-[10px] sm:text-xs font-extrabold tracking-[.18em] text-white/60 uppercase">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <i class="ri-folder-3-line text-base"></i>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     Workspace / Task directory
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <h1 class="mt-3 text-2xl sm:text-3xl font-black tracking-tight">All tasks</h1>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <p class="mt-2 max-w-xl text-sm leading-6 text-white/70">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     Search, filter and manage your team's work from one organised workspace.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 </p>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             <div class="flex flex-wrap gap-2">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <a class="yx-btn bg-white/10 border border-white/20 text-white hover:bg-white/20" href="{% url 'taskManagement:task_kanban' %}">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <i class="ri-kanban-view"></i> Board view
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <a class="yx-btn bg-white text-[#153030] hover:bg-slate-100" href="{% url 'taskManagement:task_create' %}">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <i class="ri-add-line"></i> New task
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 </a>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         <div class="relative z-10 mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/15 pt-4">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <div class="flex items-center gap-2">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <span class="grid h-8 w-8 place-items-center rounded-xl bg-white/10"><i class="ri-task-line"></i></span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <span class="text-xs text-white/65">Matching tasks</span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <strong class="text-sm font-extrabold text-white">{{ total_tasks|default:0 }}</strong>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             <span class="hidden sm:block h-4 w-px bg-white/20"></span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <span class="text-[11px] text-white/55">Use the filters below to narrow your task directory.</span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
     <!-- Search and filters -->
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     <section class="yx-filter-card p-4 sm:p-5">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         <div class="flex items-start gap-3 mb-4">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#eaf1ef] text-[#153030]">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <i class="ri-filter-3-line text-lg"></i>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             <div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <h2 class="yx-section-title">Find a task</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <p class="mt-1 text-xs text-slate-400">Combine search and filters to find exactly what you need.</p>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
         <form method="get" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <div class="xl:col-span-2">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <label class="yx-filter-label" for="taskSearch">Search tasks</label>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <div class="relative">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <input id="taskSearch" class="yx-input pl-9" type="search" name="q" value="{{ search|default:'' }}" placeholder="Task number, title or description">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <label class="yx-filter-label" for="taskCategory">Category</label>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <select id="taskCategory" class="yx-select" name="category">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <option value="">All categories</option>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     {% for category in categories %}
 
-                        <option value="{{ category.pk }}" {% if selected_category == category.pk|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="{{ category.pk }}" {% if selected_category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     {% endfor %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             </div>
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <label class="yx-filter-label" for="taskPriority">Priority</label>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <select id="taskPriority" class="yx-select" name="priority">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <option value="">All priorities</option>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     {% for value, label in priority_choices %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                         <option value="{{ value }}" {% if selected_priority == value %}selected{% endif %}>{{ label }}</option>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     {% endfor %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             </div>
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <label class="yx-filter-label" for="taskDue">Due date</label>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <select id="taskDue" class="yx-select" name="due">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <option value="">Any date</option>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <option value="overdue" {% if selected_due == 'overdue' %}selected{% endif %}>Overdue</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <option value="today" {% if selected_due == 'today' %}selected{% endif %}>Due today</option>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <option value="upcoming" {% if selected_due == 'upcoming' %}selected{% endif %}>Upcoming</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 </select>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
             <div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <label class="yx-filter-label" for="taskApproval">Approval</label>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <select id="taskApproval" class="yx-select" name="approval">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <option value="">All approval states</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <option value="approved" {% if selected_approval == 'approved' %}selected{% endif %}>Approved</option>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <option value="pending" {% if selected_approval == 'pending' %}selected{% endif %}>Pending</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 </select>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
             <div class="sm:col-span-2 xl:col-span-5 yx-filter-actions pt-1">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <a class="yx-btn yx-btn-light" href="{% url 'taskManagement:task_list' %}">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <i class="ri-refresh-line"></i> Reset
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <button class="yx-btn yx-btn-primary" type="submit">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <i class="ri-filter-3-line"></i> Apply filters
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 </button>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         </form>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </section>
 
 
 
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     <!-- LIVE DIRECTORY INSIGHTS -->
+
+
+
+
+
+
+
     <section class="yx-directory-insights" aria-label="Task directory insights">
+
+
+
+
+
+
+
         <article class="yx-panel p-4 sm:p-5">
+
+
+
+
+
+
+
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
+
+
+
+
+
+
+
                 <div>
+
+
+
+
+
+
+
                     <div class="text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-400">Live task analytics</div>
+
+
+
+
+
+
+
                     <h2 class="yx-section-title mt-1 text-base">Priority & approval snapshot</h2>
+
+
+
+
+
+
+
                     <p class="mt-1 text-xs text-slate-400">A quick visual breakdown of the tasks loaded in this directory.</p>
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
                 <span class="inline-flex items-center gap-2 rounded-full bg-[#eaf1ef] px-3 py-1.5 text-[10px] font-extrabold text-[#31554b]">
+
+
+
+
+
+
+
                     <i class="ri-pulse-line"></i> Live summary
+
+
+
+
+
+
+
                 </span>
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+
+
+
+
+
+
                 <div class="min-w-0">
+
+
+
+
+
+
+
                     <div class="mb-4 flex items-center justify-between gap-2">
+
+
+
+
+
+
+
                         <h3 class="text-xs font-extrabold text-slate-600"><i class="ri-flag-line mr-1 text-[#52786e]"></i> Priority mix</h3>
+
+
+
+
+
+
+
                         <span id="yx-chart-total" class="text-[10px] font-semibold text-slate-400">0 tasks</span>
+
+
+
+
+
+
+
                     </div>
+
+
+
+
+
+
+
                     <div class="space-y-4" id="yx-priority-chart">
+
+
+
+
+
+
+
                         <div class="yx-insight-bar" data-priority-row="urgent">
+
+
+
+
+
+
+
                             <span class="text-[11px] font-bold text-slate-600">Urgent</span>
+
+
+
+
+
+
+
                             <div class="yx-insight-track"><span class="yx-insight-fill urgent" id="yx-priority-urgent-bar"></span></div>
+
+
+
+
+
+
+
                             <strong class="text-right text-xs tabular-nums text-[#153030]" id="yx-priority-urgent-count">0</strong>
+
+
+
+
+
+
+
                         </div>
+
+
+
+
+
+
+
                         <div class="yx-insight-bar" data-priority-row="high">
+
+
+
+
+
+
+
                             <span class="text-[11px] font-bold text-slate-600">High</span>
+
+
+
+
+
+
+
                             <div class="yx-insight-track"><span class="yx-insight-fill high" id="yx-priority-high-bar"></span></div>
+
+
+
+
+
+
+
                             <strong class="text-right text-xs tabular-nums text-[#153030]" id="yx-priority-high-count">0</strong>
+
+
+
+
+
+
+
                         </div>
+
+
+
+
+
+
+
                         <div class="yx-insight-bar" data-priority-row="medium">
+
+
+
+
+
+
+
                             <span class="text-[11px] font-bold text-slate-600">Medium</span>
+
+
+
+
+
+
+
                             <div class="yx-insight-track"><span class="yx-insight-fill medium" id="yx-priority-medium-bar"></span></div>
+
+
+
+
+
+
+
                             <strong class="text-right text-xs tabular-nums text-[#153030]" id="yx-priority-medium-count">0</strong>
+
+
+
+
+
+
+
                         </div>
+
+
+
+
+
+
+
                         <div class="yx-insight-bar" data-priority-row="low">
+
+
+
+
+
+
+
                             <span class="text-[11px] font-bold text-slate-600">Low</span>
+
+
+
+
+
+
+
                             <div class="yx-insight-track"><span class="yx-insight-fill low" id="yx-priority-low-bar"></span></div>
+
+
+
+
+
+
+
                             <strong class="text-right text-xs tabular-nums text-[#153030]" id="yx-priority-low-count">0</strong>
+
+
+
+
+
+
+
                         </div>
+
+
+
+
+
+
+
                     </div>
+
+
+
+
+
+
+
                     <p id="yx-priority-empty" class="yx-chart-empty mt-4 hidden">No task records are available for this breakdown.</p>
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <div class="border-t border-slate-100 pt-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
+
+
+
+
+
+
+
                     <h3 class="text-xs font-extrabold text-slate-600"><i class="ri-shield-check-line mr-1 text-[#52786e]"></i> Approval split</h3>
+
+
+
+
+
+
+
                     <div class="mt-4 flex items-center gap-4">
+
+
+
+
+
+
+
                         <div class="yx-approval-donut" id="yx-approval-donut" role="img" aria-label="Approval split chart">
+
+
+
+
+
+
+
                             <div class="yx-approval-donut-center">
+
+
+
+
+
+
+
                                 <div class="text-2xl font-black tracking-tight text-[#153030]" id="yx-approved-percent">0%</div>
+
+
+
+
+
+
+
                                 <div class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Approved</div>
+
+
+
+
+
+
+
                             </div>
+
+
+
+
+
+
+
                         </div>
+
+
+
+
+
+
+
                         <div class="min-w-0 flex-1 space-y-3">
+
+
+
+
+
+
+
                             <div class="flex items-center justify-between gap-2">
+
+
+
+
+
+
+
                                 <span class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600"><i class="h-2.5 w-2.5 rounded-full bg-emerald-600"></i> Approved</span>
+
+
+
+
+
+
+
                                 <strong class="text-sm tabular-nums text-[#153030]" id="yx-approved-count">0</strong>
+
+
+
+
+
+
+
                             </div>
+
+
+
+
+
+
+
                             <div class="flex items-center justify-between gap-2">
+
+
+
+
+
+
+
                                 <span class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600"><i class="h-2.5 w-2.5 rounded-full bg-amber-400"></i> Pending</span>
+
+
+
+
+
+
+
                                 <strong class="text-sm tabular-nums text-[#153030]" id="yx-pending-count">0</strong>
+
+
+
+
+
+
+
                             </div>
+
+
+
+
+
+
+
                             <div class="border-t border-slate-100 pt-2 flex items-center justify-between gap-2">
+
+
+
+
+
+
+
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Approval rate</span>
+
+
+
+
+
+
+
                                 <strong class="text-xs text-emerald-700" id="yx-approval-rate-label">0%</strong>
+
+
+
+
+
+
+
                             </div>
+
+
+
+
+
+
+
                         </div>
+
+
+
+
+
+
+
                     </div>
+
+
+
+
+
+
+
                     <p class="mt-4 text-[10px] leading-5 text-slate-400">The chart reflects the filtered task records currently rendered by this view.</p>
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
         </article>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         <aside class="yx-panel p-4 sm:p-5">
+
+
+
+
+
+
+
             <div class="flex items-center justify-between gap-3 mb-4">
+
+
+
+
+
+
+
                 <div>
+
+
+
+
+
+
+
                     <div class="text-[10px] font-extrabold uppercase tracking-[.14em] text-slate-400">Deadline radar</div>
+
+
+
+
+
+
+
                     <h2 class="yx-section-title mt-1 text-base">Dates to watch</h2>
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
                 <span class="yx-kpi-icon !bg-amber-50 !text-amber-700"><i class="ri-calendar-event-line"></i></span>
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
             <div class="grid grid-cols-2 gap-2" aria-live="polite">
+
+
+
+
+
+
+
                 <div class="yx-deadline-tile">
+
+
+
+
+
+
+
                     <div class="flex items-center gap-1.5 text-[10px] font-bold text-rose-600"><i class="ri-alarm-warning-line"></i> Overdue</div>
+
+
+
+
+
+
+
                     <div class="mt-1 text-2xl font-black tabular-nums text-rose-700" id="yx-due-overdue">0</div>
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
                 <div class="yx-deadline-tile">
+
+
+
+
+
+
+
                     <div class="flex items-center gap-1.5 text-[10px] font-bold text-amber-700"><i class="ri-calendar-check-line"></i> Today</div>
+
+
+
+
+
+
+
                     <div class="mt-1 text-2xl font-black tabular-nums text-amber-700" id="yx-due-today">0</div>
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
                 <div class="yx-deadline-tile">
+
+
+
+
+
+
+
                     <div class="flex items-center gap-1.5 text-[10px] font-bold text-blue-700"><i class="ri-calendar-line"></i> Upcoming</div>
+
+
+
+
+
+
+
                     <div class="mt-1 text-2xl font-black tabular-nums text-blue-700" id="yx-due-upcoming">0</div>
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
                 <div class="yx-deadline-tile">
+
+
+
+
+
+
+
                     <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-500"><i class="ri-calendar-close-line"></i> No due date</div>
+
+
+
+
+
+
+
                     <div class="mt-1 text-2xl font-black tabular-nums text-slate-700" id="yx-due-none">0</div>
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
             <div class="mt-5 border-t border-slate-100 pt-4">
+
+
+
+
+
+
+
                 <h3 class="text-[10px] font-extrabold uppercase tracking-[.13em] text-slate-400 mb-3">Quick navigation</h3>
+
+
+
+
+
+
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-2">
+
+
+
+
+
+
+
                     <a class="yx-quick-link" href="{% url 'taskManagement:task_kanban' %}"><span class="yx-quick-icon"><i class="ri-kanban-view"></i></span><span>Kanban board</span><i class="ri-arrow-right-up-line yx-quick-arrow"></i></a>
+
+
+
+
+
+
+
                     <a class="yx-quick-link" href="{% url 'taskManagement:my_tasks' %}"><span class="yx-quick-icon"><i class="ri-user-follow-line"></i></span><span>My assignments</span><i class="ri-arrow-right-up-line yx-quick-arrow"></i></a>
+
+
+
+
+
+
+
                     <a class="yx-quick-link" href="{% url 'taskManagement:task_create' %}"><span class="yx-quick-icon"><i class="ri-add-circle-line"></i></span><span>Create a task</span><i class="ri-arrow-right-up-line yx-quick-arrow"></i></a>
+
+
+
+
+
+
+
                     <a class="yx-quick-link" href="{% url 'taskManagement:task_list' %}?approval=pending"><span class="yx-quick-icon"><i class="ri-shield-time-line"></i></span><span>Pending approvals</span><i class="ri-arrow-right-up-line yx-quick-arrow"></i></a>
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
         </aside>
+
+
+
+
+
+
+
     </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 <!-- Directory heading -->
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     <section class="yx-panel overflow-hidden">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-5 border-b border-slate-100">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <div class="flex items-center gap-2">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <h2 class="yx-section-title">Task directory</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <span class="yx-pill">{{ total_tasks|default:0 }} total</span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 <p class="mt-1 text-xs text-slate-400">Review task ownership, priority, deadlines and approval state.</p>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             <span class="inline-flex items-center gap-2 text-[11px] font-semibold text-slate-500">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <i class="ri-layout-row-line text-[#52786e]"></i> Complete task listing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             </span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
         <!-- Desktop/tablet table -->
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         <div class="yx-table-wrap yx-list-table hidden md:block">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             <table id="yx-task-directory-table" class="yx-table min-w-[900px]">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <thead>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <tr>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <th>Task details</th>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                         <th>Category</th>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <th>Priority</th>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                         <th>Assignees</th>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <th>Due date</th>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                         <th>Approval</th>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <th>Created</th>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                         <th><span class="sr-only">Action</span></th>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     </tr>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 </thead>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <tbody>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     {% for task in tasks %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <tr class="yx-task-record" data-priority="{{ task.priority|default:'medium'|lower }}" data-approved="{{ task.is_approved|yesno:'true,false' }}" data-due="{{ task.due_date|date:'Y-m-d' }}">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             <td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                                 <a href="{% url 'taskManagement:task_detail' task.pk %}" class="font-bold text-[#153030] hover:underline">{{ task.title }}</a>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 <div class="mt-1 text-[10px] text-slate-400">{{ task.task_number }}</div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             </td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                             <td>{{ task.category.name|default:"Uncategorized" }}</td>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             <td><span class="yx-pill yx-priority-{{ task.priority }}">{{ task.get_priority_display }}</span></td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                             <td><span class="font-bold text-slate-700">{{ task.assigned_user_count }}</span><span class="text-slate-400"> assigned</span></td>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             <td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                                 {% if task.due_date %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                     <span class="font-semibold text-slate-700">{{ task.due_date|date:"d M Y" }}</span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 {% else %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                                     <span class="text-slate-400">—</span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 {% endif %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                             </td>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             <td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                                 {% if task.is_approved %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                     <span class="yx-pill yx-status-completed"><i class="ri-check-line"></i> Approved</span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                                 {% else %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                     <span class="yx-pill yx-status-pending">Pending</span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                                 {% endif %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             </td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                             <td class="text-slate-500">{{ task.created_at|date:"d M Y" }}</td>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             <td>
 
-                                <a class="yx-btn yx-btn-light !p-2" href="{% url 'taskManagement:task_detail' task.pk %}" title="View task" aria-label="View {{ task.title }}">
 
-                                    <i class="ri-arrow-right-up-line"></i>
 
-                                </a>
+                                <div class="inline-flex items-center justify-end gap-2">
 
-                            </td>
 
-                        </tr>
 
-                    {% empty %}
+                                    <!-- View task -->
 
-                        <tr>
 
-                            <td colspan="8">
 
-                                <div class="yx-empty">
+                                    <a
 
-                                    <div class="yx-empty-icon"><i class="ri-search-eye-line"></i></div>
 
-                                    <p class="font-semibold text-slate-700">No matching tasks found</p>
 
-                                    <p class="mt-1 text-xs text-slate-400">Try changing your filters or create a new task.</p>
+                                        class="yx-btn yx-btn-light !p-2"
 
-                                    <a href="{% url 'taskManagement:task_create' %}" class="yx-btn yx-btn-primary mt-4"><i class="ri-add-line"></i> Create task</a>
+
+
+                                        href="{% url 'taskManagement:task_detail' task.pk %}"
+
+
+
+                                        title="View task"
+
+
+
+                                        aria-label="View {{ task.title }}"
+
+
+
+                                    >
+
+
+
+                                        <i class="ri-eye-line"></i>
+
+
+
+                                    </a>
+
+
+
+
+
+
+
+                                    <!-- Delete task: POST request with CSRF protection -->
+
+
+
+                                    <form
+
+
+
+                                        method="POST"
+
+
+
+                                        action="{% url 'taskManagement:task_delete' task.pk %}"
+
+
+
+                                        onsubmit="return confirm('Are you sure you want to permanently delete this task?');"
+
+
+
+                                        class="inline-flex"
+
+
+
+                                    >
+
+
+
+                                        {% csrf_token %}
+
+
+
+                                        <button
+
+
+
+                                            type="submit"
+
+
+
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-600 transition hover:border-red-200 hover:bg-red-100 hover:text-red-700"
+
+
+
+                                            title="Delete task"
+
+
+
+                                            aria-label="Delete {{ task.title }}"
+
+
+
+                                        >
+
+
+
+                                            <i class="ri-delete-bin-6-line text-base"></i>
+
+
+
+                                        </button>
+
+
+
+                                    </form>
+
+
 
                                 </div>
 
+
+
                             </td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                         </tr>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    {% empty %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <tr>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            <td colspan="8">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                <div class="yx-empty">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                    <div class="yx-empty-icon"><i class="ri-search-eye-line"></i></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                    <p class="font-semibold text-slate-700">No matching tasks found</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                    <p class="mt-1 text-xs text-slate-400">Try changing your filters or create a new task.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                    <a href="{% url 'taskManagement:task_create' %}" class="yx-btn yx-btn-primary mt-4"><i class="ri-add-line"></i> Create task</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            </td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        </tr>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     {% endfor %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 </tbody>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </table>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
         <!-- Mobile task cards -->
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         <div class="md:hidden p-3 sm:p-4 space-y-3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             {% for task in tasks %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 <article class="yx-task-mobile-card">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <div class="flex items-start justify-between gap-3">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <div class="min-w-0">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                             <p class="text-[10px] font-extrabold tracking-wider text-slate-400">{{ task.task_number }}</p>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             <a href="{% url 'taskManagement:task_detail' task.pk %}" class="mt-1 block text-sm font-extrabold leading-5 text-[#153030] hover:underline">{{ task.title }}</a>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                         <span class="yx-pill yx-priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <span class="inline-flex items-center gap-1"><i class="ri-folder-2-line"></i> {{ task.category.name|default:"Uncategorized" }}</span>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                         <span class="text-slate-300">•</span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <span class="inline-flex items-center gap-1"><i class="ri-user-line"></i> {{ task.assigned_user_count }} assigned</span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <div class="mt-3 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Due date</p>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             <p class="mt-1 text-xs font-semibold text-slate-700">{% if task.due_date %}{{ task.due_date|date:"d M Y" }}{% else %}Not set{% endif %}</p>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                         <div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             <p class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Approval</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                             <div class="mt-1">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 {% if task.is_approved %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                                     <span class="yx-pill yx-status-completed"><i class="ri-check-line"></i> Approved</span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 {% else %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                                     <span class="yx-pill yx-status-pending">Pending</span>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 {% endif %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                             </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     <div class="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <span class="text-[10px] text-slate-400">Created {{ task.created_at|date:"d M Y" }}</span>
 
-                        <a href="{% url 'taskManagement:task_detail' task.pk %}" class="inline-flex items-center gap-1 text-xs font-extrabold text-[#153030]">Open task <i class="ri-arrow-right-line"></i></a>
 
-                    </div>
 
-                </article>
 
-            {% empty %}
 
-                <div class="yx-empty">
 
-                    <div class="yx-empty-icon"><i class="ri-search-eye-line"></i></div>
 
-                    <p class="font-semibold text-slate-700">No matching tasks found</p>
 
-                    <p class="mt-1 text-xs text-slate-400">Try changing your filters or create a new task.</p>
 
-                    <a href="{% url 'taskManagement:task_create' %}" class="yx-btn yx-btn-primary mt-4"><i class="ri-add-line"></i> Create task</a>
 
-                </div>
 
-            {% endfor %}
 
-        </div>
 
-    </section>
+
+
+                       <div class="flex items-center gap-3">
+
+
+
+
+
+
+
+    <a href="{% url 'taskManagement:task_detail' task.pk %}"
+
+
+
+
+
+
+
+       class="inline-flex items-center gap-1 text-xs font-extrabold text-[#153030] hover:text-[#276060]">
+
+
+
+
+
+
+
+        Open task <i class="ri-arrow-right-line"></i>
+
+
+
+
+
+
+
+    </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <a href="javascript:void(0)"
+
+
+
+
+
+
+
+       onclick="if(confirm('Are you sure you want to delete this task?')) { this.nextElementSibling.submit(); }"
+
+
+
+
+
+
+
+       class="inline-flex items-center justify-center text-red-500 hover:text-red-700 transition-colors"
+
+
+
+
+
+
+
+       title="Delete Task">
+
+
+
+
+
+
+
+        <i class="ri-delete-bin-6-line text-base"></i>
+
+
+
+
+
+
+
+    </a>
+
+
+
+
+
+
+
+    <form method="POST"
+
+
+
+
+
+
+
+          action="{% url 'taskManagement:task_delete' task.pk %}"
+
+
+
+
+
+
+
+          class="hidden">
+
+
+
+
+
+
+
+        {% csrf_token %}
+
+
+
+
+
+
+
+    </form>
+
+
+
+
+
+
 
 </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                </article>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            {% empty %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="yx-empty">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <div class="yx-empty-icon"><i class="ri-search-eye-line"></i></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <p class="font-semibold text-slate-700">No matching tasks found</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <p class="mt-1 text-xs text-slate-400">Try changing your filters or create a new task.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <a href="{% url 'taskManagement:task_create' %}" class="yx-btn yx-btn-primary mt-4"><i class="ri-add-line"></i> Create task</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            {% endfor %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {% endblock %}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {% block extra_js %}
+
+
+
+
+
+
+
 <script>
+
+
+
+
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
+
+
+
+    // Bottom-right toast notifications for Django messages.
+
+    document.querySelectorAll(".yx-toast").forEach(function (toast) {
+
+        let closeTimer;
+
+
+
+        function dismissToast() {
+
+            if (!toast || toast.classList.contains("is-leaving")) return;
+
+            toast.classList.add("is-leaving");
+
+            window.setTimeout(function () {
+
+                toast.remove();
+
+                const stack = document.getElementById("yx-toast-stack");
+
+                if (stack && !stack.querySelector(".yx-toast")) stack.remove();
+
+            }, 240);
+
+        }
+
+
+
+        const closeButton = toast.querySelector(".yx-toast-close");
+
+        if (closeButton) closeButton.addEventListener("click", dismissToast);
+
+
+
+        closeTimer = window.setTimeout(dismissToast, 5500);
+
+        toast.addEventListener("mouseenter", function () {
+
+            window.clearTimeout(closeTimer);
+
+        });
+
+        toast.addEventListener("mouseleave", function () {
+
+            closeTimer = window.setTimeout(dismissToast, 1200);
+
+        });
+
+    });
+
+
+
+
+
+
+
+
+
+
+
     "use strict";
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // The desktop table exists in the DOM on mobile too; query only its task rows
+
+
+
+
+
+
+
     // so the responsive mobile cards are not counted a second time.
+
+
+
+
+
+
+
     const rows = Array.from(document.querySelectorAll("#yx-task-directory-table tbody tr.yx-task-record"));
+
+
+
+
+
+
+
     const total = rows.length;
+
+
+
+
+
+
+
     const priorityCounts = { urgent: 0, high: 0, medium: 0, low: 0 };
+
+
+
+
+
+
+
     let approved = 0;
+
+
+
+
+
+
+
     let overdue = 0;
+
+
+
+
+
+
+
     let dueToday = 0;
+
+
+
+
+
+
+
     let upcoming = 0;
+
+
+
+
+
+
+
     let noDueDate = 0;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const today = new Date();
+
+
+
+
+
+
+
     today.setHours(0, 0, 0, 0);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     rows.forEach(function (row) {
+
+
+
+
+
+
+
         const priority = (row.dataset.priority || "").toLowerCase();
+
+
+
+
+
+
+
         if (Object.prototype.hasOwnProperty.call(priorityCounts, priority)) {
+
+
+
+
+
+
+
             priorityCounts[priority] += 1;
+
+
+
+
+
+
+
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         if (row.dataset.approved === "true") approved += 1;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         const dueValue = row.dataset.due;
+
+
+
+
+
+
+
         if (!dueValue) {
+
+
+
+
+
+
+
             noDueDate += 1;
+
+
+
+
+
+
+
         } else {
+
+
+
+
+
+
+
             const dueDate = new Date(dueValue + "T00:00:00");
+
+
+
+
+
+
+
             if (Number.isNaN(dueDate.getTime())) {
+
+
+
+
+
+
+
                 noDueDate += 1;
+
+
+
+
+
+
+
             } else if (dueDate < today) {
+
+
+
+
+
+
+
                 overdue += 1;
+
+
+
+
+
+
+
             } else if (dueDate.getTime() === today.getTime()) {
+
+
+
+
+
+
+
                 dueToday += 1;
+
+
+
+
+
+
+
             } else {
+
+
+
+
+
+
+
                 upcoming += 1;
+
+
+
+
+
+
+
             }
+
+
+
+
+
+
+
         }
+
+
+
+
+
+
+
     });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function setText(id, value) {
+
+
+
+
+
+
+
         const node = document.getElementById(id);
+
+
+
+
+
+
+
         if (node) node.textContent = String(value);
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     Object.keys(priorityCounts).forEach(function (priority) {
+
+
+
+
+
+
+
         const count = priorityCounts[priority];
+
+
+
+
+
+
+
         const percent = total ? (count / total) * 100 : 0;
+
+
+
+
+
+
+
         const bar = document.getElementById("yx-priority-" + priority + "-bar");
+
+
+
+
+
+
+
         if (bar) bar.style.width = percent.toFixed(1) + "%";
+
+
+
+
+
+
+
         setText("yx-priority-" + priority + "-count", count);
+
+
+
+
+
+
+
     });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     const pending = Math.max(total - approved, 0);
+
+
+
+
+
+
+
     const approvalRate = total ? Math.round((approved / total) * 100) : 0;
+
+
+
+
+
+
+
     const approvalAngle = (approvalRate / 100) * 360;
+
+
+
+
+
+
+
     const donut = document.getElementById("yx-approval-donut");
+
+
+
+
+
+
+
     if (donut) {
+
+
+
+
+
+
+
         donut.style.setProperty("--approved-angle", approvalAngle + "deg");
+
+
+
+
+
+
+
         donut.setAttribute("aria-label", approved + " approved and " + pending + " pending out of " + total + " tasks");
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     setText("yx-chart-total", total + (total === 1 ? " task" : " tasks"));
+
+
+
+
+
+
+
     setText("yx-approved-count", approved);
+
+
+
+
+
+
+
     setText("yx-pending-count", pending);
+
+
+
+
+
+
+
     setText("yx-approved-percent", approvalRate + "%");
+
+
+
+
+
+
+
     setText("yx-approval-rate-label", approvalRate + "%");
+
+
+
+
+
+
+
     setText("yx-due-overdue", overdue);
+
+
+
+
+
+
+
     setText("yx-due-today", dueToday);
+
+
+
+
+
+
+
     setText("yx-due-upcoming", upcoming);
+
+
+
+
+
+
+
     setText("yx-due-none", noDueDate);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     if (total === 0) {
+
+
+
+
+
+
+
         const priorityEmpty = document.getElementById("yx-priority-empty");
+
+
+
+
+
+
+
         if (priorityEmpty) priorityEmpty.classList.remove("hidden");
+
+
+
+
+
+
+
     }
+
+
+
+
+
+
+
 });
+
+
+
+
+
+
+
 </script>
+
+
+
+
+
+
+
 {% endblock %}

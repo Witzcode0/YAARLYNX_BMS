@@ -87,6 +87,13 @@ urlpatterns = [
         name="task_kanban"
     ),
 
+    # Delete task
+     path(
+        "task/<uuid:task_id>/delete/",
+        views.task_delete,
+        name="task_delete"
+    ),
+
     # Comments
     path(
         "<uuid:task_id>/comment/",

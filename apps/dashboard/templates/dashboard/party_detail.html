@@ -110,27 +110,41 @@ Complete business, contact, GST, bank and payment details for {{ party.name }}.
                 </div>
 
                 <!-- Header actions -->
-                <div class="flex flex-wrap gap-2 lg:shrink-0">
+                <!-- Header Actions -->
+<div class="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:shrink-0">
 
-                    <a
-                        href="{% url 'party_list' %}"
-                        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.08] px-4 text-xs font-bold text-white transition hover:bg-white/[0.16]"
-                    >
-                        <i class="ri-arrow-left-line text-base"></i>
-                        Back to Parties
-                    </a>
+    <!-- Back to Parties -->
+    <a
+        href="{% url 'party_list' %}"
+        class="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.08] px-4 text-xs font-bold text-white transition-all duration-200 hover:border-white/30 hover:bg-white/[0.16] sm:w-auto"
+    >
+        <i class="ri-arrow-left-line text-base"></i>
+        <span>Back to Parties</span>
+    </a>
 
-                    {% if party.phone %}
-                        <a
-                            href="tel:{{ party.phone }}"
-                            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-white px-4 text-xs font-bold text-[#153030] transition hover:bg-teal-50"
-                        >
-                            <i class="ri-phone-line text-base"></i>
-                            Contact
-                        </a>
-                    {% endif %}
+    <!-- Party Orders -->
+    <a
+        href="{% url 'party_orders' party.pk %}"
+        title="View Party Orders"
+        aria-label="View Party Orders"
+        class="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white px-4 text-xs font-bold text-[#153030] shadow-sm transition-all duration-200 hover:border-teal-100 hover:bg-teal-50 sm:w-auto"
+    >
+        <i class="ri-shopping-bag-3-line text-base"></i>
+        <span>Party Orders</span>
+    </a>
 
-                </div>
+    <!-- Contact -->
+    {% if party.phone %}
+        <a
+            href="tel:{{ party.phone }}"
+            class="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-teal-500 px-4 text-xs font-bold text-white shadow-sm transition-all duration-200 hover:bg-teal-400 sm:w-auto"
+        >
+            <i class="ri-phone-line text-base"></i>
+            <span>Contact</span>
+        </a>
+    {% endif %}
+
+</div>
 
             </div>
 
