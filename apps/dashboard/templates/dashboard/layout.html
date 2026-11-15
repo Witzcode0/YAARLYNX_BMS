@@ -517,12 +517,7 @@
 
                 <!-- TASK MANAGEMENT -->
 
-{# ============================================================
-   TASK MANAGEMENT MENU PERMISSIONS
-   SUPER_ADMIN / ADMIN : All task menus
-   STAFF               : My Tasks only
-   CUSTOMER            : No task menu
-   ============================================================ #}
+
 
 {% with user_role=request.session.yaarlynx_user_role_code|default:""|upper %}
 
@@ -533,7 +528,7 @@
                 Task Management
             </p>
 
-            {# Task Dashboard #}
+      
             <a href="{% url 'taskManagement:task_dashboard' %}"
                class="yx-nav-link {% if request.resolver_match.url_name == 'task_dashboard' %}is-active{% endif %}"
                {% if request.resolver_match.url_name == 'task_dashboard' %}aria-current="page"{% endif %}>
@@ -543,7 +538,7 @@
                 <span class="flex-1">Task Dashboard</span>
             </a>
 
-            {# All Tasks #}
+       
             <a href="{% url 'taskManagement:task_list' %}"
                class="yx-nav-link {% if request.resolver_match.url_name == 'task_list' or request.resolver_match.url_name == 'task_detail' or request.resolver_match.url_name == 'task_edit' %}is-active{% endif %}"
                {% if request.resolver_match.url_name == 'task_list' or request.resolver_match.url_name == 'task_detail' or request.resolver_match.url_name == 'task_edit' %}aria-current="page"{% endif %}>
@@ -552,8 +547,6 @@
                 </span>
                 <span class="flex-1">All Tasks</span>
             </a>
-
-            {# Create Task #}
             <a href="{% url 'taskManagement:task_create' %}"
                class="yx-nav-link {% if request.resolver_match.url_name == 'task_create' %}is-active{% endif %}"
                {% if request.resolver_match.url_name == 'task_create' %}aria-current="page"{% endif %}>
@@ -563,7 +556,6 @@
                 <span class="flex-1">Create Task</span>
             </a>
 
-            {# My Tasks #}
             <a href="{% url 'taskManagement:my_tasks' %}"
                class="yx-nav-link {% if request.resolver_match.url_name == 'my_tasks' %}is-active{% endif %}"
                {% if request.resolver_match.url_name == 'my_tasks' %}aria-current="page"{% endif %}>
@@ -573,7 +565,6 @@
                 <span class="flex-1">My Tasks</span>
             </a>
 
-            {# Kanban Board #}
             <a href="{% url 'taskManagement:task_kanban' %}"
                class="yx-nav-link {% if request.resolver_match.url_name == 'task_kanban' %}is-active{% endif %}"
                {% if request.resolver_match.url_name == 'task_kanban' %}aria-current="page"{% endif %}>
@@ -592,7 +583,6 @@
                 Task Management
             </p>
 
-            {# Staff can access their assigned tasks #}
             <a href="{% url 'taskManagement:my_tasks' %}"
                class="yx-nav-link {% if request.resolver_match.url_name == 'my_tasks' %}is-active{% endif %}"
                {% if request.resolver_match.url_name == 'my_tasks' %}aria-current="page"{% endif %}>
