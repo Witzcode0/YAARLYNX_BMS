@@ -1,0 +1,226 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}My Tasks | YAARLYNX{% endblock %}
+{% block page_heading %}My Tasks{% endblock %}
+{% block extra_css %}
+    {% include "taskManagement/_task_styles.html" %}
+    <style>
+        .yx-my-work { color:#243532; min-width:0; }
+        .yx-my-hero { position:relative; isolation:isolate; overflow:hidden; border-radius:22px; color:#fff; background:linear-gradient(118deg,#102929 0%,#153b38 55%,#315e55 100%); box-shadow:0 14px 34px rgba(21,48,48,.12); }
+        .yx-my-hero::before,.yx-my-hero::after { content:""; position:absolute; z-index:-1; border:1px solid rgba(255,255,255,.11); border-radius:50%; pointer-events:none; }
+        .yx-my-hero::before { width:330px;height:330px;right:-75px;top:-235px; }
+        .yx-my-hero::after { width:230px;height:230px;right:100px;bottom:-195px; }
+        .yx-my-hero-stat { min-width:112px; padding:11px 14px; border:1px solid rgba(255,255,255,.14); border-radius:14px; background:rgba(255,255,255,.08); }
+        .yx-my-panel { background:#fff; border:1px solid #e4ebe8; border-radius:18px; box-shadow:0 5px 22px rgba(21,48,48,.035); min-width:0; }
+        .yx-my-kpi { min-height:128px; padding:16px; border:1px solid #e4ebe8; border-radius:17px; background:linear-gradient(145deg,#fff,#f8fbfa); min-width:0; }
+        .yx-my-kpi-icon { width:39px;height:39px;display:grid;place-items:center;border-radius:12px;background:#eaf1ef;color:#153030;font-size:18px;flex-shrink:0; }
+        .yx-my-kpi-label { color:#778780;font-size:10px;font-weight:850;letter-spacing:.09em;text-transform:uppercase; }
+        .yx-my-chart-row { display:grid;grid-template-columns:minmax(72px,105px) minmax(0,1fr) 28px;align-items:center;gap:9px; }
+        .yx-my-track { height:8px;overflow:hidden;border-radius:99px;background:#edf2ef; }
+        .yx-my-track > span { display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#153030,#739789);transition:width .35s ease; }
+        .yx-my-chart-row[data-tone="blue"] .yx-my-track > span { background:linear-gradient(90deg,#356b96,#8bb7d3); }
+        .yx-my-chart-row[data-tone="amber"] .yx-my-track > span { background:linear-gradient(90deg,#a87828,#e2bd72); }
+        .yx-my-chart-row[data-tone="purple"] .yx-my-track > span { background:linear-gradient(90deg,#74539b,#b4a0d2); }
+        .yx-my-chart-row[data-tone="rose"] .yx-my-track > span { background:linear-gradient(90deg,#a94750,#e59aa0); }
+        .yx-my-ring { width:112px;height:112px;display:grid;place-items:center;border-radius:50%;background:conic-gradient(#285a4e 0deg,#285a4e var(--yx-ring-angle,0deg),#eaf0ed var(--yx-ring-angle,0deg) 360deg);position:relative;flex-shrink:0; }
+        .yx-my-ring::before { content:"";position:absolute;inset:10px;border-radius:50%;background:#fff; }
+        .yx-my-ring-inner { position:relative;z-index:1;text-align:center; }
+        .yx-my-task-card { display:flex;flex-direction:column;min-width:0;padding:16px;border:1px solid #e5ece8;border-radius:16px;background:#fff;box-shadow:0 3px 12px rgba(21,48,48,.03);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease; }
+        .yx-my-task-card:hover { transform:translateY(-2px);border-color:#cfddd6;box-shadow:0 9px 22px rgba(21,48,48,.07); }
+        .yx-my-filter { border:1px solid #e4ebe8;border-radius:17px;background:#fff;box-shadow:0 5px 22px rgba(21,48,48,.03); }
+        .yx-my-filter-actions { display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap; }
+        .yx-my-empty { border:1px dashed #dbe5df;border-radius:15px;padding:34px 18px;text-align:center;color:#81908a;background:#fbfdfc; }
+        .yx-my-empty-icon { width:52px;height:52px;display:grid;place-items:center;margin:0 auto 11px;border-radius:16px;background:#eaf1ef;color:#153030;font-size:23px; }
+        .yx-my-chip { display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:5px 9px;background:#f2f6f4;color:#567068;font-size:10px;font-weight:800;white-space:nowrap; }
+        @media(max-width:640px){
+            .yx-my-hero{border-radius:17px;}
+            .yx-my-kpi{min-height:116px;padding:13px;}
+            .yx-my-filter-actions{display:grid;grid-template-columns:1fr 1fr;width:100%;}
+            .yx-my-filter-actions .yx-btn{width:100%;}
+            .yx-my-chart-row{grid-template-columns:78px minmax(0,1fr) 24px;gap:7px;}
+        }
+        @media(prefers-reduced-motion:reduce){.yx-my-task-card,.yx-my-track>span{transition:none}.yx-my-task-card:hover{transform:none}}
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="task-page yx-my-work space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+    <!-- HERO -->
+    <section class="yx-my-hero p-5 sm:p-6 lg:p-7">
+        <div class="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div class="min-w-0 max-w-2xl">
+                <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-50/90">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-300"></span> Personal workspace
+                </div>
+                <h1 class="text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl">{% if is_task_admin %}Team assignments{% else %}My tasks{% endif %}</h1>
+                <p class="mt-2 max-w-xl text-sm leading-6 text-teal-50/75">Your responsibilities, progress and deadlines — organised in one focused workspace.</p>
+                <div class="mt-5 flex flex-wrap gap-2">
+                    <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white/80"><i class="ri-checkbox-multiple-line mr-1"></i><span id="yxMyHeroCount">{{ assignments|length }}</span> assignments loaded</span>
+                    <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-bold text-white/80"><i class="ri-filter-3-line mr-1"></i>Filtered workload</span>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a class="yx-btn !border-white/20 !bg-white/10 !text-white hover:!bg-white/20" href="{% url 'taskManagement:task_kanban' %}"><i class="ri-kanban-view"></i> Kanban board</a>
+                {% if is_task_admin %}
+                    <a class="yx-btn !bg-white !text-[#153030] hover:!bg-teal-50" href="{% url 'taskManagement:task_create' %}"><i class="ri-add-line"></i> Create task</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="relative z-10 mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/15 pt-4 text-xs text-teal-50/75">
+            <span class="inline-flex items-center gap-2"><i class="ri-task-line"></i><strong class="text-white">{{ assignments|length }}</strong> assignments in this view</span>
+            <span class="inline-flex items-center gap-2"><i class="ri-user-3-line"></i>{% if is_task_admin %}Team workload{% else %}Personal workload{% endif %}</span>
+            <span class="inline-flex items-center gap-2"><i class="ri-line-chart-line"></i>Live page summary</span>
+        </div>
+    </section>
+
+    <!-- LIVE KPI CARDS -->
+    <section aria-label="Assignment metrics" class="grid grid-cols-2 gap-3 xl:grid-cols-4 sm:gap-4">
+        <article class="yx-my-kpi"><div class="flex items-center justify-between gap-2"><span class="yx-my-kpi-label">Assignments</span><span class="yx-my-kpi-icon"><i class="ri-task-line"></i></span></div><div id="yxMyTotal" class="mt-3 text-2xl font-black tracking-tight text-[#153030] sm:text-3xl">{{ assignments|length }}</div><p class="mt-1 text-[11px] text-slate-400">Currently shown</p></article>
+        <article class="yx-my-kpi"><div class="flex items-center justify-between gap-2"><span class="yx-my-kpi-label">Completed</span><span class="yx-my-kpi-icon !bg-emerald-50 !text-emerald-700"><i class="ri-checkbox-circle-line"></i></span></div><div id="yxMyCompleted" class="mt-3 text-2xl font-black tracking-tight text-emerald-700 sm:text-3xl">—</div><p class="mt-1 text-[11px] text-slate-400">Finished assignments</p></article>
+        <article class="yx-my-kpi"><div class="flex items-center justify-between gap-2"><span class="yx-my-kpi-label">In progress</span><span class="yx-my-kpi-icon !bg-blue-50 !text-blue-700"><i class="ri-loader-4-line"></i></span></div><div id="yxMyInProgress" class="mt-3 text-2xl font-black tracking-tight text-blue-700 sm:text-3xl">—</div><p class="mt-1 text-[11px] text-slate-400">Work underway</p></article>
+        <article class="yx-my-kpi"><div class="flex items-center justify-between gap-2"><span class="yx-my-kpi-label">Overdue</span><span class="yx-my-kpi-icon !bg-rose-50 !text-rose-700"><i class="ri-alarm-warning-line"></i></span></div><div id="yxMyOverdue" class="mt-3 text-2xl font-black tracking-tight text-rose-600 sm:text-3xl">—</div><p class="mt-1 text-[11px] text-slate-400">Past the due date</p></article>
+    </section>
+
+    <!-- CHARTS -->
+    <section class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <article class="yx-my-panel p-4 sm:p-5 xl:col-span-2">
+            <div class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-[10px] font-extrabold uppercase tracking-[.12em] text-[#81918a]">Workload analytics</p><h2 class="mt-1 text-base font-extrabold text-[#203a35]">Status distribution</h2><p class="mt-1 text-xs text-slate-400">Assignments grouped by their current workflow status.</p></div><span class="yx-my-chip"><i class="ri-bar-chart-grouped-line"></i> Live chart</span></div>
+            <div id="yxMyStatusChart" class="mt-6 space-y-4" aria-live="polite"><p class="text-xs text-slate-400">Preparing chart…</p></div>
+        </article>
+        <article class="yx-my-panel p-4 sm:p-5">
+            <div><p class="text-[10px] font-extrabold uppercase tracking-[.12em] text-[#81918a]">Progress snapshot</p><h2 class="mt-1 text-base font-extrabold text-[#203a35]">Completion rate</h2><p class="mt-1 text-xs text-slate-400">Completed assignments in the current view.</p></div>
+            <div class="mt-5 flex flex-col items-center justify-center gap-4 sm:flex-row xl:flex-col">
+                <div id="yxMyRing" class="yx-my-ring" style="--yx-ring-angle:0deg" role="img" aria-label="Completion rate 0 percent"><div class="yx-my-ring-inner"><div id="yxMyRingValue" class="text-2xl font-black text-[#153030]">0%</div><div class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Complete</div></div></div>
+                <div class="min-w-0 flex-1 space-y-3 w-full">
+                    <div class="flex items-center justify-between gap-2 text-xs"><span class="inline-flex items-center gap-2 text-slate-500"><span class="h-2.5 w-2.5 rounded-full bg-[#285a4e]"></span>Completed</span><strong id="yxMyCompletedLegend" class="text-[#153030]">0</strong></div>
+                    <div class="flex items-center justify-between gap-2 text-xs"><span class="inline-flex items-center gap-2 text-slate-500"><span class="h-2.5 w-2.5 rounded-full bg-[#e5ece8]"></span>Remaining</span><strong id="yxMyRemainingLegend" class="text-[#153030]">0</strong></div>
+                    <div class="rounded-xl bg-[#f5f8f6] p-3"><p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Average progress</p><p id="yxMyAvgProgress" class="mt-1 text-xl font-black text-[#153030]">0%</p></div>
+                </div>
+            </div>
+        </article>
+        <article class="yx-my-panel p-4 sm:p-5 xl:col-span-3">
+            <div class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-[10px] font-extrabold uppercase tracking-[.12em] text-[#81918a]">Attention map</p><h2 class="mt-1 text-base font-extrabold text-[#203a35]">Priority overview</h2><p class="mt-1 text-xs text-slate-400">See where the current workload is concentrated.</p></div><span class="yx-my-chip"><i class="ri-flag-2-line"></i> Priority mix</span></div>
+            <div id="yxMyPriorityChart" class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-live="polite"><p class="text-xs text-slate-400">Preparing chart…</p></div>
+        </article>
+    </section>
+
+    <!-- FILTERS -->
+    <section class="yx-my-filter p-4 sm:p-5">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-2"><div class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-[#eaf1ef] text-lg text-[#153030]"><i class="ri-equalizer-2-line"></i></span><div><h2 class="text-sm font-extrabold text-[#203a35]">Find an assignment</h2><p class="mt-1 text-xs text-slate-400">Narrow your workload using the filters.</p></div></div><span class="yx-my-chip"><i class="ri-list-check-2"></i>{{ assignments|length }} shown</span></div>
+        <form method="get" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="lg:col-span-2"><label class="yx-label" for="task-search">Search tasks</label><div class="relative"><i class="ri-search-line pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i><input id="task-search" class="yx-input !pl-9" type="search" name="q" value="{{ search|default:'' }}" placeholder="Task name or number"></div></div>
+            {% if is_task_admin %}<div><label class="yx-label" for="task-user">Staff member</label><select id="task-user" class="yx-select" name="user"><option value="">All staff</option>{% for staff in staff_users %}<option value="{{ staff.pk }}" {% if selected_user|stringformat:'s' == staff.pk|stringformat:'s' %}selected{% endif %}>{{ staff.full_name }}</option>{% endfor %}</select></div>{% endif %}
+            <div><label class="yx-label" for="task-status">Status</label><select id="task-status" class="yx-select" name="status"><option value="">All statuses</option>{% for value, label in status_choices %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+            <div><label class="yx-label" for="task-priority">Priority</label><select id="task-priority" class="yx-select" name="priority"><option value="">All priorities</option>{% for value, label in priority_choices %}<option value="{{ value }}" {% if selected_priority == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+            <div class="flex flex-wrap items-end justify-end gap-2 sm:col-span-2 lg:col-span-5"><a class="yx-btn yx-btn-light" href="{% url 'taskManagement:my_tasks' %}"><i class="ri-refresh-line"></i> Reset filters</a><button class="yx-btn yx-btn-primary" type="submit"><i class="ri-filter-3-line"></i> Apply filters</button></div>
+        </form>
+    </section>
+
+    <!-- ASSIGNMENTS -->
+    <section>
+        <div class="mb-4 flex flex-wrap items-end justify-between gap-2"><div><p class="text-[10px] font-extrabold uppercase tracking-[.12em] text-[#81918a]">Your work queue</p><h2 class="mt-1 text-base font-extrabold text-[#203a35]">{% if is_task_admin %}Team workload{% else %}Your assignment list{% endif %}</h2><p class="mt-1 text-xs text-slate-400">Open an assignment to view its complete details.</p></div><span class="text-[11px] font-semibold text-slate-400">{{ assignments|length }} result{{ assignments|length|pluralize }}</span></div>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3" id="yxMyAssignmentGrid">
+            {% for assignment in assignments %}
+                <article class="yx-my-task-card" data-task-card data-status="{{ assignment.status|escape }}" data-status-label="{{ assignment.get_status_display|escape }}" data-priority="{{ assignment.task.priority|escape }}" data-priority-label="{{ assignment.task.get_priority_display|escape }}" data-progress="{{ assignment.progress|default:0 }}" data-due="{{ assignment.task.due_date|date:'Y-m-d' }}">
+                    <div class="flex items-start justify-between gap-3"><div class="min-w-0"><p class="truncate text-[10px] font-extrabold tracking-[.12em] text-slate-400">{{ assignment.task.task_number }}</p><div class="mt-2 flex flex-wrap items-center gap-2"><span class="yx-pill yx-status-{{ assignment.status }}">{{ assignment.get_status_display }}</span><span class="yx-pill yx-priority-{{ assignment.task.priority }}">{{ assignment.task.get_priority_display }}</span></div></div><span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#f0f5f2] text-[#31564c]"><i class="ri-file-list-3-line text-lg"></i></span></div>
+                    <a href="{% url 'taskManagement:task_detail' assignment.task.pk %}" class="mt-4 block text-base font-black leading-snug text-[#153030] transition hover:text-[#527a72] hover:underline">{{ assignment.task.title }}</a>
+                    <p class="mt-2 line-clamp-3 min-h-[3.75rem] text-xs leading-5 text-slate-500">{{ assignment.task.description|default:"No description provided." }}</p>
+                    {% if is_task_admin %}<div class="mt-4 flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2"><span class="yx-avatar">{{ assignment.user.full_name|default:"U"|slice:":1"|upper }}</span><div class="min-w-0"><p class="text-[9px] font-bold uppercase tracking-wide text-slate-400">Assigned to</p><p class="truncate text-xs font-bold text-slate-700">{{ assignment.user.full_name }}</p></div></div>{% endif %}
+                    <div class="mt-5"><div class="mb-2 flex items-center justify-between gap-2"><span class="text-[11px] font-semibold text-slate-500">Completion progress</span><strong class="text-xs font-black tabular-nums text-[#153030]">{{ assignment.progress }}%</strong></div><div class="yx-progress" role="progressbar" aria-valuenow="{{ assignment.progress }}" aria-valuemin="0" aria-valuemax="100" aria-label="Task progress"><span style="width:{{ assignment.progress }}%"></span></div></div>
+                    <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4"><div class="flex items-center gap-2 text-[10px] text-slate-500"><i class="ri-calendar-event-line text-sm text-[#668278]"></i><span>Due {{ assignment.task.due_date|date:"d M Y"|default:"Not set" }}</span></div><a href="{% url 'taskManagement:task_detail' assignment.task.pk %}" class="inline-flex items-center gap-1 text-xs font-extrabold text-[#153030] hover:text-[#527a72]">Open task <i class="ri-arrow-right-line transition group-hover:translate-x-0.5"></i></a></div>
+                </article>
+            {% empty %}
+                <div class="yx-my-panel yx-my-empty col-span-full"><div class="yx-my-empty-icon"><i class="ri-task-line"></i></div><p class="font-bold text-slate-700">No assignments found</p><p class="mt-1 text-xs text-slate-400">Try changing your filters, or check back when tasks are assigned.</p><a href="{% url 'taskManagement:my_tasks' %}" class="yx-btn yx-btn-light mt-4"><i class="ri-refresh-line"></i> Clear filters</a></div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    "use strict";
+    const cards = Array.from(document.querySelectorAll("[data-task-card]"));
+    const total = cards.length;
+    const statusMap = new Map();
+    const priorityMap = new Map();
+    let completed = 0, inProgress = 0, overdue = 0, progressTotal = 0;
+
+    const today = new Date();
+    const todayKey = [today.getFullYear(), String(today.getMonth()+1).padStart(2,"0"), String(today.getDate()).padStart(2,"0")].join("-");
+
+    cards.forEach(card => {
+        const status = card.dataset.status || "unknown";
+        const statusLabel = card.dataset.statusLabel || status.replaceAll("_", " ");
+        const priority = card.dataset.priority || "unknown";
+        const priorityLabel = card.dataset.priorityLabel || priority;
+        const progress = Math.max(0, Math.min(100, Number(card.dataset.progress) || 0));
+        const due = card.dataset.due || "";
+        statusMap.set(status, {label:statusLabel, count:(statusMap.get(status)?.count || 0)+1});
+        priorityMap.set(priority, {label:priorityLabel, count:(priorityMap.get(priority)?.count || 0)+1});
+        if (status === "completed") completed++;
+        if (status === "in_progress") inProgress++;
+        if (due && due < todayKey && status !== "completed" && status !== "cancelled" && status !== "rejected") overdue++;
+        progressTotal += progress;
+    });
+
+    const setText = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = value; };
+    setText("yxMyTotal", total);
+    setText("yxMyHeroCount", total);
+    setText("yxMyCompleted", completed);
+    setText("yxMyInProgress", inProgress);
+    setText("yxMyOverdue", overdue);
+
+    const completionRate = total ? Math.round((completed / total) * 100) : 0;
+    const averageProgress = total ? Math.round(progressTotal / total) : 0;
+    const ring = document.getElementById("yxMyRing");
+    if (ring) { ring.style.setProperty("--yx-ring-angle", (completionRate * 3.6) + "deg"); ring.setAttribute("aria-label", "Completion rate " + completionRate + " percent"); }
+    setText("yxMyRingValue", completionRate + "%");
+    setText("yxMyCompletedLegend", completed);
+    setText("yxMyRemainingLegend", total - completed);
+    setText("yxMyAvgProgress", averageProgress + "%");
+
+    const toneFor = value => ({pending:"amber",accepted:"blue",in_progress:"blue",on_hold:"amber",under_review:"purple",completed:"green",rejected:"rose",cancelled:"rose",urgent:"rose",high:"amber",medium:"blue",low:"green"}[value] || "green");
+    function renderBars(containerId, map, toneByKey) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.textContent = "";
+        if (!map.size) { const empty = document.createElement("p"); empty.className = "text-xs text-slate-400"; empty.textContent = "No chart data available for this view."; container.appendChild(empty); return; }
+        const max = Math.max(1, ...Array.from(map.values(), item => item.count));
+        Array.from(map.entries()).sort((a,b) => b[1].count-a[1].count).forEach(([key,item]) => {
+            const row = document.createElement("div"); row.className = "yx-my-chart-row"; row.dataset.tone = toneByKey(key);
+            const label = document.createElement("span"); label.className = "truncate text-[11px] font-bold text-slate-600"; label.textContent = item.label;
+            const track = document.createElement("div"); track.className = "yx-my-track";
+            const fill = document.createElement("span"); fill.style.width = ((item.count / max) * 100) + "%"; track.appendChild(fill);
+            const count = document.createElement("strong"); count.className = "text-right text-xs font-black tabular-nums text-[#153030]"; count.textContent = item.count;
+            row.append(label,track,count); container.appendChild(row);
+        });
+    }
+    renderBars("yxMyStatusChart", statusMap, toneFor);
+
+    const priorityContainer = document.getElementById("yxMyPriorityChart");
+    if (priorityContainer) {
+        priorityContainer.textContent = "";
+        const order = ["urgent","high","medium","low"];
+        const keys = Array.from(priorityMap.keys()).sort((a,b) => {
+            const ai = order.indexOf(a), bi = order.indexOf(b);
+            return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi);
+        });
+        if (!keys.length) { const empty = document.createElement("p"); empty.className="text-xs text-slate-400"; empty.textContent="No priority data available for this view."; priorityContainer.appendChild(empty); }
+        const maxPriority = Math.max(1, ...keys.map(key => priorityMap.get(key).count));
+        keys.forEach(key => {
+            const item = priorityMap.get(key);
+            const card = document.createElement("div"); card.className="rounded-xl border border-slate-100 bg-[#fbfdfc] p-3";
+            const top = document.createElement("div"); top.className="flex items-center justify-between gap-2";
+            const label = document.createElement("span"); label.className="text-xs font-bold text-slate-600"; label.textContent=item.label;
+            const count = document.createElement("strong"); count.className="text-lg font-black text-[#153030]"; count.textContent=item.count;
+            top.append(label,count);
+            const track = document.createElement("div"); track.className="yx-my-track mt-3";
+            const fill = document.createElement("span"); fill.style.width=((item.count/maxPriority)*100)+"%"; fill.style.background=({urgent:"linear-gradient(90deg,#a94750,#e59aa0)",high:"linear-gradient(90deg,#a87828,#e2bd72)",medium:"linear-gradient(90deg,#356b96,#8bb7d3)",low:"linear-gradient(90deg,#285a4e,#83aa98)"}[key] || "linear-gradient(90deg,#153030,#739789)"); track.appendChild(fill);
+            const share = document.createElement("p"); share.className="mt-2 text-[10px] text-slate-400"; share.textContent=(total ? Math.round(item.count/total*100) : 0)+"% of shown assignments";
+            card.append(top,track,share); priorityContainer.appendChild(card);
+        });
+    }
+});
+</script>
+{% endblock %}

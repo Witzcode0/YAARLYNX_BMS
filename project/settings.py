@@ -47,6 +47,7 @@ INSTALLED_APPS_CUSTOM = [
     'apps.accounts',
     'apps.pdf_overlay',
     'apps.marketplace',
+    "apps.taskManagement.apps.TaskManagementConfig",
 ]
 
 INSTALLED_APPS += INSTALLED_APPS_CUSTOM

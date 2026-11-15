@@ -466,7 +466,11 @@
     <span class="flex-1">Marketplace & Courier</span>
 </a>
 
+
+
                 </section>
+
+                
 
                 {% if request.session.yaarlynx_user_role_code == "ADMIN" or request.session.yaarlynx_user_role_code == "SUPER_ADMIN" %}
 
@@ -510,6 +514,75 @@
                     </section>
 
                 {% endif %}
+
+                <!-- TASK MANAGEMENT -->
+<section>
+
+    <p class="mb-2.5 px-3 text-[9px] font-extrabold uppercase tracking-[0.2em] text-[#A1AEAA]">
+        Task Management
+    </p>
+
+    <!-- Task Dashboard -->
+    <a
+        href="{% url 'taskManagement:task_dashboard' %}"
+        class="yx-nav-link {% if request.resolver_match.url_name == 'task_dashboard' %}is-active{% endif %}"
+        {% if request.resolver_match.url_name == 'task_dashboard' %}aria-current="page"{% endif %}
+    >
+        <span class="yx-nav-icon">
+            <i class="ri-dashboard-3-line"></i>
+        </span>
+        <span class="flex-1">Task Dashboard</span>
+    </a>
+
+    <!-- All Tasks -->
+    <a
+        href="{% url 'taskManagement:task_list' %}"
+        class="yx-nav-link {% if request.resolver_match.url_name == 'task_list' or request.resolver_match.url_name == 'task_detail' or request.resolver_match.url_name == 'task_edit' %}is-active{% endif %}"
+        {% if request.resolver_match.url_name == 'task_list' or request.resolver_match.url_name == 'task_detail' or request.resolver_match.url_name == 'task_edit' %}aria-current="page"{% endif %}
+    >
+        <span class="yx-nav-icon">
+            <i class="ri-task-line"></i>
+        </span>
+        <span class="flex-1">All Tasks</span>
+    </a>
+
+    <!-- Create Task -->
+    <a
+        href="{% url 'taskManagement:task_create' %}"
+        class="yx-nav-link {% if request.resolver_match.url_name == 'task_create' %}is-active{% endif %}"
+        {% if request.resolver_match.url_name == 'task_create' %}aria-current="page"{% endif %}
+    >
+        <span class="yx-nav-icon">
+            <i class="ri-add-circle-line"></i>
+        </span>
+        <span class="flex-1">Create Task</span>
+    </a>
+
+    <!-- My Tasks -->
+    <a
+        href="{% url 'taskManagement:my_tasks' %}"
+        class="yx-nav-link {% if request.resolver_match.url_name == 'my_tasks' %}is-active{% endif %}"
+        {% if request.resolver_match.url_name == 'my_tasks' %}aria-current="page"{% endif %}
+    >
+        <span class="yx-nav-icon">
+            <i class="ri-user-clipboard-line"></i>
+        </span>
+        <span class="flex-1">My Tasks</span>
+    </a>
+
+    <!-- Kanban Board -->
+    <a
+        href="{% url 'taskManagement:task_kanban' %}"
+        class="yx-nav-link {% if request.resolver_match.url_name == 'task_kanban' %}is-active{% endif %}"
+        {% if request.resolver_match.url_name == 'task_kanban' %}aria-current="page"{% endif %}
+    >
+        <span class="yx-nav-icon">
+            <i class="ri-layout-column-line"></i>
+        </span>
+        <span class="flex-1">Kanban Board</span>
+    </a>
+
+</section>
 
                 <section>
 

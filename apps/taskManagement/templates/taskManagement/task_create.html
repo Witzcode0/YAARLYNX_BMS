@@ -1,0 +1,530 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}Create Task | YAARLYNX{% endblock %}
+{% block page_heading %}Create Task{% endblock %}
+
+{% block extra_css %}
+{% include "taskManagement/_task_styles.html" %}
+<style>
+/* =========================================================
+   YAARLYNX CREATE TASK — PAGE-SPECIFIC STYLES
+   Uses the shared task stylesheet for common components.
+========================================================= */
+.task-create-page { color:#243532; min-width:0; }
+.task-create-page .yc-card {
+    background:#fff; border:1px solid #e4ebe8; border-radius:20px;
+    box-shadow:0 5px 22px rgba(21,48,48,.045); min-width:0;
+}
+.task-create-page .yc-card-head { display:flex; align-items:flex-start; gap:12px; margin-bottom:22px; }
+.task-create-page .yc-icon-box {
+    width:42px; height:42px; display:grid; place-items:center; flex-shrink:0;
+    border-radius:14px; background:#eaf1ef; color:#153030; font-size:20px;
+}
+.task-create-page .yc-title { color:#203a35; font-size:14px; font-weight:850; line-height:1.4; }
+.task-create-page .yc-subtitle { color:#87948f; font-size:11px; line-height:1.5; margin-top:3px; }
+.task-create-page .yc-label { display:block; color:#425650; font-size:12px; font-weight:750; margin-bottom:7px; }
+.task-create-page .yc-control {
+    display:block; width:100%; min-width:0; min-height:43px; border:1px solid #dce6e1;
+    border-radius:11px; padding:10px 12px; background:#fff; color:#203633;
+    font-size:13px; line-height:1.45; outline:none; transition:border-color .16s,box-shadow .16s;
+}
+.task-create-page .yc-control::placeholder { color:#a0aca7; }
+.task-create-page .yc-control:focus { border-color:#527a72; box-shadow:0 0 0 3px rgba(21,48,48,.08); }
+.task-create-page textarea.yc-control { min-height:126px; resize:vertical; }
+.task-create-page .yc-help { color:#8a9792; font-size:10px; line-height:1.5; margin-top:6px; }
+.task-create-page .yc-required { color:#dc5550; }
+.task-create-page .yc-alert { border-radius:13px; padding:12px 14px; font-size:12px; line-height:1.55; }
+.task-create-page .yc-staff-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; max-height:330px; overflow:auto; padding:2px; }
+.task-create-page .yc-staff-option {
+    display:flex; align-items:center; gap:10px; min-width:0; padding:10px;
+    border:1px solid #e7eeea; border-radius:13px; background:#fff; cursor:pointer;
+    transition:background .16s,border-color .16s,box-shadow .16s;
+}
+.task-create-page .yc-staff-option:hover { background:#f8fbf9; border-color:#cbd9d2; }
+.task-create-page .yc-staff-option:has(input:checked) { background:#f0f6f3; border-color:#78988b; box-shadow:0 0 0 2px rgba(21,48,48,.045); }
+.task-create-page .yc-staff-option input { width:16px; height:16px; flex-shrink:0; accent-color:#153030; }
+.task-create-page .yc-staff-avatar {
+    width:36px; height:36px; flex-shrink:0; display:grid; place-items:center;
+    border-radius:50%; background:#e6efeb; color:#254b43; font-size:11px; font-weight:850;
+}
+.task-create-page .yc-upload {
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    border:1.5px dashed #cbd8d1; border-radius:16px; background:#fafcfb;
+    padding:28px 18px; cursor:pointer; transition:background .18s,border-color .18s;
+}
+.task-create-page .yc-upload:hover { border-color:#527a72; background:#f3f8f5; }
+.task-create-page .yc-upload:focus-within { outline:3px solid rgba(21,48,48,.12); outline-offset:2px; }
+.task-create-page .yc-file-item {
+    display:flex; align-items:center; gap:10px; min-width:0; padding:9px 11px;
+    background:#f7faf8; border:1px solid #e7eeea; border-radius:11px; color:#475952; font-size:11px;
+}
+.task-create-page .yc-preview {
+    position:sticky; top:90px; overflow:hidden;
+    background:linear-gradient(155deg,#153030 0%,#204747 65%,#315c52 100%);
+    border-radius:20px; color:#fff; box-shadow:0 12px 30px rgba(21,48,48,.13);
+}
+.task-create-page .yc-preview-label { color:rgba(255,255,255,.62); font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+.task-create-page .yc-preview-row { display:flex; justify-content:space-between; gap:14px; padding:12px 0; border-top:1px solid rgba(255,255,255,.12); font-size:11px; }
+.task-create-page .yc-preview-row span:first-child { color:rgba(255,255,255,.62); }
+.task-create-page .yc-preview-row strong { color:#fff; text-align:right; overflow-wrap:anywhere; }
+.task-create-page .yc-checkline { display:flex; gap:9px; align-items:flex-start; color:#e8f1ed; font-size:11px; line-height:1.55; }
+.task-create-page .yc-checkline i { color:#b7d4c5; font-size:15px; margin-top:1px; }
+.task-create-page .yc-submit {
+    display:inline-flex; justify-content:center; align-items:center; gap:9px; width:100%;
+    min-height:46px; padding:12px 18px; border:1px solid transparent; border-radius:12px;
+    background:#fff; color:#153030; font-size:13px; font-weight:850; cursor:pointer;
+    transition:transform .16s,background .16s,box-shadow .16s;
+}
+.task-create-page .yc-submit:hover { background:#edf5f0; transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.12); }
+.task-create-page .yc-submit:focus-visible { outline:3px solid rgba(255,255,255,.5); outline-offset:3px; }
+.task-create-page .yc-secondary-link { display:flex; justify-content:center; align-items:center; width:100%; min-height:42px; border:1px solid #e0e9e4; border-radius:12px; color:#36534a; font-size:12px; font-weight:750; background:#fff; }
+.task-create-page .yc-secondary-link:hover { background:#f4f8f6; }
+.task-create-page .yc-step { display:flex; align-items:center; gap:8px; color:#74847d; font-size:10px; font-weight:800; white-space:nowrap; }
+.task-create-page .yc-step-num { width:23px; height:23px; display:grid; place-items:center; border-radius:50%; background:#eaf1ef; color:#153030; font-size:10px; }
+.task-create-page .yc-step.is-active { color:#153030; }
+.task-create-page .yc-step.is-active .yc-step-num { background:#153030; color:#fff; }
+.task-create-page .yc-progress-line { height:1px; flex:1; min-width:12px; background:#e2eae5; }
+.task-create-page .yc-count-chip { display:inline-flex; align-items:center; border-radius:99px; padding:5px 9px; background:#edf4f0; color:#31534b; font-size:10px; font-weight:850; }
+.task-create-page .yc-error { color:#b42318; font-size:11px; margin-top:6px; }
+.task-create-page .yc-file-error { display:none; color:#b42318; background:#fff1f0; border:1px solid #ffded9; border-radius:10px; padding:9px 11px; font-size:11px; line-height:1.5; }
+.task-create-page .yc-file-error.is-visible { display:block; }
+@media(max-width:767px) {
+    .task-create-page .yc-staff-list { grid-template-columns:1fr; max-height:300px; }
+    .task-create-page .yc-preview { position:static; }
+}
+@media(max-width:420px) {
+    .task-create-page .yc-card { border-radius:16px; }
+    .task-create-page .yc-card-body { padding:15px !important; }
+    .task-create-page .yc-upload { padding:22px 14px; }
+}
+@media(prefers-reduced-motion:reduce) {
+    .task-create-page *, .task-create-page *::before, .task-create-page *::after { transition:none !important; scroll-behavior:auto !important; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="task-page task-create-page mx-auto max-w-7xl space-y-5">
+
+    <!-- Page header -->
+    <header class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="min-w-0">
+            <div class="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                <a href="{% url 'taskManagement:task_list' %}" class="font-semibold transition hover:text-[#153030]">Tasks</a>
+                <i class="ri-arrow-right-s-line"></i>
+                <span class="font-bold text-[#153030]">Create task</span>
+            </div>
+            <div class="flex items-start gap-3">
+                <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#153030] text-2xl text-white shadow-lg shadow-[#153030]/15">
+                    <i class="ri-add-circle-line"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-black uppercase tracking-[.2em] text-[#789087]">TASK WORKSPACE</p>
+                    <h1 class="mt-1 text-2xl font-black tracking-tight text-[#153030] sm:text-3xl">Create a new task</h1>
+                    <p class="mt-1 max-w-2xl text-sm leading-6 text-slate-500">Capture the work, set a clear timeline and bring the right people together.</p>
+                </div>
+            </div>
+        </div>
+        <a href="{% url 'taskManagement:task_list' %}" class="yx-btn yx-btn-light self-start lg:self-auto">
+            <i class="ri-arrow-left-line"></i> Back to tasks
+        </a>
+    </header>
+
+    <!-- Simple workflow guide -->
+    <div class="yx-panel flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-5">
+        <div class="yc-step is-active"><span class="yc-step-num">1</span> Define task</div>
+        <div class="yc-progress-line hidden sm:block"></div>
+        <div class="yc-step"><span class="yc-step-num">2</span> Set schedule</div>
+        <div class="yc-progress-line hidden sm:block"></div>
+        <div class="yc-step"><span class="yc-step-num">3</span> Assign team</div>
+        <div class="yc-progress-line hidden sm:block"></div>
+        <div class="yc-step"><span class="yc-step-num">4</span> Add files</div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="space-y-2" aria-live="polite">
+            {% for message in messages %}
+                <div class="yc-alert {% if message.tags == 'error' %}border border-red-100 bg-red-50 text-red-700{% else %}border border-emerald-100 bg-emerald-50 text-emerald-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if form_errors %}
+        <div class="yc-alert border border-red-100 bg-red-50 text-red-700" role="alert">
+            <p class="mb-2 font-extrabold">Please correct the following errors:</p>
+            <ul class="list-inside list-disc space-y-1">
+                {% for error in form_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 items-start gap-5 xl:grid-cols-3" id="taskCreateForm">
+        {% csrf_token %}
+
+        <!-- Main form column -->
+        <div class="min-w-0 space-y-5 xl:col-span-2">
+
+            <!-- Basic information -->
+            <section class="yc-card yc-card-body p-4 sm:p-6">
+                <div class="yc-card-head">
+                    <div class="yc-icon-box"><i class="ri-file-list-3-line"></i></div>
+                    <div>
+                        <h2 class="yc-title">Basic information</h2>
+                        <p class="yc-subtitle">Start with a clear title and the details your team needs.</p>
+                    </div>
+                    <span class="ml-auto hidden rounded-full bg-slate-50 px-3 py-1 text-[10px] font-extrabold text-slate-400 sm:inline-flex">01 / 04</span>
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div class="md:col-span-2">
+                        <label class="yc-label" for="title">Task title <span class="yc-required">*</span></label>
+                        <input type="text" id="title" name="title" class="yc-control" placeholder="e.g. Complete product listing update" value="{{ request.POST.title|default:'' }}" maxlength="255" required autocomplete="off">
+                        <p class="yc-help">Use an action-oriented title so the expected work is easy to understand.</p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="yc-label" for="description">Task description</label>
+                        <textarea id="description" name="description" rows="4" class="yc-control" placeholder="Describe the task, requirements and expected outcome...">{{ request.POST.description|default:'' }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="yc-label" for="category">Task category <span class="yc-required">*</span></label>
+                        <select name="category" id="category" class="yc-control" required>
+                            <option value="">Select category</option>
+                            {% for category in categories %}
+                                <option value="{{ category.pk }}" {% if request.POST.category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="yc-label" for="priority">Priority <span class="yc-required">*</span></label>
+                        <select name="priority" id="priority" class="yc-control" required>
+                            {% for value, label in priority_choices %}
+                                <option value="{{ value }}" {% if request.POST.priority == value %}selected{% elif not request.POST.priority and value == 'medium' %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Schedule -->
+            <section class="yc-card yc-card-body p-4 sm:p-6">
+                <div class="yc-card-head">
+                    <div class="yc-icon-box" style="background:#edf4ff;color:#285b9b"><i class="ri-calendar-schedule-line"></i></div>
+                    <div>
+                        <h2 class="yc-title">Schedule & recurrence</h2>
+                        <p class="yc-subtitle">Set a realistic start date, deadline and repeat frequency.</p>
+                    </div>
+                    <span class="ml-auto hidden rounded-full bg-slate-50 px-3 py-1 text-[10px] font-extrabold text-slate-400 sm:inline-flex">02 / 04</span>
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
+                    <div>
+                        <label class="yc-label" for="start_date">Start date</label>
+                        <input type="date" name="start_date" id="start_date" class="yc-control" value="{{ request.POST.start_date|default:'' }}">
+                    </div>
+                    <div>
+                        <label class="yc-label" for="due_date">Due date</label>
+                        <input type="date" name="due_date" id="due_date" class="yc-control" value="{{ request.POST.due_date|default:'' }}">
+                    </div>
+                    <div>
+                        <label class="yc-label" for="recurrence">Recurrence</label>
+                        <select name="recurrence" id="recurrence" class="yc-control">
+                            {% for value, label in recurrence_choices %}
+                                <option value="{{ value }}" {% if request.POST.recurrence == value %}selected{% elif not request.POST.recurrence and value == 'none' %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-5 flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">
+                    <i class="ri-information-line mt-0.5 text-base text-[#153030]"></i>
+                    <p>Choose a start date and due date to make the task timeline clear. The due date cannot be earlier than the start date.</p>
+                </div>
+            </section>
+
+            <!-- Assign team -->
+            <section class="yc-card yc-card-body p-4 sm:p-6">
+                <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="yc-card-head mb-0">
+                        <div class="yc-icon-box" style="background:#f3edff;color:#6941a5"><i class="ri-team-line"></i></div>
+                        <div>
+                            <h2 class="yc-title">Assign team members</h2>
+                            <p class="yc-subtitle">Select one or multiple staff members responsible for this task.</p>
+                        </div>
+                    </div>
+                    <span class="yc-count-chip" id="selectedStaffCount" aria-live="polite">0 selected</span>
+                </div>
+
+                {% if users %}
+                    <div class="relative mb-4">
+                        <i class="ri-search-line pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="search" id="staffSearch" class="yc-control pl-9" placeholder="Search staff by name or email..." autocomplete="off">
+                    </div>
+                    <div class="yc-staff-list" id="staffList">
+                        {% for user in users %}
+                            <label class="yc-staff-option staff-option">
+                                <input type="checkbox" name="assigned_users" value="{{ user.pk }}" class="staff-checkbox" aria-label="Assign {{ user.full_name|default:user.email }}">
+                                <span class="yc-staff-avatar">{{ user.first_name|default:user.email|first|upper }}</span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-xs font-extrabold text-slate-700">{{ user.full_name }}</span>
+                                    <span class="mt-0.5 block truncate text-[10px] text-slate-400">{{ user.email }}</span>
+                                </span>
+                                <i class="ri-check-line staff-check-icon hidden text-sm font-black text-[#153030]"></i>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <p id="noStaffSearchResults" class="hidden rounded-xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-400">No staff members match your search.</p>
+                {% else %}
+                    <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-9 text-center">
+                        <div class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white text-2xl text-slate-300 shadow-sm"><i class="ri-user-search-line"></i></div>
+                        <p class="mt-3 text-sm font-extrabold text-slate-600">No staff members found</p>
+                        <p class="mt-1 text-xs text-slate-400">Add staff accounts before assigning tasks.</p>
+                    </div>
+                {% endif %}
+                <p class="mt-4 flex items-start gap-2 text-[11px] leading-5 text-slate-400">
+                    <i class="ri-information-line mt-0.5"></i>
+                    You can assign this task to multiple staff members. Select everyone who will be responsible for the work.
+                </p>
+            </section>
+
+            <!-- Documents -->
+            <section class="yc-card yc-card-body p-4 sm:p-6">
+                <div class="yc-card-head">
+                    <div class="yc-icon-box" style="background:#fff6e8;color:#a66a12"><i class="ri-attachment-2"></i></div>
+                    <div>
+                        <h2 class="yc-title">Task documents</h2>
+                        <p class="yc-subtitle">Attach briefs, spreadsheets, images or other reference material.</p>
+                    </div>
+                    <span class="ml-auto hidden rounded-full bg-slate-50 px-3 py-1 text-[10px] font-extrabold text-slate-400 sm:inline-flex">04 / 04</span>
+                </div>
+
+                <label for="documents" class="yc-upload">
+                    <span class="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-[#eaf1ef] text-2xl text-[#153030]"><i class="ri-upload-cloud-2-line"></i></span>
+                    <span class="text-sm font-extrabold text-[#153030]">Click to upload documents</span>
+                    <span class="mt-1 text-xs text-slate-400">PDF, DOC, DOCX, XLS, XLSX, CSV, images, ZIP or TXT</span>
+                    <span class="mt-2 text-[10px] font-semibold text-slate-400">Maximum 10 MB per file · Multiple files supported</span>
+                    <input type="file" name="documents" id="documents" multiple class="sr-only" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.webp,.zip,.txt">
+                </label>
+                <div id="selectedFiles" class="mt-3 space-y-2" aria-live="polite"></div>
+                <div id="fileValidationMessage" class="yc-file-error mt-3" role="alert"></div>
+            </section>
+        </div>
+
+        <!-- Right-side live summary and actions -->
+        <aside class="min-w-0 space-y-4">
+            <section class="yc-preview p-5 sm:p-6">
+                <div class="flex items-center justify-between gap-3">
+                    <span class="yc-preview-label">Live task preview</span>
+                    <i class="ri-sparkling-2-line text-lg text-[#c5dfd0]"></i>
+                </div>
+                <h2 id="previewTitle" class="mt-4 break-words text-xl font-black leading-snug">Your task title will appear here</h2>
+                <p id="previewCategory" class="mt-2 text-xs text-white/60">Choose a task category</p>
+
+                <div class="mt-5">
+                    <div class="yc-preview-row"><span>Priority</span><strong id="previewPriority">Medium</strong></div>
+                    <div class="yc-preview-row"><span>Start date</span><strong id="previewStart">Not set</strong></div>
+                    <div class="yc-preview-row"><span>Due date</span><strong id="previewDue">Not set</strong></div>
+                    <div class="yc-preview-row"><span>Team members</span><strong id="previewTeam">0 selected</strong></div>
+                    <div class="yc-preview-row"><span>Attachments</span><strong id="previewFiles">0 files</strong></div>
+                </div>
+
+                <div class="mt-5 space-y-3 border-t border-white/10 pt-4">
+                    <p class="yc-preview-label">Before you create</p>
+                    <div class="yc-checkline"><i class="ri-checkbox-circle-line"></i><span>Give the task a clear, descriptive title.</span></div>
+                    <div class="yc-checkline"><i class="ri-checkbox-circle-line"></i><span>Choose the right priority and deadline.</span></div>
+                    <div class="yc-checkline"><i class="ri-checkbox-circle-line"></i><span>Assign the people responsible for delivery.</span></div>
+                </div>
+            </section>
+
+            <section class="yx-panel p-4 sm:p-5">
+                <div class="mb-4 flex items-center gap-2">
+                    <i class="ri-shield-check-line text-lg text-emerald-600"></i>
+                    <h2 class="text-sm font-extrabold text-[#153030]">Ready to create?</h2>
+                </div>
+                <p class="mb-4 text-xs leading-5 text-slate-500">Review the information above. Your task and selected assignments will be submitted together.</p>
+                <button type="submit" class="yc-submit" id="createTaskButton">
+                    <i class="ri-add-circle-line text-base"></i> Create task
+                </button>
+                <a href="{% url 'taskManagement:task_list' %}" class="yc-secondary-link mt-2">Cancel and return to tasks</a>
+            </section>
+
+            <div class="rounded-2xl border border-[#e4ebe8] bg-[#f7faf8] p-4">
+                <div class="flex items-start gap-2">
+                    <i class="ri-lightbulb-line mt-0.5 text-lg text-[#527a72]"></i>
+                    <div>
+                        <p class="text-xs font-extrabold text-[#31534b]">A useful tip</p>
+                        <p class="mt-1 text-[11px] leading-5 text-slate-500">A good task explains what needs to be done, who owns it and when it should be finished.</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("taskCreateForm");
+    const titleInput = document.getElementById("title");
+    const categorySelect = document.getElementById("category");
+    const prioritySelect = document.getElementById("priority");
+    const startDate = document.getElementById("start_date");
+    const dueDate = document.getElementById("due_date");
+    const staffSearch = document.getElementById("staffSearch");
+    const staffOptions = Array.from(document.querySelectorAll(".staff-option"));
+    const staffCheckboxes = Array.from(document.querySelectorAll(".staff-checkbox"));
+    const selectedStaffCount = document.getElementById("selectedStaffCount");
+    const noStaffSearchResults = document.getElementById("noStaffSearchResults");
+    const documentInput = document.getElementById("documents");
+    const selectedFiles = document.getElementById("selectedFiles");
+    const fileValidationMessage = document.getElementById("fileValidationMessage");
+
+    const previewTitle = document.getElementById("previewTitle");
+    const previewCategory = document.getElementById("previewCategory");
+    const previewPriority = document.getElementById("previewPriority");
+    const previewStart = document.getElementById("previewStart");
+    const previewDue = document.getElementById("previewDue");
+    const previewTeam = document.getElementById("previewTeam");
+    const previewFiles = document.getElementById("previewFiles");
+
+    function formatDate(value) {
+        if (!value) return "Not set";
+        const parts = value.split("-");
+        if (parts.length !== 3) return value;
+        return parts[2] + "-" + parts[1] + "-" + parts[0];
+    }
+
+    function updatePreview() {
+        if (previewTitle && titleInput) {
+            previewTitle.textContent = titleInput.value.trim() || "Your task title will appear here";
+        }
+        if (previewCategory && categorySelect) {
+            previewCategory.textContent = categorySelect.value
+                ? categorySelect.options[categorySelect.selectedIndex].text
+                : "Choose a task category";
+        }
+        if (previewPriority && prioritySelect) {
+            previewPriority.textContent = prioritySelect.options[prioritySelect.selectedIndex]?.text || "Not selected";
+        }
+        if (previewStart && startDate) previewStart.textContent = formatDate(startDate.value);
+        if (previewDue && dueDate) previewDue.textContent = formatDate(dueDate.value);
+
+        const selectedCount = staffCheckboxes.filter(function (checkbox) { return checkbox.checked; }).length;
+        if (previewTeam) previewTeam.textContent = selectedCount + (selectedCount === 1 ? " selected" : " selected");
+        if (previewFiles && documentInput) {
+            const count = documentInput.files ? documentInput.files.length : 0;
+            previewFiles.textContent = count + (count === 1 ? " file" : " files");
+        }
+    }
+
+    function updateStaffCount() {
+        const count = staffCheckboxes.filter(function (checkbox) { return checkbox.checked; }).length;
+        if (selectedStaffCount) selectedStaffCount.textContent = count + " selected";
+        staffOptions.forEach(function (option) {
+            const checkbox = option.querySelector(".staff-checkbox");
+            const icon = option.querySelector(".staff-check-icon");
+            if (icon) icon.classList.toggle("hidden", !(checkbox && checkbox.checked));
+        });
+        updatePreview();
+    }
+
+    if (staffSearch) {
+        staffSearch.addEventListener("input", function () {
+            const query = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+            staffOptions.forEach(function (option) {
+                const matches = option.textContent.toLowerCase().includes(query);
+                option.style.display = matches ? "flex" : "none";
+                if (matches) visibleCount += 1;
+            });
+            if (noStaffSearchResults) noStaffSearchResults.classList.toggle("hidden", visibleCount !== 0);
+        });
+    }
+
+    staffCheckboxes.forEach(function (checkbox) {
+        checkbox.addEventListener("change", updateStaffCount);
+    });
+
+    if (titleInput) titleInput.addEventListener("input", updatePreview);
+    if (categorySelect) categorySelect.addEventListener("change", updatePreview);
+    if (prioritySelect) prioritySelect.addEventListener("change", updatePreview);
+
+    function validateDates() {
+        if (!startDate || !dueDate) return true;
+        if (startDate.value) {
+            dueDate.min = startDate.value;
+        } else {
+            dueDate.removeAttribute("min");
+        }
+        const invalid = Boolean(startDate.value && dueDate.value && dueDate.value < startDate.value);
+        dueDate.setCustomValidity(invalid ? "Due date cannot be before the start date." : "");
+        return !invalid;
+    }
+
+    if (startDate) startDate.addEventListener("change", function () { validateDates(); updatePreview(); });
+    if (dueDate) dueDate.addEventListener("change", function () { validateDates(); updatePreview(); });
+
+    function renderFileList() {
+        if (!documentInput || !selectedFiles) return;
+        selectedFiles.replaceChildren();
+        let hasOversizedFile = false;
+        Array.from(documentInput.files || []).forEach(function (file) {
+            const item = document.createElement("div");
+            item.className = "yc-file-item";
+
+            const icon = document.createElement("i");
+            icon.className = "ri-file-text-line text-lg text-[#153030]";
+
+            const name = document.createElement("span");
+            name.className = "min-w-0 flex-1 truncate font-semibold";
+            name.textContent = file.name;
+
+            const size = document.createElement("span");
+            size.className = "shrink-0 text-slate-400";
+            size.textContent = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+
+            item.append(icon, name, size);
+            selectedFiles.appendChild(item);
+            if (file.size > 10 * 1024 * 1024) hasOversizedFile = true;
+        });
+
+        if (fileValidationMessage) {
+            fileValidationMessage.textContent = hasOversizedFile
+                ? "One or more selected files exceed the 10 MB per-file limit. Remove those files and select smaller ones."
+                : "";
+            fileValidationMessage.classList.toggle("is-visible", hasOversizedFile);
+        }
+        updatePreview();
+    }
+
+    if (documentInput) documentInput.addEventListener("change", renderFileList);
+
+    if (form) {
+        form.addEventListener("submit", function (event) {
+            const datesValid = validateDates();
+            const filesValid = !Array.from(documentInput?.files || []).some(function (file) {
+                return file.size > 10 * 1024 * 1024;
+            });
+            if (!datesValid || !filesValid) {
+                event.preventDefault();
+                if (!filesValid && fileValidationMessage) {
+                    fileValidationMessage.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+                if (!datesValid && dueDate) dueDate.reportValidity();
+            }
+        });
+    }
+
+    updateStaffCount();
+    renderFileList();
+    updatePreview();
+});
+</script>
+{% endblock %}

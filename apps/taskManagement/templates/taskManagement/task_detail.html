@@ -1,0 +1,375 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}{{ task.task_number }} | YAARLYNX{% endblock %}
+{% block page_heading %}Task Details{% endblock %}
+
+{% block extra_css %}
+{% include "taskManagement/_task_styles.html" %}
+<style>
+    .yx-task-detail { min-width: 0; color: #243532; }
+    .yx-task-detail *, .yx-task-detail *::before, .yx-task-detail *::after { box-sizing: border-box; }
+
+    .yx-task-hero {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        border-radius: 23px;
+        color: #fff;
+        background: linear-gradient(128deg, #102929 0%, #153a38 55%, #315d55 100%);
+        box-shadow: 0 16px 38px rgba(21, 48, 48, .13);
+    }
+    .yx-task-hero::before,
+    .yx-task-hero::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .yx-task-hero::before { width: 340px; height: 340px; top: -245px; right: 8%; box-shadow: 0 0 0 28px rgba(255,255,255,.025); }
+    .yx-task-hero::after { width: 300px; height: 300px; right: -120px; bottom: -230px; box-shadow: 0 0 0 35px rgba(255,255,255,.025), 0 0 0 70px rgba(255,255,255,.018); }
+    .yx-task-hero-content { position: relative; z-index: 1; }
+
+    .yx-detail-stat {
+        min-width: 0;
+        padding: 14px;
+        border: 1px solid #e5ede8;
+        border-radius: 16px;
+        background: linear-gradient(145deg, #fff, #f8fbf9);
+        box-shadow: 0 4px 16px rgba(21,48,48,.025);
+    }
+    .yx-detail-stat-label { color: #84928d; font-size: 10px; font-weight: 850; letter-spacing: .085em; text-transform: uppercase; }
+    .yx-detail-stat-value { margin-top: 7px; color: #203a35; font-size: 13px; font-weight: 850; overflow-wrap: anywhere; }
+    .yx-detail-section-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .yx-detail-section-icon { display:grid; width:40px; height:40px; flex:0 0 40px; place-items:center; border-radius:13px; background:#eaf1ef; color:#153030; font-size:19px; }
+    .yx-assignment-card { border:1px solid #e7eeea; border-radius:16px; background:#fff; padding:15px; transition:border-color .18s ease, box-shadow .18s ease; }
+    .yx-assignment-card:hover { border-color:#cfddd6; box-shadow:0 7px 20px rgba(21,48,48,.05); }
+    .yx-timeline-item { position:relative; padding-left:21px; }
+    .yx-timeline-item::before { content:""; position:absolute; left:4px; top:8px; bottom:-18px; width:1px; background:#e3ebe6; }
+    .yx-timeline-item:last-child::before { display:none; }
+    .yx-timeline-dot { position:absolute; left:0; top:5px; width:9px; height:9px; border:2px solid #fff; border-radius:50%; background:#52786e; box-shadow:0 0 0 1px #c8d9d1; }
+    .yx-document-row { overflow-wrap:anywhere; }
+    .yx-detail-form-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+
+    /* Team chat / discussion */
+    .yx-chat-panel { overflow:hidden; border:1px solid #e2ebe6; border-radius:19px; background:#fff; box-shadow:0 5px 22px rgba(21,48,48,.035); }
+    .yx-chat-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px; border-bottom:1px solid #edf2ef; background:linear-gradient(115deg,#fbfdfc,#f5f9f6); }
+    .yx-chat-header-icon { display:grid; width:42px; height:42px; flex:0 0 42px; place-items:center; border-radius:14px; background:#153030; color:#fff; font-size:19px; box-shadow:0 5px 12px rgba(21,48,48,.15); }
+    .yx-chat-live-label { display:inline-flex; align-items:center; gap:6px; border:1px solid #dcece2; border-radius:99px; padding:5px 9px; background:#f0f8f2; color:#33734d; font-size:9px; font-weight:850; letter-spacing:.07em; text-transform:uppercase; white-space:nowrap; }
+    .yx-chat-live-label::before { content:""; width:6px; height:6px; border-radius:50%; background:#36a269; }
+    .yx-chat-feed { display:flex; flex-direction:column; gap:17px; padding:18px; background:radial-gradient(circle at 1px 1px, rgba(21,48,48,.035) 1px, transparent 0); background-size:17px 17px; }
+    .yx-chat-message { display:flex; align-items:flex-end; gap:9px; min-width:0; }
+    .yx-chat-message.is-own { justify-content:flex-end; }
+    .yx-chat-avatar { display:grid; width:33px; height:33px; flex:0 0 33px; place-items:center; border:2px solid #fff; border-radius:50%; background:#e5efea; color:#244b41; font-size:10px; font-weight:900; box-shadow:0 2px 7px rgba(21,48,48,.08); }
+    .yx-chat-message.is-own .yx-chat-avatar { order:2; background:#d8e9e1; }
+    .yx-chat-message-body { min-width:0; max-width:min(88%, 620px); }
+    .yx-chat-message.is-own .yx-chat-message-body { display:flex; flex-direction:column; align-items:flex-end; }
+    .yx-chat-meta { display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin:0 3px 5px; color:#8a9892; font-size:10px; }
+    .yx-chat-meta strong { color:#40564e; font-size:10px; font-weight:850; }
+    .yx-chat-bubble { border:1px solid #e5ece8; border-radius:15px 15px 15px 5px; padding:11px 13px; background:#fff; color:#52635c; box-shadow:0 3px 10px rgba(21,48,48,.035); overflow-wrap:anywhere; }
+    .yx-chat-message.is-own .yx-chat-bubble { border-color:#244b45; border-radius:15px 15px 5px 15px; background:linear-gradient(135deg,#153030,#245047); color:rgba(255,255,255,.91); }
+    .yx-chat-text { font-size:12px; line-height:1.65; white-space:pre-line; overflow-wrap:anywhere; }
+    .yx-chat-message.is-own .yx-chat-meta { justify-content:flex-end; }
+    .yx-chat-message.is-own .yx-chat-meta strong { color:#315a4e; }
+    .yx-chat-replies { display:flex; flex-direction:column; gap:8px; margin:10px 0 0 13px; padding-left:12px; border-left:2px solid #e5eee9; }
+    .yx-chat-reply-item { display:flex; align-items:flex-end; gap:7px; min-width:0; }
+    .yx-chat-reply-item.is-own { justify-content:flex-end; }
+    .yx-chat-reply-item .yx-chat-avatar { width:26px; height:26px; flex-basis:26px; font-size:9px; }
+    .yx-chat-reply-bubble { min-width:0; max-width:92%; border:1px solid #e8efeb; border-radius:12px 12px 12px 4px; padding:8px 10px; background:#f8fbf9; overflow-wrap:anywhere; }
+    .yx-chat-reply-item.is-own .yx-chat-reply-bubble { border-color:#d6e6dd; border-radius:12px 12px 4px 12px; background:#eaf3ee; }
+    .yx-chat-reply-meta { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:3px; color:#8a9892; font-size:9px; }
+    .yx-chat-reply-meta strong { color:#456056; font-weight:850; }
+    .yx-chat-reply-text { color:#5c6d65; font-size:11px; line-height:1.55; white-space:pre-line; overflow-wrap:anywhere; }
+    .yx-chat-reply-item.is-own .yx-chat-reply-text { color:#34564a; }
+    .yx-chat-reply-action { margin:9px 0 0 2px; }
+    .yx-chat-reply-action summary { display:inline-flex; align-items:center; gap:5px; color:#54776b; cursor:pointer; font-size:10px; font-weight:850; list-style:none; }
+    .yx-chat-reply-action summary::-webkit-details-marker { display:none; }
+    .yx-chat-reply-action summary:hover { color:#153030; }
+    .yx-chat-reply-form { display:flex; flex-direction:column; gap:8px; margin-top:9px; padding:10px; border:1px solid #e4ece7; border-radius:12px; background:#f8fbf9; }
+    .yx-chat-composer { padding:15px 18px 17px; border-top:1px solid #eaf0ec; background:#fff; }
+    .yx-chat-composer-box { border:1px solid #dfe9e3; border-radius:16px; padding:10px; background:#fbfdfc; transition:border-color .18s ease, box-shadow .18s ease; }
+    .yx-chat-composer-box:focus-within { border-color:#829f91; box-shadow:0 0 0 3px rgba(21,48,48,.07); }
+    .yx-chat-composer textarea { width:100%; min-height:76px; max-height:190px; resize:vertical; border:0; outline:0; background:transparent; padding:5px 7px; color:#243b34; font-size:12px; line-height:1.6; }
+    .yx-chat-composer textarea::placeholder { color:#9aa8a1; }
+    .yx-chat-send { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:38px; border:0; border-radius:11px; padding:9px 15px; background:#153030; color:#fff; font-size:11px; font-weight:850; transition:background .18s ease, transform .18s ease; cursor:pointer; }
+    .yx-chat-send:hover { background:#28534a; transform:translateY(-1px); }
+    .yx-chat-empty { padding:34px 16px; text-align:center; }
+    .yx-chat-empty-icon { display:grid; width:55px; height:55px; place-items:center; margin:0 auto 12px; border-radius:18px; background:#eaf1ef; color:#315a4e; font-size:24px; }
+
+    @media (min-width:640px) { .yx-detail-form-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (max-width:639px) {
+        .yx-task-hero { border-radius:18px; }
+        .yx-task-hero-actions { width:100%; }
+        .yx-task-hero-actions form, .yx-task-hero-actions a { flex:1 1 auto; }
+        .yx-task-hero-actions button, .yx-task-hero-actions a { width:100%; }
+        .yx-chat-header { align-items:flex-start; padding:14px; }
+        .yx-chat-feed { padding:13px 11px; gap:14px; }
+        .yx-chat-message-body { max-width:calc(100% - 42px); }
+        .yx-chat-replies { margin-left:7px; padding-left:8px; }
+        .yx-chat-composer { padding:12px; }
+        .yx-chat-send { width:100%; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+        .yx-assignment-card, .yx-chat-composer-box, .yx-chat-send { transition:none; }
+        .yx-chat-send:hover { transform:none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="task-page yx-task-detail space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+    <!-- Navigation and actions -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <a href="{% url 'taskManagement:task_list' %}" class="font-semibold hover:text-[#153030]">Tasks</a>
+            <i class="ri-arrow-right-s-line"></i>
+            <span class="font-bold text-[#153030]">{{ task.task_number }}</span>
+        </div>
+        <div class="yx-task-hero-actions flex flex-wrap items-center gap-2">
+            <a href="{% url 'taskManagement:task_list' %}" class="yx-btn yx-btn-light"><i class="ri-arrow-left-line"></i> All tasks</a>
+            {% if is_task_admin %}
+                <a href="{% url 'taskManagement:task_edit' task.pk %}" class="yx-btn yx-btn-light"><i class="ri-edit-line"></i> Edit task</a>
+                {% if task.is_approved %}
+                    <form method="post" action="{% url 'taskManagement:task_revoke_approval' task.pk %}">{% csrf_token %}
+                        <button class="yx-btn yx-btn-light" type="submit"><i class="ri-shield-cross-line"></i> Revoke approval</button>
+                    </form>
+                {% else %}
+                    <form method="post" action="{% url 'taskManagement:task_approve' task.pk %}">{% csrf_token %}
+                        <button class="yx-btn yx-btn-primary" type="submit"><i class="ri-shield-check-line"></i> Approve task</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Task overview -->
+    <section class="yx-task-hero p-5 sm:p-7">
+        <div class="yx-task-hero-content">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-black tracking-[.12em] text-white/80">{{ task.task_number }}</span>
+                <span class="yx-pill yx-priority-{{ task.priority }}">{{ task.get_priority_display }} priority</span>
+                {% if task.is_approved %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-extrabold text-emerald-800"><i class="ri-check-line"></i> Approved</span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-[10px] font-extrabold text-amber-800"><i class="ri-time-line"></i> Awaiting approval</span>
+                {% endif %}
+            </div>
+            <div class="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-end">
+                <div class="min-w-0">
+                    <p class="text-[10px] font-extrabold uppercase tracking-[.2em] text-white/55">Task workspace</p>
+                    <h1 class="mt-2 break-words text-2xl font-black leading-tight tracking-tight text-white sm:text-3xl lg:text-[34px]">{{ task.title }}</h1>
+                    <p class="mt-3 max-w-3xl text-sm leading-6 text-white/75">{{ task.description|default:"No description has been added."|linebreaksbr }}</p>
+                </div>
+                <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+                    <p class="text-[10px] font-bold uppercase tracking-[.12em] text-white/55">Created by</p>
+                    <p class="mt-2 text-sm font-extrabold text-white">{{ task.created_by.full_name }}</p>
+                    <p class="mt-1 text-[11px] text-white/60">{{ task.created_at|date:"d M Y, h:i A" }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Task metadata -->
+    <section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Task information">
+        <div class="yx-detail-stat"><p class="yx-detail-stat-label"><i class="ri-price-tag-3-line mr-1"></i> Category</p><p class="yx-detail-stat-value">{{ task.category.name|default:"Uncategorized" }}</p></div>
+        <div class="yx-detail-stat"><p class="yx-detail-stat-label"><i class="ri-calendar-check-line mr-1"></i> Start date</p><p class="yx-detail-stat-value">{{ task.start_date|date:"d M Y"|default:"—" }}</p></div>
+        <div class="yx-detail-stat"><p class="yx-detail-stat-label"><i class="ri-calendar-event-line mr-1"></i> Due date</p><p class="yx-detail-stat-value">{{ task.due_date|date:"d M Y"|default:"—" }}</p></div>
+        <div class="yx-detail-stat"><p class="yx-detail-stat-label"><i class="ri-attachment-line mr-1"></i> Documents</p><p class="yx-detail-stat-value">{{ attachments.count }} file(s)</p></div>
+    </section>
+
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <!-- Main content -->
+        <div class="min-w-0 space-y-5 xl:col-span-2">
+            <!-- Team assignments -->
+            <section class="yx-panel p-4 sm:p-5">
+                <div class="yx-detail-section-head">
+                    <div class="flex items-start gap-3">
+                        <span class="yx-detail-section-icon"><i class="ri-team-line"></i></span>
+                        <div><h2 class="yx-section-title">Team assignments</h2><p class="mt-1 text-xs text-slate-400">People responsible for moving this task forward</p></div>
+                    </div>
+                    <span class="yx-pill">{{ assignments|length }} member(s)</span>
+                </div>
+                <div class="space-y-3">
+                    {% for assignment in assignments %}
+                        <article class="yx-assignment-card">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="flex min-w-0 items-center gap-3">
+                                    <span class="yx-avatar !h-10 !w-10">{{ assignment.user.first_name|first|upper }}{{ assignment.user.last_name|first|upper }}</span>
+                                    <div class="min-w-0"><p class="truncate text-sm font-extrabold text-slate-800">{{ assignment.user.full_name }}</p><p class="mt-1 text-[10px] text-slate-400">Assigned {{ assignment.assigned_at|date:"d M Y" }}</p></div>
+                                </div>
+                                <span class="yx-pill yx-status-{{ assignment.status }}">{{ assignment.get_status_display }}</span>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-xs"><span class="text-slate-500">Progress</span><strong class="text-[#153030]">{{ assignment.progress }}%</strong></div>
+                            <div class="yx-progress mt-2"><span style="width:{{ assignment.progress }}%"></span></div>
+                            {% if assignment.user_id == request.user.pk or is_task_admin %}
+                                <form method="post" action="{% url 'taskManagement:update_task_status' %}" class="yx-detail-form-grid mt-4">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="assignment_id" value="{{ assignment.pk }}">
+                                    <div><label class="yx-label" for="assignment-status-{{ assignment.pk }}">Status</label><select id="assignment-status-{{ assignment.pk }}" class="yx-select" name="status">{% for value,label in status_choices %}<option value="{{ value }}" {% if assignment.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+                                    <div><label class="yx-label" for="assignment-progress-{{ assignment.pk }}">Progress (%)</label><input id="assignment-progress-{{ assignment.pk }}" class="yx-input" type="number" min="0" max="100" name="progress" value="{{ assignment.progress }}"></div>
+                                    <div class="flex items-end"><button class="yx-btn yx-btn-primary w-full" type="submit"><i class="ri-save-line"></i> Update progress</button></div>
+                                    {% if is_task_admin %}<div class="sm:col-span-3"><label class="yx-label" for="rejection-note-{{ assignment.pk }}">Rejection note (only if rejecting)</label><input id="rejection-note-{{ assignment.pk }}" class="yx-input" name="rejection_note" placeholder="Reason for rejection"></div>{% endif %}
+                                </form>
+                            {% endif %}
+                            {% if is_task_admin and assignment.status != 'completed' and assignment.status != 'cancelled' %}
+                                <form method="post" action="{% url 'taskManagement:task_cancel_assignment' task.pk assignment.pk %}" class="mt-3 text-right">{% csrf_token %}<button class="text-[11px] font-bold text-rose-600 hover:underline" type="submit" onclick="return confirm('Cancel this assignment?')">Cancel assignment</button></form>
+                            {% endif %}
+                        </article>
+                    {% empty %}
+                        <div class="yx-empty"><span class="yx-empty-icon"><i class="ri-user-add-line"></i></span><p class="font-bold text-slate-700">No staff members assigned yet</p><p class="mt-1 text-xs">Assignments will appear here once team members are added.</p></div>
+                    {% endfor %}
+                </div>
+                {% if is_task_admin %}
+                    <form method="post" action="{% url 'taskManagement:task_add_assignment' task.pk %}" class="mt-5 border-t border-slate-100 pt-4">
+                        {% csrf_token %}
+                        <label class="yx-label" for="additional-staff">Assign additional staff</label>
+                        <div class="flex flex-col gap-2 sm:flex-row"><select id="additional-staff" class="yx-select min-h-[92px]" name="assigned_users" multiple size="3">{% for staff in staff_users %}<option value="{{ staff.pk }}">{{ staff.full_name }}</option>{% endfor %}</select><button class="yx-btn yx-btn-primary self-start" type="submit"><i class="ri-user-add-line"></i> Add assignment(s)</button></div>
+                        <p class="yx-help">Select one or more team members. The staff list is supplied by the task detail view.</p>
+                    </form>
+                {% endif %}
+            </section>
+
+            <!-- Checklist -->
+            <section class="yx-panel p-4 sm:p-5">
+                <div class="yx-detail-section-head">
+                    <div class="flex items-start gap-3"><span class="yx-detail-section-icon"><i class="ri-list-check-2"></i></span><div><h2 class="yx-section-title">Checklist</h2><p class="mt-1 text-xs text-slate-400">Break the work into smaller steps</p></div></div>
+                    <span class="yx-pill">{{ completed_checklist }}/{{ total_checklist }} complete</span>
+                </div>
+                <div class="yx-progress mb-4"><span style="width:{{ checklist_percentage }}%"></span></div>
+                <div class="space-y-2">
+                    {% for item in checklists %}
+                        <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2.5">
+                            <form method="post" action="{% url 'taskManagement:task_toggle_checklist' task.pk item.pk %}">{% csrf_token %}<button class="text-lg {% if item.is_completed %}text-emerald-600{% else %}text-slate-300{% endif %}" type="submit" aria-label="Toggle checklist item"><i class="{% if item.is_completed %}ri-checkbox-circle-fill{% else %}ri-checkbox-blank-circle-line{% endif %}"></i></button></form>
+                            <span class="min-w-0 flex-1 text-xs {% if item.is_completed %}text-slate-400 line-through{% else %}font-semibold text-slate-700{% endif %}">{{ item.title }}</span>
+                            {% if is_task_admin %}<form method="post" action="{% url 'taskManagement:task_delete_checklist' task.pk item.pk %}">{% csrf_token %}<button class="text-rose-400 hover:text-rose-600" type="submit" title="Delete checklist item" aria-label="Delete checklist item"><i class="ri-delete-bin-line"></i></button></form>{% endif %}
+                        </div>
+                    {% empty %}<p class="py-3 text-xs text-slate-400">No checklist items yet. Add the first step below.</p>{% endfor %}
+                </div>
+                <form method="post" action="{% url 'taskManagement:task_add_checklist' task.pk %}" class="mt-4 flex flex-col gap-2 sm:flex-row">{% csrf_token %}<input class="yx-input" name="title" required placeholder="Add a checklist item..." aria-label="New checklist item"><button class="yx-btn yx-btn-primary" type="submit"><i class="ri-add-line"></i> Add item</button></form>
+            </section>
+
+            <!-- Team discussion / chat -->
+            <section class="yx-chat-panel" aria-labelledby="task-chat-title">
+                <div class="yx-chat-header">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <span class="yx-chat-header-icon"><i class="ri-chat-3-fill"></i></span>
+                        <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-2"><h2 id="task-chat-title" class="text-sm font-black text-[#153030] sm:text-base">Team conversation</h2><span class="yx-chat-live-label">Task discussion</span></div>
+                            <p class="mt-1 text-[10px] leading-4 text-slate-400 sm:text-xs">Share updates, ask questions and reply to your teammates.</p>
+                        </div>
+                    </div>
+                    <span class="hidden h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-[#52776d] shadow-sm sm:grid"><i class="ri-message-2-line text-lg"></i></span>
+                </div>
+
+                <div class="yx-chat-feed" aria-live="polite">
+                    {% for comment in comments %}
+                        {% if not comment.parent_id %}
+                            <article class="min-w-0">
+                                <div class="yx-chat-message {% if comment.user_id == request.user.pk %}is-own{% endif %}">
+                                    {% if comment.user_id != request.user.pk %}<span class="yx-chat-avatar" aria-hidden="true">{{ comment.user.first_name|first|upper }}{{ comment.user.last_name|first|upper }}</span>{% endif %}
+                                    <div class="yx-chat-message-body">
+                                        <div class="yx-chat-meta"><strong>{% if comment.user_id == request.user.pk %}You{% else %}{{ comment.user.full_name }}{% endif %}</strong><span>{{ comment.created_at|date:"d M Y, h:i A" }}</span></div>
+                                        <div class="yx-chat-bubble"><p class="yx-chat-text">{{ comment.comment }}</p></div>
+                                    </div>
+                                    {% if comment.user_id == request.user.pk %}<span class="yx-chat-avatar" aria-hidden="true">{{ comment.user.first_name|first|upper }}{{ comment.user.last_name|first|upper }}</span>{% endif %}
+                                </div>
+
+                                {% for reply in comment.replies.all %}
+                                    <div class="yx-chat-replies">
+                                        <div class="yx-chat-reply-item {% if reply.user_id == request.user.pk %}is-own{% endif %}">
+                                            {% if reply.user_id != request.user.pk %}<span class="yx-chat-avatar" aria-hidden="true">{{ reply.user.first_name|first|upper }}{{ reply.user.last_name|first|upper }}</span>{% endif %}
+                                            <div class="yx-chat-reply-bubble">
+                                                <div class="yx-chat-reply-meta"><strong>{% if reply.user_id == request.user.pk %}You{% else %}{{ reply.user.full_name }}{% endif %}</strong></div>
+                                                <p class="yx-chat-reply-text">{{ reply.comment }}</p>
+                                            </div>
+                                            {% if reply.user_id == request.user.pk %}<span class="yx-chat-avatar" aria-hidden="true">{{ reply.user.first_name|first|upper }}{{ reply.user.last_name|first|upper }}</span>{% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+
+                                <details class="yx-chat-reply-action">
+                                    <summary><i class="ri-reply-line"></i> Reply to this message</summary>
+                                    <form method="post" action="{% url 'taskManagement:task_add_comment' task.pk %}" class="yx-chat-reply-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="parent_id" value="{{ comment.pk }}">
+                                        <label class="sr-only" for="reply-{{ comment.pk }}">Your reply</label>
+                                        <input id="reply-{{ comment.pk }}" class="yx-input !bg-white" name="comment" placeholder="Write a thoughtful reply..." required>
+                                        <button class="yx-btn yx-btn-light self-end" type="submit"><i class="ri-send-plane-line"></i> Send reply</button>
+                                    </form>
+                                </details>
+                            </article>
+                        {% endif %}
+                    {% empty %}
+                        <div class="yx-chat-empty">
+                            <span class="yx-chat-empty-icon"><i class="ri-chat-smile-3-line"></i></span>
+                            <p class="text-sm font-extrabold text-[#29483e]">Start the conversation</p>
+                            <p class="mx-auto mt-1 max-w-xs text-xs leading-5 text-slate-400">Post the first update, share a question or let the team know what is happening.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <form method="post" action="{% url 'taskManagement:task_add_comment' task.pk %}" class="yx-chat-composer">
+                    {% csrf_token %}
+                    <label class="mb-2 flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[.1em] text-slate-500" for="task-chat-message"><i class="ri-edit-2-line text-sm text-[#52776d]"></i> Write a message</label>
+                    <div class="yx-chat-composer-box">
+                        <textarea id="task-chat-message" name="comment" rows="3" required placeholder="Share an update with everyone working on this task..."></textarea>
+                        <div class="flex flex-col gap-2 border-t border-slate-100 pt-2 sm:flex-row sm:items-center sm:justify-between">
+                            <span class="flex items-center gap-1.5 text-[10px] text-slate-400"><i class="ri-lock-line"></i> Message will be added to this task's discussion</span>
+                            <button class="yx-chat-send" type="submit"><i class="ri-send-plane-fill"></i> Send message</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="min-w-0 space-y-5">
+            <!-- Documents -->
+            <section class="yx-panel p-4 sm:p-5">
+                <div class="yx-detail-section-head">
+                    <div class="flex items-start gap-3"><span class="yx-detail-section-icon"><i class="ri-folder-open-line"></i></span><div><h2 class="yx-section-title">Documents</h2><p class="mt-1 text-xs text-slate-400">Files and reference material</p></div></div>
+                    <span class="yx-pill">{{ attachments|length }}</span>
+                </div>
+                <form method="post" enctype="multipart/form-data" action="{% url 'taskManagement:task_upload_documents' task.pk %}" class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3">
+                    {% csrf_token %}
+                    <label class="yx-label" for="task-detail-documents">Upload files</label>
+                    <input id="task-detail-documents" class="yx-input !bg-white !text-xs" type="file" name="documents" multiple required>
+                    <p class="yx-help">PDF, Office, image, ZIP or TXT · Maximum 10 MB each</p>
+                    <button class="yx-btn yx-btn-primary mt-3 w-full" type="submit"><i class="ri-upload-cloud-line"></i> Upload documents</button>
+                </form>
+                <div class="mt-4 space-y-3">
+                    {% for doc in attachments %}
+                        <div class="yx-document-row border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                            <div class="flex gap-2.5"><span class="yx-kpi-icon !h-9 !w-9"><i class="ri-file-text-line"></i></span><div class="min-w-0 flex-1">
+                                <p class="break-words text-xs font-extrabold text-slate-700">{{ doc.title|default:doc.original_filename|default:doc.generated_filename }}</p>
+                                <p class="mt-1 text-[10px] text-slate-400">{{ doc.document_number }} · V{{ doc.version }}</p>
+                                <p class="text-[10px] text-slate-400">Uploaded by {{ doc.uploaded_by.full_name }}</p>
+                                <a class="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[#153030] hover:underline" href="{{ doc.file.url }}" target="_blank" rel="noopener noreferrer">Open / download <i class="ri-external-link-line"></i></a>
+                            </div></div>
+                            <form method="post" enctype="multipart/form-data" action="{% url 'taskManagement:task_replace_document' task.pk doc.pk %}" class="mt-3">
+                                {% csrf_token %}<label class="yx-label" for="replace-doc-{{ doc.pk }}">Replace file</label><input id="replace-doc-{{ doc.pk }}" class="yx-input !text-[11px]" type="file" name="file" required><button class="mt-2 text-[11px] font-bold text-[#153030] hover:underline" type="submit">Replace document</button>
+                            </form>
+                            <form method="post" action="{% url 'taskManagement:task_delete_document' task.pk doc.pk %}" class="mt-1 text-right">{% csrf_token %}<button class="text-[11px] font-bold text-rose-600 hover:underline" type="submit" onclick="return confirm('Delete this document?')">Delete document</button></form>
+                        </div>
+                    {% empty %}
+                        <div class="yx-empty py-7"><span class="yx-empty-icon"><i class="ri-file-forbid-line"></i></span><p class="font-semibold text-slate-700">No documents uploaded</p><p class="mt-1 text-xs">Upload task files using the form above.</p></div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Activity history -->
+            <section class="yx-panel p-4 sm:p-5">
+                <div class="yx-detail-section-head"><div class="flex items-start gap-3"><span class="yx-detail-section-icon"><i class="ri-history-line"></i></span><div><h2 class="yx-section-title">Activity history</h2><p class="mt-1 text-xs text-slate-400">Recent changes to this task</p></div></div></div>
+                <div class="space-y-4">
+                    {% for activity in activities %}
+                        <div class="yx-timeline-item"><span class="yx-timeline-dot"></span><p class="text-xs leading-5 text-slate-700">{{ activity.description|default:activity.action }}</p><p class="mt-1 text-[10px] text-slate-400">{{ activity.user.full_name }} · {{ activity.created_at|date:"d M Y, h:i A" }}</p></div>
+                    {% empty %}
+                        <div class="yx-empty py-7"><span class="yx-empty-icon"><i class="ri-time-line"></i></span><p class="font-semibold text-slate-700">No activity yet</p><p class="mt-1 text-xs">Task updates will appear here.</p></div>
+                    {% endfor %}
+                </div>
+            </section>
+        </aside>
+    </div>
+</div>
+{% endblock %}

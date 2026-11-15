@@ -1,0 +1,469 @@
+{% extends "dashboard/layout.html" %}
+
+{% block title %}Edit {{ task.task_number }} | YAARLYNX{% endblock %}
+{% block page_heading %}Edit Task{% endblock %}
+
+{% block extra_css %}
+{% include "taskManagement/_task_styles.html" %}
+<style>
+    .yx-edit-page { color: #243532; min-width: 0; }
+    .yx-edit-page *, .yx-edit-page *::before, .yx-edit-page *::after { box-sizing: border-box; }
+    .yx-edit-card {
+        min-width: 0;
+        background: #fff;
+        border: 1px solid #e4ebe8;
+        border-radius: 18px;
+        box-shadow: 0 5px 22px rgba(21,48,48,.045);
+    }
+    .yx-edit-control {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+        padding: 10px 12px;
+        border: 1px solid #dce6e1;
+        border-radius: 11px;
+        background: #fff;
+        color: #203633;
+        font-size: 13px;
+        outline: none;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .yx-edit-control:focus {
+        border-color: #527a72;
+        box-shadow: 0 0 0 3px rgba(21,48,48,.08);
+    }
+    .yx-edit-control::placeholder { color: #a0aca7; }
+    .yx-edit-control:disabled { background: #f6f8f7; color: #84928d; cursor: not-allowed; }
+    .yx-edit-textarea { min-height: 118px; resize: vertical; line-height: 1.65; }
+    .yx-edit-label {
+        display: block;
+        margin-bottom: 7px;
+        color: #425650;
+        font-size: 12px;
+        font-weight: 800;
+    }
+    .yx-edit-help { margin-top: 5px; color: #84928d; font-size: 11px; line-height: 1.5; }
+    .yx-edit-section-icon {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        place-items: center;
+        border-radius: 13px;
+        background: #eaf1ef;
+        color: #153030;
+        font-size: 19px;
+    }
+    .yx-edit-staff-option {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border: 1px solid #e6ede9;
+        border-radius: 12px;
+        background: #fff;
+        cursor: pointer;
+        transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    .yx-edit-staff-option:hover { border-color: #b9cbc3; background: #f8fbf9; }
+    .yx-edit-staff-option:has(input:checked) {
+        border-color: #8eaaa0;
+        background: #f0f6f3;
+        box-shadow: inset 0 0 0 1px rgba(21,48,48,.04);
+    }
+    .yx-edit-staff-option input { width: 16px; height: 16px; flex: 0 0 16px; accent-color: #153030; }
+    .yx-edit-upload {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 16px;
+        border: 1.5px dashed #bdcec6;
+        border-radius: 15px;
+        background: #f8fbf9;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color .15s ease, background .15s ease;
+    }
+    .yx-edit-upload:hover { border-color: #527a72; background: #f0f6f3; }
+    .yx-edit-file {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 11px;
+        border: 1px solid #e6ede9;
+        border-radius: 11px;
+        background: #f9fbfa;
+        color: #475b54;
+        font-size: 11px;
+    }
+    .yx-edit-meta {
+        min-width: 0;
+        padding: 12px 13px;
+        border: 1px solid #e8efeb;
+        border-radius: 13px;
+        background: #f8fbf9;
+    }
+    .yx-edit-meta-label {
+        color: #84928d;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+    .yx-edit-meta-value { margin-top: 5px; color: #203a35; font-size: 13px; font-weight: 800; overflow-wrap: anywhere; }
+    .yx-edit-error { margin-top: 5px; color: #b42318; font-size: 11px; }
+    .yx-edit-sticky { position: sticky; top: 92px; }
+    @media (max-width: 1279px) { .yx-edit-sticky { position: static; } }
+    @media (max-width: 640px) {
+        .yx-edit-card { border-radius: 15px; }
+        .yx-edit-upload { padding: 20px 12px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="yx-edit-page space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+    <!-- Page header -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div class="min-w-0">
+            <div class="mb-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                <a href="{% url 'taskManagement:task_list' %}" class="font-semibold hover:text-[#153030]">Tasks</a>
+                <i class="ri-arrow-right-s-line"></i>
+                <a href="{% url 'taskManagement:task_detail' task.id %}" class="font-semibold hover:text-[#153030]">{{ task.task_number }}</a>
+                <i class="ri-arrow-right-s-line"></i>
+                <span class="font-bold text-[#153030]">Edit task</span>
+            </div>
+            <p class="text-[10px] font-black uppercase tracking-[.18em] text-slate-400">TASK MANAGEMENT / UPDATE RECORD</p>
+            <h1 class="mt-1 text-2xl font-black tracking-tight text-[#153030] sm:text-3xl">Edit task details</h1>
+            <p class="mt-1 max-w-2xl text-sm text-slate-500">Update the task brief, schedule, team assignments and supporting documents.</p>
+        </div>
+        <a href="{% url 'taskManagement:task_detail' task.id %}" class="yx-btn yx-btn-light shrink-0">
+            <i class="ri-arrow-left-line"></i> Back to task
+        </a>
+    </div>
+
+    <!-- Record summary -->
+    <section class="yx-edit-card overflow-hidden">
+        <div class="flex flex-col gap-4 bg-gradient-to-r from-[#153030] to-[#28514b] p-5 text-white sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div class="flex min-w-0 items-center gap-3">
+                <div class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/10 text-xl">
+                    <i class="ri-edit-box-line"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-[10px] font-bold uppercase tracking-[.16em] text-white/60">Editing task</p>
+                    <p class="mt-1 break-words text-lg font-black">{{ task.task_number }}</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="yx-pill yx-priority-{{ task.priority }}">{{ task.get_priority_display }} priority</span>
+                {% if task.is_approved %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1.5 text-[10px] font-extrabold text-emerald-800"><i class="ri-shield-check-line"></i> Approved</span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1.5 text-[10px] font-extrabold text-amber-800"><i class="ri-time-line"></i> Pending approval</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 sm:p-5">
+            <div class="yx-edit-meta"><p class="yx-edit-meta-label">Created on</p><p class="yx-edit-meta-value">{{ task.created_at|date:"d M Y, h:i A" }}</p></div>
+            <div class="yx-edit-meta"><p class="yx-edit-meta-label">Category</p><p class="yx-edit-meta-value">{{ task.category.name|default:"Uncategorized" }}</p></div>
+            <div class="yx-edit-meta"><p class="yx-edit-meta-label">Start date</p><p class="yx-edit-meta-value">{{ task.start_date|date:"d M Y"|default:"—" }}</p></div>
+            <div class="yx-edit-meta"><p class="yx-edit-meta-label">Due date</p><p class="yx-edit-meta-value">{{ task.due_date|date:"d M Y"|default:"—" }}</p></div>
+        </div>
+    </section>
+
+    <!-- Django messages and validation errors -->
+    {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+                <div class="rounded-xl border px-4 py-3 text-sm {% if message.tags == 'error' %}border-red-100 bg-red-50 text-red-700{% else %}border-emerald-100 bg-emerald-50 text-emerald-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if form_errors %}
+        <div class="rounded-xl border border-red-100 bg-red-50 p-4">
+            <p class="mb-2 text-sm font-bold text-red-700">Please correct the following errors:</p>
+            <ul class="list-disc space-y-1 pl-5 text-xs text-red-600">
+                {% for error in form_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" id="taskEditForm" class="space-y-5">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 items-start gap-5 xl:grid-cols-3">
+            <!-- Main editing column -->
+            <div class="space-y-5 xl:col-span-2">
+                <!-- Basic information -->
+                <section class="yx-edit-card p-4 sm:p-6">
+                    <div class="mb-6 flex items-start gap-3">
+                        <span class="yx-edit-section-icon"><i class="ri-file-edit-line"></i></span>
+                        <div><h2 class="text-sm font-black text-[#203a35]">Basic information</h2><p class="mt-1 text-[11px] text-slate-400">Update the title, description, category and priority.</p></div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                        <div class="md:col-span-2">
+                            <label class="yx-edit-label" for="title">Task title <span class="text-rose-500">*</span></label>
+                            <input type="text" name="title" id="title" class="yx-edit-control" value="{{ task.title }}" maxlength="255" placeholder="Enter task title" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="yx-edit-label" for="description">Description</label>
+                            <textarea name="description" id="description" rows="4" class="yx-edit-control yx-edit-textarea" placeholder="Describe task requirements and expected outcome...">{{ task.description }}</textarea>
+                        </div>
+                        <div>
+                            <label class="yx-edit-label" for="category">Task category <span class="text-rose-500">*</span></label>
+                            <select name="category" id="category" class="yx-edit-control" required>
+                                <option value="">Select category</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.pk }}" {% if task.category_id == category.pk %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="yx-edit-label" for="priority">Priority <span class="text-rose-500">*</span></label>
+                            <select name="priority" id="priority" class="yx-edit-control" required>
+                                {% for value, label in priority_choices %}
+                                    <option value="{{ value }}" {% if task.priority == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Schedule -->
+                <section class="yx-edit-card p-4 sm:p-6">
+                    <div class="mb-6 flex items-start gap-3">
+                        <span class="yx-edit-section-icon bg-blue-50 text-blue-700"><i class="ri-calendar-schedule-line"></i></span>
+                        <div><h2 class="text-sm font-black text-[#203a35]">Schedule & recurrence</h2><p class="mt-1 text-[11px] text-slate-400">Adjust the task timeline and repeat frequency.</p></div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
+                        <div><label class="yx-edit-label" for="start_date">Start date</label><input type="date" name="start_date" id="start_date" class="yx-edit-control" value="{{ task.start_date|date:'Y-m-d' }}"></div>
+                        <div><label class="yx-edit-label" for="due_date">Due date</label><input type="date" name="due_date" id="due_date" class="yx-edit-control" value="{{ task.due_date|date:'Y-m-d' }}"></div>
+                        <div>
+                            <label class="yx-edit-label" for="recurrence">Recurrence</label>
+                            <select name="recurrence" id="recurrence" class="yx-edit-control">
+                                {% for value, label in recurrence_choices %}
+                                    <option value="{{ value }}" {% if task.recurrence == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-500"><i class="ri-information-line mt-0.5 text-base text-[#153030]"></i><p>Ensure the due date is not earlier than the start date.</p></div>
+                    <p id="dateError" class="yx-edit-error" role="alert" hidden></p>
+                </section>
+
+                <!-- Team assignments -->
+                <section class="yx-edit-card p-4 sm:p-6">
+                    <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex items-start gap-3">
+                            <span class="yx-edit-section-icon bg-purple-50 text-purple-700"><i class="ri-team-line"></i></span>
+                            <div><h2 class="text-sm font-black text-[#203a35]">Team assignments</h2><p class="mt-1 text-[11px] text-slate-400">Select the staff members responsible for this task.</p></div>
+                        </div>
+                        <span class="rounded-full bg-[#eaf1ef] px-3 py-1.5 text-[11px] font-extrabold text-[#31534b]" id="selectedStaffCount">0 selected</span>
+                    </div>
+                    <div class="relative mb-4">
+                        <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="staffSearch" class="yx-edit-control pl-9" placeholder="Search staff members..." autocomplete="off">
+                    </div>
+                    {% if users %}
+                        <div class="grid max-h-80 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3" id="staffList">
+                            {% for user in users %}
+                                <label class="yx-edit-staff-option staff-option">
+                                    <input type="checkbox" name="assigned_users" value="{{ user.pk }}" class="staff-checkbox" {% if user.pk in assigned_user_ids %}checked{% endif %}>
+                                    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#eaf1ef] text-xs font-black text-[#254b43]">{{ user.first_name|first|upper }}</span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-xs font-bold text-slate-700">{{ user.full_name }}</span>
+                                        <span class="mt-0.5 block truncate text-[10px] text-slate-400">{{ user.email }}</span>
+                                    </span>
+                                    <i class="ri-check-line staff-check-icon text-sm text-[#153030]" hidden></i>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <p id="staffNoResults" class="rounded-xl border border-dashed border-slate-200 p-5 text-center text-xs text-slate-400" hidden>No staff members match your search.</p>
+                    {% else %}
+                        <div class="rounded-xl bg-slate-50 py-8 text-center">
+                            <i class="ri-user-search-line text-3xl text-slate-300"></i>
+                            <p class="mt-2 text-sm font-semibold text-slate-600">No staff members found</p>
+                        </div>
+                    {% endif %}
+                    <div class="mt-4 flex items-start gap-2 rounded-xl bg-blue-50 p-3"><i class="ri-information-line mt-0.5 text-base text-blue-600"></i><p class="text-[11px] leading-5 text-blue-700">Existing selected staff members are checked automatically. Uncheck a member to remove them from this task.</p></div>
+                </section>
+            </div>
+
+            <!-- Supporting information column -->
+            <aside class="space-y-5">
+                <!-- Existing documents -->
+                <section class="yx-edit-card p-4 sm:p-5">
+                    <div class="mb-4 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3"><span class="yx-edit-section-icon bg-blue-50 text-blue-700"><i class="ri-folder-open-line"></i></span><div><h2 class="text-sm font-black text-[#203a35]">Existing documents</h2><p class="mt-1 text-[11px] text-slate-400">Files already attached to this task.</p></div></div>
+                        {% with existing_documents=task.attachments.all %}<span class="yx-pill">{{ existing_documents|length }}</span>{% endwith %}
+                    </div>
+                    {% with existing_documents=task.attachments.all %}
+                        {% if existing_documents %}
+                            <div class="space-y-2">
+                                {% for document in existing_documents %}
+                                    <div class="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 p-3">
+                                        <div class="flex min-w-0 items-center gap-3">
+                                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-lg text-blue-700"><i class="ri-file-text-line"></i></span>
+                                            <div class="min-w-0"><p class="break-words text-xs font-bold text-[#153030]">{{ document.title|default:document.original_filename }}</p><p class="mt-1 text-[10px] text-slate-400">{{ document.document_number }} · Version {{ document.version }}</p></div>
+                                        </div>
+                                        <a href="{{ document.file.url }}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-xs font-bold text-blue-700 hover:text-blue-900" aria-label="View document"><i class="ri-external-link-line text-base"></i><span class="hidden sm:inline"> View</span></a>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="rounded-xl bg-slate-50 px-4 py-7 text-center"><i class="ri-folder-open-line text-2xl text-slate-300"></i><p class="mt-2 text-xs text-slate-400">No documents attached to this task.</p></div>
+                        {% endif %}
+                    {% endwith %}
+                </section>
+
+                <!-- Add documents -->
+                <section class="yx-edit-card p-4 sm:p-5">
+                    <div class="mb-4 flex items-center gap-3"><span class="yx-edit-section-icon bg-amber-50 text-amber-700"><i class="ri-attachment-2"></i></span><div><h2 class="text-sm font-black text-[#203a35]">Add more documents</h2><p class="mt-1 text-[11px] text-slate-400">Attach additional task files.</p></div></div>
+                    <label for="documents" class="yx-edit-upload">
+                        <span class="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-[#eaf1ef] text-2xl text-[#153030]"><i class="ri-upload-cloud-2-line"></i></span>
+                        <span class="text-sm font-bold text-[#153030]">Choose files to upload</span>
+                        <span class="mt-1 text-xs text-slate-400">PDF, Office, CSV, images, ZIP or TXT</span>
+                        <span class="mt-2 text-[10px] text-slate-400">Maximum 10 MB per file</span>
+                        <input type="file" name="documents" id="documents" multiple class="sr-only" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.webp,.zip,.txt">
+                    </label>
+                    <div id="selectedFiles" class="mt-3 space-y-2"></div>
+                    <p id="fileError" class="yx-edit-error" role="alert" hidden></p>
+                </section>
+
+                <!-- Helpful reminder -->
+                <section class="yx-edit-sticky rounded-2xl border border-[#dfe9e4] bg-gradient-to-br from-[#f4f8f6] to-white p-4 sm:p-5">
+                    <div class="flex items-center gap-2 text-[#153030]"><i class="ri-lightbulb-line text-lg"></i><h2 class="text-xs font-black">Before saving</h2></div>
+                    <ul class="mt-3 space-y-2 text-[11px] leading-5 text-slate-500">
+                        <li class="flex gap-2"><i class="ri-check-line text-emerald-600"></i><span>Review the task title and category.</span></li>
+                        <li class="flex gap-2"><i class="ri-check-line text-emerald-600"></i><span>Confirm the start and due dates.</span></li>
+                        <li class="flex gap-2"><i class="ri-check-line text-emerald-600"></i><span>Check the selected team members.</span></li>
+                        <li class="flex gap-2"><i class="ri-check-line text-emerald-600"></i><span>Attach any new supporting documents.</span></li>
+                    </ul>
+                </section>
+            </aside>
+        </div>
+
+        <!-- Form actions -->
+        <section class="yx-edit-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <p class="flex items-center gap-2 text-[11px] text-slate-400"><i class="ri-shield-check-line text-base text-emerald-600"></i> Review your changes before saving.</p>
+            <div class="flex flex-col-reverse gap-2 sm:flex-row">
+                <a href="{% url 'taskManagement:task_detail' task.id %}" class="yx-btn yx-btn-light">Cancel</a>
+                <button type="submit" class="yx-btn yx-btn-primary"><i class="ri-save-line"></i> Save changes</button>
+            </div>
+        </section>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const staffSearch = document.getElementById("staffSearch");
+    const staffOptions = Array.from(document.querySelectorAll(".staff-option"));
+    const staffCheckboxes = Array.from(document.querySelectorAll(".staff-checkbox"));
+    const selectedStaffCount = document.getElementById("selectedStaffCount");
+    const staffNoResults = document.getElementById("staffNoResults");
+
+    function updateStaffCount() {
+        const count = staffCheckboxes.filter((checkbox) => checkbox.checked).length;
+        if (selectedStaffCount) selectedStaffCount.textContent = count + (count === 1 ? " selected" : " selected");
+        staffOptions.forEach((option) => {
+            const checkbox = option.querySelector(".staff-checkbox");
+            const checkIcon = option.querySelector(".staff-check-icon");
+            if (checkIcon) checkIcon.hidden = !checkbox.checked;
+        });
+    }
+
+    if (staffSearch) {
+        staffSearch.addEventListener("input", function () {
+            const query = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+            staffOptions.forEach((option) => {
+                const matched = option.textContent.toLowerCase().includes(query);
+                option.hidden = !matched;
+                if (matched) visibleCount += 1;
+            });
+            if (staffNoResults) staffNoResults.hidden = visibleCount !== 0;
+        });
+    }
+    staffCheckboxes.forEach((checkbox) => checkbox.addEventListener("change", updateStaffCount));
+    updateStaffCount();
+
+    const documentInput = document.getElementById("documents");
+    const selectedFiles = document.getElementById("selectedFiles");
+    const fileError = document.getElementById("fileError");
+    const maxFileSize = 10 * 1024 * 1024;
+
+    if (documentInput) {
+        documentInput.addEventListener("change", function () {
+            if (selectedFiles) selectedFiles.replaceChildren();
+            if (fileError) {
+                fileError.hidden = true;
+                fileError.textContent = "";
+            }
+            const oversizedFile = Array.from(this.files).find((file) => file.size > maxFileSize);
+            if (oversizedFile) {
+                this.value = "";
+                if (fileError) {
+                    fileError.textContent = "'" + oversizedFile.name + "' exceeds the 10 MB per-file limit. Please choose a smaller file.";
+                    fileError.hidden = false;
+                }
+                return;
+            }
+            Array.from(this.files).forEach((file) => {
+                const item = document.createElement("div");
+                item.className = "yx-edit-file";
+                const icon = document.createElement("i");
+                icon.className = "ri-file-text-line text-lg text-[#153030]";
+                const name = document.createElement("span");
+                name.className = "min-w-0 flex-1 truncate font-semibold";
+                name.textContent = file.name;
+                const size = document.createElement("span");
+                size.className = "shrink-0 text-slate-400";
+                size.textContent = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+                item.append(icon, name, size);
+                selectedFiles.appendChild(item);
+            });
+        });
+    }
+
+    const startDate = document.getElementById("start_date");
+    const dueDate = document.getElementById("due_date");
+    const dateError = document.getElementById("dateError");
+
+    function validateDates() {
+        if (!startDate || !dueDate) return true;
+        if (startDate.value) dueDate.min = startDate.value;
+        else dueDate.removeAttribute("min");
+        const invalid = Boolean(startDate.value && dueDate.value && dueDate.value < startDate.value);
+        dueDate.setCustomValidity(invalid ? "Due date cannot be before the start date." : "");
+        if (dateError) {
+            dateError.textContent = invalid ? "Due date cannot be earlier than the start date." : "";
+            dateError.hidden = !invalid;
+        }
+        return !invalid;
+    }
+    if (startDate) startDate.addEventListener("change", validateDates);
+    if (dueDate) dueDate.addEventListener("change", validateDates);
+    validateDates();
+
+    const form = document.getElementById("taskEditForm");
+    if (form) {
+        form.addEventListener("submit", function (event) {
+            const datesValid = validateDates();
+            if (!datesValid || !form.checkValidity()) {
+                event.preventDefault();
+                form.reportValidity();
+                return;
+            }
+            if (!window.confirm("Are you sure you want to save these task changes?")) event.preventDefault();
+        });
+    }
+});
+</script>
+{% endblock %}

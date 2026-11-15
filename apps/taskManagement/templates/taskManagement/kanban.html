@@ -1,0 +1,2989 @@
+
+
+
+
+{% extends "dashboard/layout.html" %}
+
+
+
+
+
+
+
+{% block title %}Kanban Board | YAARLYNX{% endblock %}
+
+
+
+{% block page_heading %}Task Kanban Board{% endblock %}
+
+
+
+
+
+
+
+{% block extra_css %}
+
+
+
+{% include "taskManagement/_task_styles.html" %}
+
+
+
+
+
+
+
+<style>
+
+
+
+.task-kanban {
+
+
+
+          --yk-primary: #153030;
+
+
+
+          --yk-border: #e5ece8;
+
+
+
+          --yk-muted: #81918a;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-hero {
+
+
+
+          position: relative;
+
+
+
+          overflow: hidden;
+
+
+
+          isolation: isolate;
+
+
+
+          background: linear-gradient(118deg, #153030 0%, #204747 58%, #315e56 100%);
+
+
+
+          border-radius: 22px;
+
+
+
+          color: #fff;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-hero::after {
+
+
+
+          content: "";
+
+
+
+          position: absolute;
+
+
+
+          z-index: -1;
+
+
+
+          width: 260px;
+
+
+
+          height: 260px;
+
+
+
+          right: -80px;
+
+
+
+          top: -150px;
+
+
+
+          border: 1px solid rgba(255,255,255,.12);
+
+
+
+          border-radius: 50%;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-hero-stat {
+
+
+
+          min-width: 115px;
+
+
+
+          padding: 12px 15px;
+
+
+
+          border: 1px solid rgba(255,255,255,.15);
+
+
+
+          border-radius: 14px;
+
+
+
+          background: rgba(255,255,255,.08);
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-toolbar {
+
+
+
+          display: flex;
+
+
+
+          align-items: center;
+
+
+
+          justify-content: space-between;
+
+
+
+          flex-wrap: wrap;
+
+
+
+          gap: 14px;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yx-board {
+
+
+
+          display: grid;
+
+
+
+          grid-auto-flow: column;
+
+
+
+          grid-auto-columns: minmax(285px, 315px);
+
+
+
+          gap: 14px;
+
+
+
+          overflow-x: auto;
+
+
+
+          align-items: stretch;
+
+
+
+          padding: 3px 2px 15px;
+
+
+
+          scrollbar-width: thin;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yx-column {
+
+
+
+          display: flex;
+
+
+
+          flex-direction: column;
+
+
+
+          min-height: 440px;
+
+
+
+          padding: 13px;
+
+
+
+          background: #f5f8f6;
+
+
+
+          border: 1px solid #e5ece8;
+
+
+
+          border-radius: 17px;
+
+
+
+          transition: background .2s, border-color .2s;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-column-head {
+
+
+
+          display: flex;
+
+
+
+          align-items: center;
+
+
+
+          justify-content: space-between;
+
+
+
+          gap: 10px;
+
+
+
+          padding: 3px 2px 12px;
+
+
+
+          margin-bottom: 12px;
+
+
+
+          border-bottom: 1px solid #e4ebe7;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-column-title {
+
+
+
+          display: flex;
+
+
+
+          align-items: center;
+
+
+
+          gap: 8px;
+
+
+
+          color: #29433c;
+
+
+
+          font-size: 11px;
+
+
+
+          font-weight: 900;
+
+
+
+          letter-spacing: .06em;
+
+
+
+          text-transform: uppercase;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-column-dot {
+
+
+
+          width: 8px;
+
+
+
+          height: 8px;
+
+
+
+          flex: 0 0 8px;
+
+
+
+          border-radius: 50%;
+
+
+
+          background: #78958a;
+
+
+
+          box-shadow: 0 0 0 4px #e6efea;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-column-count {
+
+
+
+          display: inline-flex;
+
+
+
+          min-width: 25px;
+
+
+
+          height: 25px;
+
+
+
+          align-items: center;
+
+
+
+          justify-content: center;
+
+
+
+          padding: 0 7px;
+
+
+
+          border-radius: 9px;
+
+
+
+          background: #e7efeb;
+
+
+
+          color: #31554b;
+
+
+
+          font-size: 11px;
+
+
+
+          font-weight: 900;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-cards {
+
+
+
+          display: flex;
+
+
+
+          flex: 1;
+
+
+
+          flex-direction: column;
+
+
+
+          gap: 11px;
+
+
+
+          min-height: 170px;
+
+
+
+          padding: 2px;
+
+
+
+          border: 1px dashed transparent;
+
+
+
+          border-radius: 13px;
+
+
+
+          transition: background .2s, border-color .2s;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yx-task-card {
+
+
+
+          position: relative;
+
+
+
+          padding: 14px;
+
+
+
+          background: #fff;
+
+
+
+          border: 1px solid #e6ede9;
+
+
+
+          border-radius: 13px;
+
+
+
+          box-shadow: 0 3px 10px rgba(21,48,48,.035);
+
+
+
+          cursor: grab;
+
+
+
+          transition: transform .18s, box-shadow .18s, opacity .18s;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yx-task-card:hover {
+
+
+
+          transform: translateY(-2px);
+
+
+
+          box-shadow: 0 8px 20px rgba(21,48,48,.08);
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yx-task-card:active {
+
+
+
+          cursor: grabbing;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yx-task-card.is-dragging {
+
+
+
+          opacity: .38;
+
+
+
+          transform: rotate(2deg) scale(.98);
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-task-title {
+
+
+
+          display: block;
+
+
+
+          color: #193a34;
+
+
+
+          font-size: 13px;
+
+
+
+          font-weight: 850;
+
+
+
+          line-height: 1.45;
+
+
+
+          overflow-wrap: anywhere;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-task-description {
+
+
+
+          color: #7b8983;
+
+
+
+          font-size: 11px;
+
+
+
+          line-height: 1.55;
+
+
+
+          overflow-wrap: anywhere;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-meta-chip {
+
+
+
+          display: inline-flex;
+
+
+
+          align-items: center;
+
+
+
+          gap: 5px;
+
+
+
+          color: #71817b;
+
+
+
+          font-size: 10px;
+
+
+
+          line-height: 1.4;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-update-form {
+
+
+
+          border-top: 1px solid #edf1ef;
+
+
+
+          margin-top: 12px;
+
+
+
+          padding-top: 11px;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-update-form select,
+
+
+
+.task-kanban .yk-update-form input {
+
+
+
+          min-height: 36px;
+
+
+
+          font-size: 11px;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-drop-hint {
+
+
+
+          display: none;
+
+
+
+          margin: 2px 0 8px;
+
+
+
+          padding: 8px;
+
+
+
+          border: 1px dashed #a9c2b5;
+
+
+
+          border-radius: 9px;
+
+
+
+          color: #547466;
+
+
+
+          font-size: 10px;
+
+
+
+          text-align: center;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yx-column.is-drag-over {
+
+
+
+          background: #edf5f0;
+
+
+
+          border-color: #8eafa0;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yx-column.is-drag-over .yk-cards {
+
+
+
+          background: rgba(215,235,223,.55);
+
+
+
+          border-color: #8eafa0;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yx-column.is-drag-over .yk-drop-hint {
+
+
+
+          display: block;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-empty-column {
+
+
+
+          display: grid;
+
+
+
+          flex: 1;
+
+
+
+          min-height: 150px;
+
+
+
+          place-items: center;
+
+
+
+          padding: 20px 12px;
+
+
+
+          border: 1px dashed #d9e4de;
+
+
+
+          border-radius: 13px;
+
+
+
+          color: #9aa7a1;
+
+
+
+          text-align: center;
+
+
+
+          font-size: 11px;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-board-hint {
+
+
+
+          display: inline-flex;
+
+
+
+          align-items: center;
+
+
+
+          gap: 7px;
+
+
+
+          color: #87958f;
+
+
+
+          font-size: 11px;
+
+
+
+}
+
+
+
+
+
+
+
+.yk-toast {
+
+
+
+          position: fixed;
+
+
+
+          right: 22px;
+
+
+
+          bottom: 22px;
+
+
+
+          z-index: 9999;
+
+
+
+          max-width: calc(100vw - 32px);
+
+
+
+          padding: 13px 18px;
+
+
+
+          border-radius: 12px;
+
+
+
+          background: #153030;
+
+
+
+          color: white;
+
+
+
+          font-size: 12px;
+
+
+
+          font-weight: 700;
+
+
+
+          box-shadow: 0 10px 30px rgba(0,0,0,.18);
+
+
+
+          opacity: 0;
+
+
+
+          transform: translateY(12px);
+
+
+
+          pointer-events: none;
+
+
+
+          transition: .25s;
+
+
+
+}
+
+
+
+
+
+
+
+.yk-toast.show {
+
+
+
+          opacity: 1;
+
+
+
+          transform: translateY(0);
+
+
+
+}
+
+
+
+
+
+
+
+.yk-toast.error {
+
+
+
+          background: #9f3030;
+
+
+
+}
+
+
+
+
+
+
+
+.task-kanban .yk-loading {
+
+
+
+          opacity: .55;
+
+
+
+          pointer-events: none;
+
+
+
+}
+
+
+
+
+
+
+
+@media (max-width: 640px) {
+
+
+
+          .task-kanban .yk-hero {
+
+
+
+                    border-radius: 18px;
+
+
+
+          }
+
+
+
+
+
+
+
+          .task-kanban .yx-board {
+
+
+
+                    grid-auto-columns: minmax(84vw, 84vw);
+
+
+
+                    gap: 11px;
+
+
+
+          }
+
+
+
+
+
+
+
+          .task-kanban .yx-column {
+
+
+
+                    min-height: 360px;
+
+
+
+          }
+
+
+
+
+
+
+
+          .task-kanban .yk-hero-stat {
+
+
+
+                    min-width: 0;
+
+
+
+                    flex: 1;
+
+
+
+          }
+
+
+
+}
+
+
+
+
+
+
+
+@media (prefers-reduced-motion: reduce) {
+
+
+
+          .task-kanban *,
+
+
+
+          .task-kanban *::before,
+
+
+
+          .task-kanban *::after {
+
+
+
+                    transition: none !important;
+
+
+
+          }
+
+
+
+}
+
+
+
+
+
+/* Smart workflow analytics and board controls */
+.task-kanban .yk-flow-panel { overflow: hidden; }
+.task-kanban .yk-flow-heading-icon {
+    display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px;
+    border-radius: 13px; background: #eaf1ef; color: #153030; font-size: 19px;
+}
+.task-kanban .yk-flow-eyebrow { color: #83928c; font-size: 9px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+.task-kanban .yk-flow-total-label { color: #83928c; font-size: 10px; font-weight: 800; }
+.task-kanban .yk-flow-total { display: inline-grid; min-width: 34px; height: 32px; place-items: center; padding: 0 9px; border-radius: 10px; background: #eaf1ef; color: #153030; font-size: 13px; }
+.task-kanban .yk-flow-grid { display: grid; grid-template-columns: minmax(0,1fr) 190px; gap: 20px; align-items: stretch; }
+.task-kanban .yk-flow-rows { display: grid; gap: 13px; min-width: 0; }
+.task-kanban .yk-flow-row { display: grid; grid-template-columns: minmax(130px, 190px) minmax(70px,1fr) 38px; align-items: center; gap: 12px; min-width: 0; }
+.task-kanban .yk-flow-stage { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.task-kanban .yk-flow-stage-icon { display: grid; place-items: center; width: 31px; height: 31px; flex: 0 0 31px; border-radius: 10px; background: #edf3f0; color: #31554b; font-size: 15px; }
+.task-kanban .yk-flow-stage-icon[data-status="pending"] { background:#fff6e5; color:#9a6700; }
+.task-kanban .yk-flow-stage-icon[data-status="accepted"], .task-kanban .yk-flow-stage-icon[data-status="in_progress"] { background:#eaf3ff; color:#245ca6; }
+.task-kanban .yk-flow-stage-icon[data-status="on_hold"] { background:#fff0e6; color:#a44b12; }
+.task-kanban .yk-flow-stage-icon[data-status="under_review"] { background:#f2edff; color:#6841a5; }
+.task-kanban .yk-flow-stage-icon[data-status="completed"] { background:#e8f7ee; color:#167044; }
+.task-kanban .yk-flow-stage-icon[data-status="rejected"], .task-kanban .yk-flow-stage-icon[data-status="cancelled"] { background:#fff0ef; color:#b42318; }
+.task-kanban .yk-flow-name { display:block; overflow:hidden; color:#344b44; font-size:11px; font-weight:850; text-overflow:ellipsis; white-space:nowrap; }
+.task-kanban .yk-flow-count { display:block; margin-top:2px; color:#93a099; font-size:9px; }
+.task-kanban .yk-flow-track { height:9px; overflow:hidden; border-radius:99px; background:#edf2ef; }
+.task-kanban .yk-flow-fill { display:block; width:0; height:100%; border-radius:inherit; background:linear-gradient(90deg,#153030,#6b9688); transition:width .35s ease; }
+.task-kanban .yk-flow-row[data-status="pending"] .yk-flow-fill { background:linear-gradient(90deg,#c58a28,#e6bd68); }
+.task-kanban .yk-flow-row[data-status="in_progress"] .yk-flow-fill { background:linear-gradient(90deg,#326c9f,#7daed2); }
+.task-kanban .yk-flow-row[data-status="on_hold"] .yk-flow-fill { background:linear-gradient(90deg,#b65b23,#e5a16d); }
+.task-kanban .yk-flow-row[data-status="under_review"] .yk-flow-fill { background:linear-gradient(90deg,#7652a3,#b39bd4); }
+.task-kanban .yk-flow-row[data-status="completed"] .yk-flow-fill { background:linear-gradient(90deg,#27734a,#7cbd97); }
+.task-kanban .yk-flow-row[data-status="rejected"], .task-kanban .yk-flow-row[data-status="cancelled"] { --yk-flow-muted: #b42318; }
+.task-kanban .yk-flow-row[data-status="rejected"] .yk-flow-fill, .task-kanban .yk-flow-row[data-status="cancelled"] .yk-flow-fill { background:linear-gradient(90deg,#b42318,#e58c85); }
+.task-kanban .yk-flow-percent { color:#60736a; font-size:10px; font-weight:900; text-align:right; font-variant-numeric:tabular-nums; }
+.task-kanban .yk-flow-insight { display:flex; flex-direction:column; justify-content:center; min-width:0; padding:15px; border:1px solid #e5ece8; border-radius:15px; background:linear-gradient(145deg,#f8fbf9,#eef5f1); }
+.task-kanban .yk-flow-insight-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:11px; background:#153030; color:#fff; font-size:16px; }
+.task-kanban .yk-flow-insight-label { margin-top:13px; color:#81918a; font-size:9px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
+.task-kanban .yk-flow-insight-value { margin-top:5px; color:#153030; font-size:15px; font-weight:900; overflow-wrap:anywhere; }
+.task-kanban .yk-flow-insight-note { margin-top:6px; color:#81918a; font-size:10px; line-height:1.5; }
+.task-kanban .yk-flow-empty { display:flex; align-items:center; gap:9px; padding:18px; color:#899891; font-size:11px; }
+.task-kanban .yk-toolbar-tools { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:12px; }
+.task-kanban .yk-board-search { display:flex; align-items:center; gap:8px; width:min(330px,100%); min-height:39px; padding:0 10px; border:1px solid #e2eae5; border-radius:11px; background:#fff; color:#87958f; }
+.task-kanban .yk-board-search:focus-within { border-color:#78978a; box-shadow:0 0 0 3px rgba(21,48,48,.07); }
+.task-kanban .yk-board-search input { width:100%; min-width:0; border:0; outline:0; background:transparent; color:#243532; font-size:11px; }
+.task-kanban .yk-board-search input::placeholder { color:#a0aca7; }
+.task-kanban .yk-board-search button { display:grid; place-items:center; width:23px; height:23px; flex:0 0 23px; border-radius:7px; background:#f1f5f3; color:#53665d; }
+.task-kanban .yk-board-search button[hidden] { display:none; }
+.task-kanban .yx-task-card[hidden] { display:none !important; }
+.task-kanban .yk-cards { min-width:0; }
+.task-kanban .yx-task-card:focus-within { outline:2px solid rgba(21,48,48,.14); outline-offset:2px; }
+.task-kanban .yk-column-count { font-variant-numeric:tabular-nums; }
+.task-kanban .yk-board-hint i { color:#58796c; }
+.task-kanban .yk-empty-column { min-height:150px; }
+@media (max-width: 760px) {
+    .task-kanban .yk-flow-grid { grid-template-columns:1fr; }
+    .task-kanban .yk-flow-insight { display:grid; grid-template-columns:34px minmax(0,1fr); column-gap:10px; align-items:center; }
+    .task-kanban .yk-flow-insight-icon { grid-row:span 2; }
+    .task-kanban .yk-flow-insight-label { margin-top:0; }
+    .task-kanban .yk-flow-insight-value { margin-top:2px; }
+    .task-kanban .yk-flow-insight-note { grid-column:2; margin-top:2px; }
+}
+@media (max-width: 540px) {
+    .task-kanban .yk-flow-row { grid-template-columns:minmax(110px, 1fr) minmax(50px,.8fr) 34px; gap:8px; }
+    .task-kanban .yk-flow-name { font-size:10px; }
+    .task-kanban .yk-flow-track { height:8px; }
+    .task-kanban .yk-toolbar-tools { width:100%; justify-content:stretch; }
+    .task-kanban .yk-board-search { width:100%; }
+    .task-kanban .yk-board-hint { display:none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .task-kanban .yk-flow-fill { transition:none; }
+}
+
+</style>
+
+
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+{% block content %}
+
+
+
+
+
+
+
+<div class="task-page task-kanban space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+
+
+
+
+
+
+
+          <!-- HERO -->
+
+
+
+          <section class="yk-hero p-5 sm:p-6 lg:p-7">
+
+
+
+                    <div class="relative z-10 flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6">
+
+
+
+
+
+
+
+                              <div class="min-w-0">
+
+
+
+                                        <p class="text-[10px] font-extrabold uppercase tracking-[.17em] text-white/60">
+
+
+
+                                                  Visual workflow · Task management
+
+
+
+                                        </p>
+
+
+
+
+
+
+
+                                        <h1 class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-white">
+
+
+
+                                                  Kanban Board
+
+
+
+                                        </h1>
+
+
+
+
+
+
+
+                                        <p class="mt-2 max-w-2xl text-sm leading-6 text-white/70">
+
+
+
+                                                  Move your tasks between workflow stages using drag and drop.
+
+
+
+                                                  Changes are saved automatically. On mobile, use each card’s status selector.
+
+
+
+                                        </p>
+
+
+
+
+
+
+
+                                        <div class="mt-5 flex flex-wrap gap-2 text-[11px] text-white/65">
+
+
+
+                                                  <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
+
+
+
+                                                            <i class="ri-drag-move-2-line mr-1"></i>
+
+
+
+                                                            Drag and drop
+
+
+
+                                                  </span>
+
+
+
+
+
+
+
+                                                  <span class="rounded-full border border-white/15 bg-white/10 px-3 py-1.5">
+
+
+
+                                                            <i class="ri-refresh-line mr-1"></i>
+
+
+
+                                                            Automatic status update
+
+
+
+                                                  </span>
+
+
+
+                                        </div>
+
+
+
+                              </div>
+
+
+
+
+
+
+
+                              <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+
+
+
+
+
+
+
+                                        <div class="yk-hero-stat">
+
+
+
+                                                  <p class="text-[10px] font-bold uppercase tracking-wider text-white/60">
+
+
+
+                                                            Workflow stages
+
+
+
+                                                  </p>
+
+
+
+                                                  <p class="mt-1 text-2xl font-black text-white">
+
+
+
+                                                            {{ kanban_columns|length }}
+
+
+
+                                                  </p>
+
+
+
+                                        </div>
+
+
+
+
+
+
+
+                                        <div class="flex flex-wrap gap-2">
+
+
+
+                                                  <a class="yx-btn !border-white/20 !bg-white/10 !text-white hover:!bg-white/20"
+
+
+
+                                                           href="{% url 'taskManagement:task_list' %}">
+
+
+
+                                                            <i class="ri-list-check-2"></i>
+
+
+
+                                                            List view
+
+
+
+                                                  </a>
+
+
+
+
+
+
+
+                                                  <a class="yx-btn !bg-white !text-[#153030] hover:!bg-slate-100"
+
+
+
+                                                           href="{% url 'taskManagement:task_create' %}">
+
+
+
+                                                            <i class="ri-add-line"></i>
+
+
+
+                                                            New task
+
+
+
+                                                  </a>
+
+
+
+                                        </div>
+
+
+
+
+
+
+
+                              </div>
+
+
+
+                    </div>
+
+
+
+          </section>
+
+
+
+
+
+
+
+
+
+
+
+  
+        <!-- WORKFLOW DISTRIBUTION GRAPH -->
+        <section class="yx-panel yk-flow-panel p-4 sm:p-5" aria-labelledby="yk-flow-title">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                <div class="flex items-start gap-3">
+                    <span class="yk-flow-heading-icon"><i class="ri-bar-chart-grouped-line"></i></span>
+                    <div>
+                        <p class="yk-flow-eyebrow">Live board analytics</p>
+                        <h2 class="yx-section-title mt-1 text-base" id="yk-flow-title">Workflow distribution</h2>
+                        <p class="mt-1 text-xs text-slate-400">See how assignments are spread across your workflow stages.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="yk-flow-total-label">Visible assignments</span>
+                    <strong class="yk-flow-total" id="yk-graph-total">0</strong>
+                </div>
+            </div>
+            <div class="yk-flow-grid">
+                <div class="yk-flow-rows" id="yk-flow-rows">
+                    {% for column in kanban_columns %}
+                        <div class="yk-flow-row" data-flow-row data-status="{{ column.value }}">
+                            <div class="yk-flow-stage">
+                                <span class="yk-flow-stage-icon" data-status="{{ column.value }}">
+                                    {% if column.value == 'pending' %}<i class="ri-time-line"></i>
+                                    {% elif column.value == 'accepted' %}<i class="ri-checkbox-circle-line"></i>
+                                    {% elif column.value == 'in_progress' %}<i class="ri-play-circle-line"></i>
+                                    {% elif column.value == 'on_hold' %}<i class="ri-pause-circle-line"></i>
+                                    {% elif column.value == 'under_review' %}<i class="ri-eye-line"></i>
+                                    {% elif column.value == 'completed' %}<i class="ri-check-double-line"></i>
+                                    {% elif column.value == 'rejected' %}<i class="ri-close-circle-line"></i>
+                                    {% elif column.value == 'cancelled' %}<i class="ri-forbid-line"></i>
+                                    {% else %}<i class="ri-layout-column-line"></i>{% endif %}
+                                </span>
+                                <span class="min-w-0">
+                                    <span class="yk-flow-name">{{ column.label }}</span>
+                                    <span class="yk-flow-count"><span data-flow-count>{{ column.assignments|length }}</span> assignments</span>
+                                </span>
+                            </div>
+                            <div class="yk-flow-track" role="progressbar" aria-label="{{ column.label }} share" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                                <span class="yk-flow-fill" data-flow-fill></span>
+                            </div>
+                            <span class="yk-flow-percent" data-flow-percent>0%</span>
+                        </div>
+                    {% empty %}
+                        <div class="yk-flow-empty"><i class="ri-bar-chart-box-line"></i><span>No workflow stages to chart.</span></div>
+                    {% endfor %}
+                </div>
+                <aside class="yk-flow-insight">
+                    <span class="yk-flow-insight-icon"><i class="ri-focus-3-line"></i></span>
+                    <p class="yk-flow-insight-label">Most active stage</p>
+                    <p class="yk-flow-insight-value" id="yk-top-stage">—</p>
+                    <p class="yk-flow-insight-note">Updates as you search or move cards between stages.</p>
+                </aside>
+            </div>
+        </section>
+
+        <!-- BOARD TOOLBAR -->
+
+
+
+          <section class="yx-panel p-4 sm:p-5">
+
+
+
+                    <div class="yk-toolbar">
+
+
+
+
+
+
+
+                              <div>
+
+
+
+                                        <h2 class="yx-section-title">Workflow stages</h2>
+
+
+
+                                        <p class="mt-1 text-xs text-slate-400">
+
+
+
+                                                  Drag a task card and drop it into another status column.
+
+
+
+                                        </p>
+
+
+
+                              </div>
+
+
+
+
+
+
+
+                              <div class="yk-toolbar-tools">
+                                        <label class="yk-board-search" for="yk-card-search">
+                                            <i class="ri-search-line" aria-hidden="true"></i>
+                                            <input id="yk-card-search" type="search" autocomplete="off" placeholder="Search task, assignee or priority..." aria-label="Search Kanban cards">
+                                            <button id="yk-card-search-clear" type="button" aria-label="Clear search" hidden><i class="ri-close-line"></i></button>
+                                        </label>
+                                        <span class="yk-board-hint">
+                                            <i class="ri-information-line"></i>
+                                            Scroll horizontally to view all stages.
+                                        </span>
+                              </div>
+
+
+
+
+
+
+
+                    </div>
+
+
+
+          </section>
+
+
+
+
+
+
+
+
+
+
+
+          <!-- KANBAN BOARD -->
+
+
+
+          <section aria-label="Task workflow board">
+
+
+
+
+
+
+
+                    <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+
+
+
+                              <p class="yk-board-hint">
+
+
+
+                                        <i class="ri-drag-move-line"></i>
+
+
+
+                                        Drag cards between columns, or use the status selector on touch devices.
+
+
+
+                              </p>
+
+
+
+
+
+
+
+                              <p class="text-[10px] font-semibold text-slate-400">
+
+
+
+                                        <span id="yk-total-count">0</span> assignments
+
+
+
+                              </p>
+
+
+
+                    </div>
+
+
+
+
+
+
+
+
+
+
+
+                    <div class="yx-board" id="yk-kanban-board">
+
+
+
+
+
+
+
+                              {% for column in kanban_columns %}
+
+
+
+
+
+
+
+                                        <section class="yx-column"
+
+
+
+                                                                data-status="{{ column.value }}"
+
+
+
+                                                                aria-label="{{ column.label }}">
+
+
+
+
+
+
+
+                                                  <!-- COLUMN HEADER -->
+
+
+
+                                                  <div class="yk-column-head">
+
+
+
+
+
+
+
+                                                            <h2 class="yk-column-title">
+
+
+
+                                                                      <span class="yk-column-dot"></span>
+
+
+
+                                                                      {{ column.label }}
+
+
+
+                                                            </h2>
+
+
+
+
+
+
+
+                                                            <span class="yk-column-count">
+
+
+
+                                                                      {{ column.assignments|length }}
+
+
+
+                                                            </span>
+
+
+
+
+
+
+
+                                                  </div>
+
+
+
+
+
+
+
+
+
+
+
+                                                  <!-- DROP HINT -->
+
+
+
+                                                  <div class="yk-drop-hint">
+
+
+
+                                                            <i class="ri-download-2-line mr-1"></i>
+
+
+
+                                                            Drop task here to update status
+
+
+
+                                                  </div>
+
+
+
+
+
+
+
+
+
+
+
+                                                  <!-- TASK CARDS -->
+
+
+
+                                                  <div class="yk-cards">
+
+
+
+
+
+
+
+                                                            {% for assignment in column.assignments %}
+
+
+
+
+
+
+
+                                                                      <article class="yx-task-card"
+
+
+
+                                                                                              draggable="true"
+
+
+
+                                                                                              data-assignment-id="{{ assignment.pk }}" data-priority="{{ assignment.task.priority }}">
+
+
+
+
+
+
+
+                                                                                <!-- TASK NUMBER AND PRIORITY -->
+
+
+
+                                                                                <div class="flex items-start justify-between gap-2">
+
+
+
+
+
+
+
+                                                                                          <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">
+
+
+
+                                                                                                    {{ assignment.task.task_number }}
+
+
+
+                                                                                          </span>
+
+
+
+
+
+
+
+                                                                                          <span class="yx-pill yx-priority-{{ assignment.task.priority }}">
+
+
+
+                                                                                                    {{ assignment.task.get_priority_display }}
+
+
+
+                                                                                          </span>
+
+
+
+
+
+
+
+                                                                                </div>
+
+
+
+
+
+
+
+
+
+
+
+                                                                                <!-- TASK TITLE -->
+
+
+
+                                                                                <a class="yk-task-title mt-2 hover:underline"
+
+
+
+                                                                                         href="{% url 'taskManagement:task_detail' assignment.task.pk %}">
+
+
+
+                                                                                          {{ assignment.task.title }}
+
+
+
+                                                                                </a>
+
+
+
+
+
+
+
+
+
+
+
+                                                                                <!-- DESCRIPTION -->
+
+
+
+                                                                                <p class="yk-task-description mt-1">
+
+
+
+                                                                                          {{ assignment.task.description|default:"No description available."|truncatechars:115 }}
+
+
+
+                                                                                </p>
+
+
+
+
+
+
+
+
+
+
+
+                                                                                <!-- ASSIGNEE AND DUE DATE -->
+
+
+
+                                                                                <div class="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+
+
+
+
+
+
+
+                                                                                          <span class="yk-meta-chip">
+
+
+
+                                                                                                    <i class="ri-user-3-line"></i>
+
+
+
+                                                                                                    {{ assignment.user.full_name }}
+
+
+
+                                                                                          </span>
+
+
+
+
+
+
+
+                                                                                          <span class="yk-meta-chip">
+
+
+
+                                                                                                    <i class="ri-calendar-event-line"></i>
+
+
+
+                                                                                                    {{ assignment.task.due_date|date:"d M Y"|default:"No due date" }}
+
+
+
+                                                                                          </span>
+
+
+
+
+
+
+
+                                                                                </div>
+
+
+
+
+
+
+
+
+
+
+
+                                                                                <!-- PROGRESS -->
+
+
+
+                                                                                <div class="mt-3">
+
+
+
+
+
+
+
+                                                                                          <div class="mb-1.5 flex items-center justify-between text-[10px]">
+
+
+
+                                                                                                    <span class="font-semibold text-slate-400">
+
+
+
+                                                                                                              Progress
+
+
+
+                                                                                                    </span>
+
+
+
+
+
+
+
+                                                                                                    <strong class="text-[#153030]">
+
+
+
+                                                                                                              {{ assignment.progress }}%
+
+
+
+                                                                                                    </strong>
+
+
+
+                                                                                          </div>
+
+
+
+
+
+
+
+                                                                                          <div class="yx-progress"
+
+
+
+                                                                                                        role="progressbar"
+
+
+
+                                                                                                        aria-valuenow="{{ assignment.progress }}"
+
+
+
+                                                                                                        aria-valuemin="0"
+
+
+
+                                                                                                        aria-valuemax="100">
+
+
+
+
+
+
+
+                                                                                                    <span style="width:{{ assignment.progress }}%"></span>
+
+
+
+
+
+
+
+                                                                                          </div>
+
+
+
+
+
+
+
+                                                                                </div>
+
+
+
+
+
+
+
+
+
+
+
+                                                                                <!-- STATUS UPDATE FORM -->
+
+
+
+                                                                                <form method="post"
+
+
+
+                                                                                               action="{% url 'taskManagement:update_task_status' %}"
+
+
+
+                                                                                               class="yk-update-form">
+
+
+
+
+
+
+
+                                                                                          {% csrf_token %}
+
+
+
+
+
+
+
+                                                                                          <input type="hidden"
+
+
+
+                                                                                                             name="assignment_id"
+
+
+
+                                                                                                             value="{{ assignment.pk }}">
+
+
+
+
+
+
+
+                                                                                          <label class="mb-1 block text-[9px] font-bold text-[#82918E]"
+
+
+
+                                                                                                             for="status-{{ assignment.pk }}">
+
+
+
+                                                                                                    Update status manually
+
+
+
+                                                                                          </label>
+
+
+
+
+
+
+
+                                                                                          <div class="flex gap-2">
+
+
+
+
+
+
+
+                                                                                                    <select class="yx-select min-w-0 flex-1"
+
+
+
+                                                                                                                        id="status-{{ assignment.pk }}"
+
+
+
+                                                                                                                        name="status">
+
+
+
+
+
+
+
+                                                                                                              {% for status_column in kanban_columns %}
+
+
+
+                                                                                                                        <option value="{{ status_column.value }}"
+
+
+
+                                                                                                                                  {% if assignment.status == status_column.value %}selected{% endif %}>
+
+
+
+                                                                                                                                  {{ status_column.label }}
+
+
+
+                                                                                                                        </option>
+
+
+
+                                                                                                              {% endfor %}
+
+
+
+
+
+
+
+                                                                                                    </select>
+
+
+
+
+
+
+
+                                                                                                    <input type="hidden"
+
+
+
+                                                                                                                       name="progress"
+
+
+
+                                                                                                                       value="{{ assignment.progress }}">
+
+
+
+
+
+
+
+                                                                                                    <button type="submit"
+
+
+
+                                                                                                                        class="yx-btn yx-btn-primary !px-3"
+
+
+
+                                                                                                                        title="Update status">
+
+
+
+                                                                                                              <i class="ri-check-line"></i>
+
+
+
+                                                                                                    </button>
+
+
+
+
+
+
+
+                                                                                          </div>
+
+
+
+
+
+
+
+                                                                                </form>
+
+
+
+
+
+
+
+                                                                      </article>
+
+
+
+
+
+
+
+                                                            {% empty %}
+
+
+
+
+
+
+
+                                                                      <div class="yk-empty-column">
+
+
+
+                                                                                <div>
+
+
+
+                                                                                          <i class="ri-inbox-line mb-2 block text-2xl"></i>
+
+
+
+                                                                                          <p class="font-semibold">No tasks in this stage</p>
+
+
+
+                                                                                          <p class="mt-1 text-[10px]">
+
+
+
+                                                                                                    Drop a task here to move it into this stage.
+
+
+
+                                                                                          </p>
+
+
+
+                                                                                </div>
+
+
+
+                                                                      </div>
+
+
+
+
+
+
+
+                                                            {% endfor %}
+
+
+
+
+
+
+
+                                                  </div>
+
+
+
+
+
+
+
+                                        </section>
+
+
+
+
+
+
+
+                              {% empty %}
+
+
+
+
+
+
+
+                                        <div class="yx-panel yx-empty w-full">
+
+
+
+                                                  <div class="yx-empty-icon">
+
+
+
+                                                            <i class="ri-kanban-view"></i>
+
+
+
+                                                  </div>
+
+
+
+
+
+
+
+                                                  <p class="font-bold text-slate-600">
+
+
+
+                                                            No workflow stages available
+
+
+
+                                                  </p>
+
+
+
+
+
+
+
+                                                  <p class="mt-1 text-xs">
+
+
+
+                                                            There are currently no Kanban columns to display.
+
+
+
+                                                  </p>
+
+
+
+                                        </div>
+
+
+
+
+
+
+
+                              {% endfor %}
+
+
+
+
+
+
+
+                    </div>
+
+
+
+
+
+
+
+          </section>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<!-- TOAST MESSAGE -->
+
+
+
+<div id="yk-toast" class="yk-toast" role="status" aria-live="polite"></div>
+
+
+
+
+
+
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+{% block extra_js %}
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    "use strict";
+
+
+
+    const board = document.getElementById("yk-kanban-board");
+    const toast = document.getElementById("yk-toast");
+    const totalCount = document.getElementById("yk-total-count");
+    const searchInput = document.getElementById("yk-card-search");
+    const searchClear = document.getElementById("yk-card-search-clear");
+    const graphRows = document.querySelectorAll("[data-flow-row]");
+    const graphTotal = document.getElementById("yk-graph-total");
+    const topStage = document.getElementById("yk-top-stage");
+    if (!board) return;
+
+    let draggedCard = null;
+    let toastTimer = null;
+
+    function updateWorkflowGraph(total) {
+        let largestCount = -1;
+        let largestLabel = "—";
+        graphRows.forEach(row => {
+            const status = row.dataset.status;
+            const column = Array.from(board.querySelectorAll(".yx-column"))
+                .find(item => item.dataset.status === status);
+            const cardsContainer = column && column.querySelector(".yk-cards");
+            const cards = cardsContainer
+                ? Array.from(cardsContainer.querySelectorAll(":scope > .yx-task-card")).filter(card => !card.hidden)
+                : [];
+            const count = cards.length;
+            const percentage = total ? Math.round((count / total) * 100) : 0;
+            const countNode = row.querySelector("[data-flow-count]");
+            const fill = row.querySelector("[data-flow-fill]");
+            const percentNode = row.querySelector("[data-flow-percent]");
+            const track = row.querySelector(".yk-flow-track");
+            if (countNode) countNode.textContent = count;
+            if (fill) fill.style.width = percentage + "%";
+            if (percentNode) percentNode.textContent = percentage + "%";
+            if (track) track.setAttribute("aria-valuenow", String(percentage));
+            if (count > largestCount) {
+                largestCount = count;
+                const name = row.querySelector(".yk-flow-name");
+                largestLabel = name ? name.textContent.trim() : "—";
+            }
+        });
+        if (graphTotal) graphTotal.textContent = total;
+        if (topStage) topStage.textContent = total > 0 ? largestLabel : "No assignments";
+    }
+
+    function applyBoardSearch() {
+        const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+        board.querySelectorAll(".yx-task-card").forEach(card => {
+            const title = card.querySelector(".yk-task-title");
+            const description = card.querySelector(".yk-task-description");
+            const statusSelect = card.querySelector('.yk-update-form select[name="status"]');
+            const selectedStatus = statusSelect && statusSelect.selectedOptions.length
+                ? statusSelect.selectedOptions[0].textContent
+                : "";
+            const meta = Array.from(card.querySelectorAll(".yk-meta-chip"))
+                .map(node => node.textContent).join(" ");
+            const searchableText = [
+                title ? title.textContent : "",
+                description ? description.textContent : "",
+                card.dataset.priority || "",
+                selectedStatus,
+                meta
+            ].join(" ").toLowerCase();
+            card.hidden = Boolean(query) && !searchableText.includes(query);
+        });
+        if (searchClear) searchClear.hidden = !query;
+        refreshCounts();
+    }
+
+
+
+    function showToast(message, isError = false) {
+
+        if (!toast) return;
+
+        toast.textContent = message;
+
+        toast.classList.toggle("error", isError);
+
+        toast.classList.add("show");
+
+        window.clearTimeout(toastTimer);
+
+        toastTimer = window.setTimeout(() => toast.classList.remove("show"), 3200);
+
+    }
+
+
+
+    function refreshCounts() {
+        let total = 0;
+        const filtering = Boolean(searchInput && searchInput.value.trim());
+
+        board.querySelectorAll(".yx-column").forEach(column => {
+            const container = column.querySelector(".yk-cards");
+            if (!container) return;
+
+            const count = Array.from(container.querySelectorAll(":scope > .yx-task-card"))
+                .filter(card => !card.hidden).length;
+            const badge = column.querySelector(".yk-column-count");
+            if (badge) badge.textContent = count;
+            total += count;
+
+            let empty = container.querySelector(".yk-empty-column");
+            if (count === 0 && !empty) {
+                empty = document.createElement("div");
+                empty.className = "yk-empty-column";
+                empty.innerHTML = '<div><i class="ri-inbox-line mb-2 block text-2xl"></i>' +
+                    '<p class="font-semibold">' + (filtering ? 'No matching tasks' : 'No tasks in this stage') + '</p>' +
+                    '<p class="mt-1 text-[10px]">' + (filtering ? 'Try another search term.' : 'Drop a task here to move it into this stage.') + '</p></div>';
+                container.appendChild(empty);
+            } else if (count > 0 && empty) {
+                empty.remove();
+            } else if (count === 0 && empty) {
+                const title = empty.querySelector(".font-semibold");
+                const note = empty.querySelector("p.mt-1");
+                if (title) title.textContent = filtering ? "No matching tasks" : "No tasks in this stage";
+                if (note) note.textContent = filtering ? "Try another search term." : "Drop a task here to move it into this stage.";
+            }
+        });
+
+        if (totalCount) totalCount.textContent = total;
+        updateWorkflowGraph(total);
+    }
+
+    function clearDragHighlight() {
+
+        board.querySelectorAll(".yx-column.is-drag-over").forEach(
+
+            column => column.classList.remove("is-drag-over")
+
+        );
+
+    }
+
+
+
+    async function saveCardStatus(card, targetStatus) {
+
+        if (!card || card.dataset.updating === "true") return;
+
+
+
+        const currentColumn = card.closest(".yx-column");
+
+        const targetColumn = Array.from(board.querySelectorAll(".yx-column"))
+
+            .find(column => column.dataset.status === targetStatus);
+
+        const form = card.querySelector(".yk-update-form");
+
+        const select = form && form.querySelector('select[name="status"]');
+
+        if (!currentColumn || !targetColumn || !form || !select) {
+
+            showToast("Unable to update this task.", true);
+
+            return;
+
+        }
+
+
+
+        const valid = Array.from(select.options).some(option => option.value === targetStatus);
+
+        if (!valid) {
+
+            showToast("This status is not available for this task.", true);
+
+            return;
+
+        }
+
+
+
+        const oldStatus = currentColumn.dataset.status;
+
+        const oldParent = card.parentElement;
+
+        const oldNextSibling = card.nextElementSibling;
+
+        const newParent = targetColumn.querySelector(".yk-cards");
+
+        if (!newParent) return;
+
+
+
+        // Nothing to save if the assignment is already in this column.
+
+        if (oldStatus === targetStatus) {
+
+            select.value = targetStatus;
+
+            return;
+
+        }
+
+
+
+        card.dataset.updating = "true";
+
+        card.classList.add("yk-loading");
+
+        select.value = targetStatus;
+
+
+
+        // Optimistic update: card and counters change immediately.
+
+        const empty = newParent.querySelector(".yk-empty-column");
+
+        if (empty) empty.remove();
+
+        newParent.appendChild(card);
+
+        refreshCounts();
+
+
+
+        try {
+
+            const response = await fetch(form.action, {
+
+                method: "POST",
+
+                body: new FormData(form),
+
+                credentials: "same-origin",
+
+                redirect: "follow",
+
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+
+            });
+
+
+
+            if (!response.ok) {
+
+                throw new Error("Server could not save the new status.");
+
+            }
+
+            if (/\/(?:accounts\/)?login\/?$/i.test(new URL(response.url).pathname)) {
+
+                throw new Error("Session expired. Please log in again.");
+
+            }
+
+            // Existing Django endpoint redirects on success; a successful
+
+            // HTTP response is treated as success. See note below about
+
+            // application-level errors that also redirect with HTTP 200.
+
+            showToast("Task status updated successfully.");
+
+        } catch (error) {
+
+            select.value = oldStatus;
+
+            if (oldNextSibling && oldNextSibling.parentElement === oldParent) {
+
+                oldParent.insertBefore(card, oldNextSibling);
+
+            } else {
+
+                oldParent.appendChild(card);
+
+            }
+
+            refreshCounts();
+
+            showToast(error.message || "Unable to update task status.", true);
+
+        } finally {
+
+            card.classList.remove("yk-loading");
+
+            card.dataset.updating = "false";
+
+            refreshCounts();
+
+        }
+
+    }
+
+
+
+    board.querySelectorAll(".yx-task-card").forEach(card => {
+
+        card.addEventListener("dragstart", event => {
+
+            if (card.dataset.updating === "true") {
+
+                event.preventDefault();
+
+                return;
+
+            }
+
+            draggedCard = card;
+
+            card.classList.add("is-dragging");
+
+            event.dataTransfer.effectAllowed = "move";
+
+            event.dataTransfer.setData("text/plain", card.dataset.assignmentId || "");
+
+        });
+
+
+
+        card.addEventListener("dragend", () => {
+
+            card.classList.remove("is-dragging");
+
+            clearDragHighlight();
+
+            draggedCard = null;
+
+        });
+
+    });
+
+
+
+    board.querySelectorAll(".yx-column").forEach(column => {
+
+        column.addEventListener("dragover", event => {
+
+            if (!draggedCard || draggedCard.dataset.updating === "true") return;
+
+            event.preventDefault();
+
+            event.dataTransfer.dropEffect = "move";
+
+            clearDragHighlight();
+
+            column.classList.add("is-drag-over");
+
+        });
+
+
+
+        column.addEventListener("dragleave", event => {
+
+            if (!column.contains(event.relatedTarget)) {
+
+                column.classList.remove("is-drag-over");
+
+            }
+
+        });
+
+
+
+        column.addEventListener("drop", event => {
+
+            event.preventDefault();
+
+            clearDragHighlight();
+
+            // Capture card before dragend clears the shared reference.
+
+            const card = draggedCard;
+
+            draggedCard = null;
+
+            if (card) {
+
+                card.classList.remove("is-dragging");
+
+                void saveCardStatus(card, column.dataset.status);
+
+            }
+
+        });
+
+    });
+
+
+
+
+    // Client-side search across task title, description, priority and assignee.
+    if (searchInput) searchInput.addEventListener("input", applyBoardSearch);
+    if (searchClear) {
+        searchClear.addEventListener("click", () => {
+            if (searchInput) {
+                searchInput.value = "";
+                searchInput.focus();
+            }
+            applyBoardSearch();
+        });
+    }
+
+    // Keep manual dropdown submissions working through the existing Django view.
+
+    board.querySelectorAll(".yk-update-form").forEach(form => {
+
+        form.addEventListener("submit", () => {
+
+            const button = form.querySelector('button[type="submit"]');
+
+            if (button) {
+
+                button.disabled = true;
+
+                button.innerHTML = '<i class="ri-loader-4-line animate-spin"></i>';
+
+            }
+
+        });
+
+    });
+
+
+
+    refreshCounts();
+
+});
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,304 @@
+{% extends "dashboard/layout.html" %}
+{% block title %}{% if task %}Edit Task{% else %}Create Task{% endif %} | YAARLYNX{% endblock %}
+{% block page_heading %}{% if task %}Edit Task{% else %}Create Task{% endif %}{% endblock %}
+{% block extra_css %}
+{% include "taskManagement/_task_styles.html" %}
+<style>
+/* Page-specific styles; shared task styles remain in _task_styles.html */
+.yx-form-hero{background:linear-gradient(120deg,#153030 0%,#204747 62%,#315c53 100%);border-radius:20px;color:#fff;position:relative;overflow:hidden}
+.yx-form-hero:after{content:"";position:absolute;width:220px;height:220px;border:1px solid rgba(255,255,255,.12);border-radius:50%;right:-65px;top:-105px;box-shadow:0 0 0 28px rgba(255,255,255,.035),0 0 0 58px rgba(255,255,255,.025);pointer-events:none}
+.yx-form-hero>*{position:relative;z-index:1}
+.yx-form-section{background:#fff;border:1px solid #e4ebe8;border-radius:18px;box-shadow:0 5px 22px rgba(21,48,48,.04);min-width:0}
+.yx-form-section-head{display:flex;align-items:flex-start;gap:12px;padding-bottom:16px;margin-bottom:18px;border-bottom:1px solid #edf2ef}
+.yx-form-section-icon{width:40px;height:40px;display:grid;place-items:center;flex-shrink:0;border-radius:13px;background:#eaf1ef;color:#153030;font-size:19px}
+.yx-form-label{display:block;font-size:12px;font-weight:800;color:#425650;margin-bottom:7px}
+.yx-form-control{width:100%;min-width:0;min-height:42px;padding:10px 12px;border:1px solid #dce6e1;border-radius:11px;background:#fff;color:#203633;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s}
+.yx-form-control:focus{border-color:#527a72;box-shadow:0 0 0 3px rgba(21,48,48,.08)}
+.yx-form-control::placeholder{color:#a0aca7}
+.yx-form-help{font-size:11px;color:#84928d;line-height:1.5;margin-top:5px}
+.yx-staff-select{display:flex;align-items:center;gap:10px;min-width:0;padding:11px;border:1px solid #e6ede9;border-radius:13px;background:#fff;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}
+.yx-staff-select:hover{background:#f8fbf9;border-color:#cbdad3}
+.yx-staff-select:has(input:checked){background:#f1f7f4;border-color:#8eaaa0;box-shadow:inset 0 0 0 1px rgba(21,48,48,.04)}
+.yx-staff-select input{width:16px;height:16px;accent-color:#153030;flex-shrink:0}
+.yx-staff-avatar{width:35px;height:35px;display:grid;place-items:center;flex-shrink:0;border-radius:50%;background:#e6efeb;color:#254b43;font-size:11px;font-weight:900}
+.yx-upload-area{border:1.5px dashed #c8d7d0;border-radius:15px;background:#f9fcfa;transition:background .15s,border-color .15s}
+.yx-upload-area:hover{border-color:#153030;background:#f1f7f4}
+.yx-file-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e6ede9;border-radius:11px;background:#fbfdfc;font-size:12px;color:#475650;min-width:0}
+.yx-file-row .yx-file-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yx-form-error{padding:12px 14px;border:1px solid #fee2e2;border-radius:12px;background:#fff5f5;color:#b42318;font-size:12px}
+.yx-priority-chip{display:inline-flex;align-items:center;padding:5px 9px;border-radius:8px;font-size:10px;font-weight:900}
+@media(max-width:640px){.yx-form-hero{border-radius:16px}.yx-form-section{border-radius:15px}.yx-form-section-head{margin-bottom:15px}.yx-staff-select{padding:9px}.yx-form-actions{display:grid;grid-template-columns:1fr}.yx-form-actions>*{width:100%}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="task-page max-w-5xl mx-auto space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
+    <!-- Page header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-start gap-3 min-w-0">
+            <a href="{% if task %}{% url 'taskManagement:task_detail' task.pk %}{% else %}{% url 'taskManagement:task_list' %}{% endif %}"
+               class="yx-btn yx-btn-light !px-3 !py-2.5 shrink-0" aria-label="Go back">
+                <i class="ri-arrow-left-line"></i><span class="hidden sm:inline">Back</span>
+            </a>
+            <div class="min-w-0">
+                <p class="text-[10px] uppercase tracking-[.17em] text-slate-400 font-black">TASK WORKSPACE</p>
+                <h1 class="text-2xl sm:text-3xl font-black text-[#153030] mt-1">{% if task %}Update task details{% else %}Create a new task{% endif %}</h1>
+                <p class="text-sm text-slate-500 mt-1">{% if task %}Keep task information, ownership and timelines up to date.{% else %}Set the task scope, schedule and team responsibility in one place.{% endif %}</p>
+            </div>
+        </div>
+        {% if task %}
+        <div class="flex items-center gap-2 self-start sm:self-center">
+            <span class="yx-pill">{{ task.task_number }}</span>
+            <span class="yx-priority-chip yx-priority-{{ task.priority }}">{{ task.get_priority_display }} priority</span>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+    <div class="space-y-2">
+        {% for message in messages %}
+        <div class="rounded-xl px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-100{% else %}bg-emerald-50 text-emerald-700 border border-emerald-100{% endif %}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="space-y-5" id="taskUpsertForm">
+        {% csrf_token %}
+
+        <!-- Basic details -->
+        <section class="yx-form-section p-4 sm:p-6">
+            <div class="yx-form-section-head">
+                <span class="yx-form-section-icon"><i class="ri-file-list-3-line"></i></span>
+                <div>
+                    <h2 class="yx-section-title">Basic information</h2>
+                    <p class="text-xs text-slate-400 mt-1">Give your task a clear title and useful context.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                <div class="md:col-span-2">
+                    <label class="yx-form-label" for="task-title">Task title <span class="text-rose-500">*</span></label>
+                    <input class="yx-form-control" id="task-title" name="title" maxlength="200" required value="{{ task.title|default:'' }}" placeholder="e.g. Prepare monthly sales report">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="yx-form-label" for="task-description">Description</label>
+                    <textarea class="yx-form-control resize-y" id="task-description" name="description" rows="5" placeholder="Describe the expected outcome, instructions and important details...">{{ task.description|default:'' }}</textarea>
+                    <p class="yx-form-help">Add enough context so the assigned team members understand what needs to be done.</p>
+                </div>
+                <div>
+                    <label class="yx-form-label" for="task-category">Category</label>
+                    <select class="yx-form-control" id="task-category" name="category">
+                        <option value="">No category</option>
+                        {% for category in categories %}
+                        <option value="{{ category.pk }}" {% if task.category_id == category.pk %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="yx-form-label" for="task-priority">Priority</label>
+                    <select class="yx-form-control" id="task-priority" name="priority">
+                        {% for value,label in priority_choices %}
+                        <option value="{{ value }}" {% if task.priority == value or not task and value == 'medium' %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Schedule -->
+        <section class="yx-form-section p-4 sm:p-6">
+            <div class="yx-form-section-head">
+                <span class="yx-form-section-icon !bg-blue-50 !text-blue-700"><i class="ri-calendar-schedule-line"></i></span>
+                <div>
+                    <h2 class="yx-section-title">Schedule & recurrence</h2>
+                    <p class="text-xs text-slate-400 mt-1">Define when work should begin and when it should be completed.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label class="yx-form-label" for="task-start-date">Start date</label>
+                    <input class="yx-form-control" id="task-start-date" type="date" name="start_date" value="{{ task.start_date|date:'Y-m-d'|default:'' }}">
+                </div>
+                <div>
+                    <label class="yx-form-label" for="task-due-date">Due date</label>
+                    <input class="yx-form-control" id="task-due-date" type="date" name="due_date" value="{{ task.due_date|date:'Y-m-d'|default:'' }}">
+                </div>
+                <div class="sm:col-span-2 lg:col-span-1">
+                    <label class="yx-form-label" for="task-recurrence">Recurrence</label>
+                    <select class="yx-form-control" id="task-recurrence" name="recurrence">
+                        {% for value,label in recurrence_choices %}
+                        <option value="{{ value }}" {% if task.recurrence == value or not task and value == 'none' %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4 flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-500">
+                <i class="ri-information-line text-[#153030] text-base shrink-0"></i>
+                <p>Choose a due date that is the same as or later than the start date. Date validation is checked before submission.</p>
+            </div>
+        </section>
+
+        <!-- Team assignments -->
+        <section class="yx-form-section p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                <div class="yx-form-section-head !mb-0 !pb-0 !border-0">
+                    <span class="yx-form-section-icon !bg-purple-50 !text-purple-700"><i class="ri-team-line"></i></span>
+                    <div>
+                        <h2 class="yx-section-title">Assign team members</h2>
+                        <p class="text-xs text-slate-400 mt-1">Select one or more staff members for this task.</p>
+                    </div>
+                </div>
+                <span class="yx-pill self-start sm:self-center" id="selectedStaffCount">0 selected</span>
+            </div>
+            {% if staff_users %}
+            <div class="relative mb-4">
+                <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input class="yx-form-control !pl-9" type="search" id="staffSearch" placeholder="Search staff by name or email..." aria-label="Search staff">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-80 overflow-y-auto pr-1" id="staffList">
+                {% for staff in staff_users %}
+                <label class="yx-staff-select staff-option">
+                    <input type="checkbox" name="assigned_users" value="{{ staff.pk }}" class="staff-checkbox"
+                        {% if task and task.assignments.all %}{% for assignment in task.assignments.all %}{% if assignment.user_id == staff.pk and assignment.status != 'cancelled' %}checked{% endif %}{% endfor %}{% endif %}>
+                    <span class="yx-staff-avatar">{{ staff.first_name|first|upper }}{{ staff.last_name|first|upper }}</span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-xs font-bold text-slate-700 truncate">{{ staff.full_name }}</span>
+                        <span class="block text-[10px] text-slate-400 truncate">{{ staff.email }}</span>
+                    </span>
+                    <i class="ri-check-line text-[#153030] staff-check-icon hidden"></i>
+                </label>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="rounded-xl bg-slate-50 py-8 text-center">
+                <i class="ri-user-search-line text-3xl text-slate-300"></i>
+                <p class="text-sm font-semibold text-slate-600 mt-2">No active staff members found.</p>
+            </div>
+            {% endif %}
+            <p class="yx-form-help mt-4">{% if task %}Currently assigned members are selected. Uncheck a member to remove that selection when saving.{% else %}You can assign this task to multiple team members.{% endif %}</p>
+        </section>
+
+        <!-- Initial files: creation only, as in the supplied template -->
+        {% if not task %}
+        <section class="yx-form-section p-4 sm:p-6">
+            <div class="yx-form-section-head">
+                <span class="yx-form-section-icon !bg-amber-50 !text-amber-700"><i class="ri-attachment-2"></i></span>
+                <div>
+                    <h2 class="yx-section-title">Initial documents</h2>
+                    <p class="text-xs text-slate-400 mt-1">Attach supporting files or reference documents to the new task.</p>
+                </div>
+            </div>
+            <label for="task-documents" class="yx-upload-area flex flex-col items-center justify-center text-center p-6 sm:p-8 cursor-pointer">
+                <span class="w-12 h-12 rounded-2xl bg-[#153030]/10 text-[#153030] grid place-items-center text-2xl mb-3"><i class="ri-upload-cloud-2-line"></i></span>
+                <span class="text-sm font-bold text-[#153030]">Choose documents to upload</span>
+                <span class="text-xs text-slate-400 mt-1">PDF, Office files, CSV, images, ZIP or TXT</span>
+                <span class="text-[10px] text-slate-400 mt-2">Maximum 10 MB per file</span>
+                <input class="sr-only" id="task-documents" type="file" name="documents" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.webp,.zip,.txt">
+            </label>
+            <div id="selectedFiles" class="space-y-2 mt-3" aria-live="polite"></div>
+            <p class="yx-form-help">File size is checked in the browser for convenience. Keep server-side upload validation enabled as well.</p>
+        </section>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="yx-form-section p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <p class="text-[11px] text-slate-400"><i class="ri-shield-check-line text-emerald-600 mr-1"></i>Review the task details and selected team members before saving.</p>
+            <div class="yx-form-actions flex flex-col sm:flex-row gap-2">
+                <a class="yx-btn yx-btn-light" href="{% if task %}{% url 'taskManagement:task_detail' task.pk %}{% else %}{% url 'taskManagement:task_list' %}{% endif %}">Cancel</a>
+                <button type="submit" class="yx-btn yx-btn-primary"><i class="ri-save-line"></i>{% if task %}Save changes{% else %}Create task{% endif %}</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const staffSearch = document.getElementById("staffSearch");
+    const staffOptions = document.querySelectorAll(".staff-option");
+    const staffCheckboxes = document.querySelectorAll(".staff-checkbox");
+    const selectedStaffCount = document.getElementById("selectedStaffCount");
+
+    function updateStaffCount() {
+        const count = document.querySelectorAll(".staff-checkbox:checked").length;
+        if (selectedStaffCount) selectedStaffCount.textContent = count + " selected";
+        staffOptions.forEach(function (option) {
+            const checkbox = option.querySelector(".staff-checkbox");
+            const tick = option.querySelector(".staff-check-icon");
+            if (tick) tick.classList.toggle("hidden", !checkbox.checked);
+        });
+    }
+
+    if (staffSearch) {
+        staffSearch.addEventListener("input", function () {
+            const query = this.value.toLowerCase().trim();
+            staffOptions.forEach(function (option) {
+                option.style.display = option.textContent.toLowerCase().includes(query) ? "flex" : "none";
+            });
+        });
+    }
+    staffCheckboxes.forEach(function (checkbox) { checkbox.addEventListener("change", updateStaffCount); });
+    updateStaffCount();
+
+    const startDate = document.getElementById("task-start-date");
+    const dueDate = document.getElementById("task-due-date");
+    function validateDates() {
+        if (!startDate || !dueDate) return true;
+        if (startDate.value) dueDate.min = startDate.value;
+        else dueDate.removeAttribute("min");
+        const invalid = Boolean(startDate.value && dueDate.value && dueDate.value < startDate.value);
+        dueDate.setCustomValidity(invalid ? "Due date cannot be earlier than the start date." : "");
+        return !invalid;
+    }
+    if (startDate && dueDate) {
+        startDate.addEventListener("change", validateDates);
+        dueDate.addEventListener("change", validateDates);
+        validateDates();
+    }
+
+    const fileInput = document.getElementById("task-documents");
+    const filePreview = document.getElementById("selectedFiles");
+    const maxFileBytes = 10 * 1024 * 1024;
+    if (fileInput && filePreview) {
+        fileInput.addEventListener("change", function () {
+            filePreview.replaceChildren();
+            const files = Array.from(fileInput.files || []);
+            const oversized = files.filter(function (file) { return file.size > maxFileBytes; });
+            if (oversized.length) {
+                const warning = document.createElement("p");
+                warning.className = "yx-form-error";
+                warning.textContent = "These files exceed the 10 MB limit: " + oversized.map(function (file) { return file.name; }).join(", ");
+                filePreview.appendChild(warning);
+                fileInput.setCustomValidity("One or more files exceed 10 MB.");
+            } else {
+                fileInput.setCustomValidity("");
+            }
+            files.forEach(function (file) {
+                const row = document.createElement("div");
+                row.className = "yx-file-row";
+                const icon = document.createElement("i");
+                icon.className = "ri-file-text-line text-lg text-[#153030]";
+                const name = document.createElement("span");
+                name.className = "yx-file-name";
+                name.textContent = file.name;
+                const size = document.createElement("span");
+                size.className = "text-[10px] text-slate-400 shrink-0";
+                size.textContent = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+                row.append(icon, name, size);
+                filePreview.appendChild(row);
+            });
+        });
+    }
+
+    const form = document.getElementById("taskUpsertForm");
+    if (form) {
+        form.addEventListener("submit", function (event) {
+            if (!validateDates() || !form.checkValidity()) {
+                event.preventDefault();
+                form.reportValidity();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
