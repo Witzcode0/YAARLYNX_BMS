@@ -2,19 +2,13 @@
 
 {% load static %}
 
-
-
 {% block title %}Income Ledger | YAARLYNX{% endblock %}
 
 {% block page_heading %}Income Transactions{% endblock %}
 
 {% block meta_description %}YAARLYNX income ledger with advanced filters, payment statistics, responsive transaction history and Excel exports.{% endblock %}
 
-
-
 {% block content %}
-
-
 
 <style>
 
@@ -30,8 +24,6 @@
 
     }
 
-
-
     .ledger-panel {
 
         min-width: 0;
@@ -45,8 +37,6 @@
         box-shadow: 0 3px 12px rgba(21, 48, 48, .025);
 
     }
-
-
 
     .ledger-control {
 
@@ -72,8 +62,6 @@
 
     }
 
-
-
     .ledger-control:focus {
 
         border-color: #43857f;
@@ -84,23 +72,17 @@
 
     }
 
-
-
     .ledger-row {
 
         transition: background .16s ease;
 
     }
 
-
-
     .ledger-row:hover {
 
         background: #f5faf9;
 
     }
-
-
 
     .ledger-stat {
 
@@ -114,15 +96,11 @@
 
     }
 
-
-
     .ledger-stat:last-child {
 
         border-bottom: 0;
 
     }
-
-
 
     .ledger-stat-value {
 
@@ -132,23 +110,17 @@
 
     }
 
-
-
     .ledger-table th {
 
         white-space: nowrap;
 
     }
 
-
-
     .ledger-table td {
 
         vertical-align: middle;
 
     }
-
-
 
     .ledger-button {
 
@@ -174,15 +146,11 @@
 
     }
 
-
-
     .ledger-button:active {
 
         transform: scale(.98);
 
     }
-
-
 
     .ledger-button-primary {
 
@@ -192,15 +160,11 @@
 
     }
 
-
-
     .ledger-button-primary:hover {
 
         background: #214747;
 
     }
-
-
 
     .ledger-button-secondary {
 
@@ -212,15 +176,11 @@
 
     }
 
-
-
     .ledger-button-secondary:hover {
 
         background: #f4f8f7;
 
     }
-
-
 
     .ledger-button-export {
 
@@ -232,15 +192,11 @@
 
     }
 
-
-
     .ledger-button-export:hover {
 
         background: #daf4e6;
 
     }
-
-
 
     .ledger-status {
 
@@ -262,8 +218,6 @@
 
     }
 
-
-
     .ledger-status-dot {
 
         width: 6px;
@@ -278,7 +232,97 @@
 
     }
 
+    /* INCOME SOURCE ANALYTICS CHART */
 
+    .income-source-chart-wrap {
+
+        position: relative;
+
+        width: 100%;
+
+        height: 340px;
+
+        min-height: 260px;
+
+    }
+
+    .income-source-chart-wrap canvas {
+
+        display: block;
+
+        width: 100% !important;
+
+        height: 100% !important;
+
+    }
+
+    .income-source-chart-wrap .income-source-empty {
+
+        position: absolute;
+
+        inset: 0;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        padding: 20px;
+
+        color: #73817f;
+
+        text-align: center;
+
+        font-size: 12px;
+
+        line-height: 1.7;
+
+    }
+
+    .income-source-chart-wrap .income-source-empty[hidden] {
+
+        display: none;
+
+    }
+
+    .income-ledger.amounts-hidden #is-total-income,
+
+    .income-ledger.amounts-hidden #incomeSourceLineChart {
+
+        filter: blur(7px);
+
+        user-select: none;
+
+    }
+
+    .income-ledger.amounts-hidden #incomeSourceLineChart {
+
+        pointer-events: none;
+
+    }
+
+    @media (max-width: 640px) {
+
+        .income-source-chart-wrap {
+
+            height: 290px;
+
+            min-height: 245px;
+
+        }
+
+    }
+
+    @media (max-width: 380px) {
+
+        .income-source-chart-wrap {
+
+            height: 250px;
+
+        }
+
+    }
 
     @media (min-width: 768px) {
 
@@ -290,8 +334,6 @@
 
         }
 
-
-
         .ledger-stat:last-child {
 
             border-right: 0;
@@ -299,8 +341,6 @@
         }
 
     }
-
-
 
     @media (max-width: 640px) {
 
@@ -311,8 +351,6 @@
         }
 
     }
-
-
 
     @media (prefers-reduced-motion: reduce) {
 
@@ -328,130 +366,211 @@
 
     }
 
-
-
     .income-ledger .income-money {
+
         display: inline-block;
+
         font-variant-numeric: tabular-nums;
+
         overflow-wrap: anywhere;
+
     }
 
     .income-ledger .ledger-table .income-money {
+
         max-width: 190px;
+
         text-align: right;
+
     }
 
     .income-ledger .income-mobile-list .income-money {
+
         max-width: 145px;
+
         text-align: right;
+
     }
 
     .income-ledger .income-money-words {
+
         display: block;
+
         margin-top: 3px;
+
         color: #87958f;
+
         font-size: 9px;
+
         font-weight: 600;
+
         line-height: 1.4;
+
         letter-spacing: 0;
+
         white-space: normal;
+
         overflow-wrap: anywhere;
+
     }
 
     .income-ledger .ledger-stat .income-money-words {
+
         max-width: 260px;
+
         font-size: 9px;
+
     }
 
     .income-ledger .ledger-utility-button {
+
         display: inline-flex;
+
         min-height: 38px;
+
         align-items: center;
+
         justify-content: center;
+
         gap: 7px;
+
         border: 1px solid #dfe7e5;
+
         border-radius: 10px;
+
         background: #fff;
+
         padding: 8px 11px;
+
         color: #415653;
+
         font-size: 11px;
+
         font-weight: 750;
+
         transition: background .16s ease, border-color .16s ease, transform .16s ease;
+
     }
 
     .income-ledger .ledger-utility-button:hover {
+
         border-color: #c9d9d4;
+
         background: #f4f8f7;
+
     }
 
     .income-ledger .ledger-utility-button:active { transform: scale(.98); }
 
     .income-ledger .ledger-copy-amount {
+
         display: inline-flex;
+
         width: 27px;
+
         height: 27px;
+
         align-items: center;
+
         justify-content: center;
+
         border: 1px solid #e4ece9;
+
         border-radius: 8px;
+
         background: #fff;
+
         color: #668079;
+
         font-size: 13px;
+
         transition: background .16s ease, color .16s ease;
+
     }
 
     .income-ledger .ledger-copy-amount:hover {
+
         background: #edf5f1;
+
         color: #153030;
+
     }
 
     .income-ledger.amounts-hidden .income-money {
+
         filter: blur(7px);
+
         user-select: none;
+
     }
 
     .income-ledger .ledger-action-feedback {
+
         min-height: 18px;
+
         color: #63817a;
+
         font-size: 10px;
+
         font-weight: 700;
+
     }
 
     @media (max-width: 440px) {
+
         .income-ledger .income-money-words { font-size: 8px; }
+
         .income-ledger .ledger-utility-button { flex: 1 1 auto; }
+
     }
 
     @media print {
+
         body { background: #fff !important; }
+
         .income-ledger { max-width: none !important; padding: 0 !important; }
+
         .income-ledger .no-print,
+
         .income-ledger #income-filters,
+
         .income-ledger .income-header-actions,
+
         .income-ledger .ledger-pagination,
+
         .income-ledger .ledger-copy-amount { display: none !important; }
+
         .income-ledger .ledger-panel { box-shadow: none !important; }
+
         .income-ledger .ledger-table tr { break-inside: avoid; }
+
         .income-ledger .income-hero { background: #153030 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+
         .income-ledger .income-money { filter: none !important; }
+
         .income-ledger .income-money-words { color: #53645f !important; }
+
         .income-ledger .income-mobile-list { display: none !important; }
+
         .income-ledger .income-desktop-table { display: block !important; }
+
         .income-ledger .income-desktop-table table { min-width: 0 !important; width: 100% !important; }
+
         .income-ledger .income-desktop-table th,
+
         .income-ledger .income-desktop-table td { padding: 7px !important; font-size: 9px !important; }
+
         .income-ledger .ledger-table { min-width: 0 !important; }
+
         .income-ledger .ledger-table td:nth-child(3) p:last-child { display: none !important; }
+
         .income-ledger a { color: inherit !important; text-decoration: none !important; }
+
     }
 
 </style>
 
-
-
 <div id="incomeLedger" class="income-ledger mx-auto w-full max-w-[1700px] space-y-5 px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
-
-
 
     <!-- PREMIUM PAGE HEADER -->
 
@@ -461,13 +580,9 @@
 
         <div class="pointer-events-none absolute -bottom-24 right-[28%] h-48 w-48 rounded-full bg-teal-300/[0.06] blur-2xl"></div>
 
-
-
         <div class="relative p-5 sm:p-7 lg:p-8">
 
             <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-
-
 
                 <div class="min-w-0">
 
@@ -479,15 +594,11 @@
 
                     </div>
 
-
-
                     <h1 class="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
 
                         Income transactions
 
                     </h1>
-
-
 
                     <p class="mt-2 max-w-2xl text-sm leading-6 text-teal-50/75">
 
@@ -496,8 +607,6 @@
                         and export your complete filtered transaction data.
 
                     </p>
-
-
 
                     <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-teal-50/80">
 
@@ -508,8 +617,6 @@
                             {{ period_label|default:"All time" }}
 
                         </span>
-
-
 
                         <span class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2">
 
@@ -523,8 +630,6 @@
 
                 </div>
 
-
-
                 <nav class="income-header-actions flex flex-wrap gap-2" aria-label="Finance navigation">
 
                     <a href="{% url 'finance_dashboard' %}"
@@ -537,8 +642,6 @@
 
                     </a>
 
-
-
                     <a href="{% url 'purchase_transactions' %}"
 
                        class="ledger-button border border-white/20 bg-white/[0.08] text-white hover:bg-white/[0.15]">
@@ -550,36 +653,44 @@
                     </a>
 
                 </nav>
-            
 
             </div>
+
             <div class="no-print mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+
                 <button id="income-privacy-toggle" type="button" class="ledger-utility-button border-white/15 bg-white/[0.08] text-white hover:bg-white/[0.15] hover:text-white" aria-pressed="false">
+
                     <i id="income-privacy-icon" class="ri-eye-off-line text-sm"></i>
+
                     <span id="income-privacy-label">Hide amounts</span>
+
                 </button>
+
                 <button id="income-copy-summary" type="button" class="ledger-utility-button border-white/15 bg-white/[0.08] text-white hover:bg-white/[0.15] hover:text-white">
+
                     <i class="ri-file-copy-line text-sm"></i> Copy summary
+
                 </button>
+
                 <button id="income-print-page" type="button" class="ledger-utility-button border-white/15 bg-white/[0.08] text-white hover:bg-white/[0.15] hover:text-white">
+
                     <i class="ri-printer-line text-sm"></i> Print / Save PDF
+
                 </button>
+
                 <span id="income-action-feedback" class="ledger-action-feedback ml-1 text-teal-50/75" role="status" aria-live="polite"></span>
+
             </div>
 
         </div>
 
     </section>
 
-
-
     <!-- FINANCIAL SUMMARY STRIP -->
 
     <section class="ledger-panel overflow-hidden" aria-label="Filtered income summary">
 
         <div class="grid grid-cols-2 md:grid-cols-4">
-
-
 
             <div class="ledger-stat">
 
@@ -605,8 +716,6 @@
 
             </div>
 
-
-
             <div class="ledger-stat">
 
                 <p class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -630,8 +739,6 @@
                 <p class="mt-1 text-[11px] text-slate-400">All matching statuses</p>
 
             </div>
-
-
 
             <div class="ledger-stat">
 
@@ -661,8 +768,6 @@
 
             </div>
 
-
-
             <div class="ledger-stat">
 
                 <p class="flex items-center gap-2 text-xs font-semibold text-amber-800">
@@ -691,13 +796,9 @@
 
             </div>
 
-
-
         </div>
 
     </section>
-
-
 
     <!-- FILTER WORKSPACE -->
 
@@ -727,8 +828,6 @@
 
             </div>
 
-
-
             <span class="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600">
 
                 <i class="ri-filter-3-line text-teal-700"></i>
@@ -739,13 +838,9 @@
 
         </div>
 
-
-
         <form method="get" class="p-4 sm:p-5">
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-
-
 
                 <div class="sm:col-span-2">
 
@@ -777,8 +872,6 @@
 
                 </div>
 
-
-
                 <div>
 
                     <label for="income-period" class="mb-1.5 block text-xs font-bold text-slate-600">
@@ -802,8 +895,6 @@
                     </select>
 
                 </div>
-
-
 
                 <div>
 
@@ -831,8 +922,6 @@
 
                 </div>
 
-
-
                 <div>
 
                     <label for="income-method" class="mb-1.5 block text-xs font-bold text-slate-600">
@@ -858,8 +947,6 @@
                     </select>
 
                 </div>
-
-
 
                 <div>
 
@@ -889,8 +976,6 @@
 
                 </div>
 
-
-
                 <div>
 
                     <label for="income-start" class="mb-1.5 block text-xs font-bold text-slate-600">
@@ -910,8 +995,6 @@
                            class="ledger-control">
 
                 </div>
-
-
 
                 <div>
 
@@ -933,11 +1016,7 @@
 
                 </div>
 
-
-
             </div>
-
-
 
             <div class="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
 
@@ -949,8 +1028,6 @@
 
                 </button>
 
-
-
                 <a href="{% url 'income_transactions' %}"
 
                    class="ledger-button ledger-button-secondary">
@@ -961,11 +1038,7 @@
 
                 </a>
 
-
-
                 <span class="hidden h-7 w-px bg-slate-200 sm:block"></span>
-
-
 
                 <button type="submit"
 
@@ -981,8 +1054,6 @@
 
                 </button>
 
-
-
                 <p class="text-[11px] leading-5 text-slate-400 sm:ml-auto sm:text-right">
 
                     Export uses these filters and includes every matching record.
@@ -992,8 +1063,6 @@
             </div>
 
         </form>
-
-
 
         {% if filter_message %}
 
@@ -1009,7 +1078,122 @@
 
     </section>
 
+    <!-- INCOME SOURCE ANALYTICS CHART -->
 
+    <section class="ledger-panel overflow-hidden" id="income-source-analytics" aria-labelledby="income-source-title">
+
+        <div class="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+
+            <div class="min-w-0">
+
+                <p class="text-[10px] font-extrabold uppercase tracking-[.16em] text-teal-800">Income analytics</p>
+
+                <h2 id="income-source-title" class="mt-1 text-base font-extrabold text-slate-900 sm:text-lg">
+
+                    Income source performance
+
+                </h2>
+
+                <p class="mt-1 text-xs leading-5 text-slate-500">
+
+                    Daily income trend across all matching records. With no filters, the chart includes all income data.
+
+                </p>
+
+            </div>
+
+            <span class="inline-flex w-fit items-center gap-2 rounded-full border border-teal-100 bg-teal-50 px-3 py-1.5 text-[10px] font-extrabold text-teal-800">
+
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+
+                {{ period_label|default:"All time" }}
+
+            </span>
+
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 border-b border-slate-100 p-4 sm:grid-cols-3 sm:px-5">
+
+            <div class="rounded-xl border border-slate-100 bg-slate-50/80 p-3.5">
+
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Income sources in result</p>
+
+                <p id="is-source-count" class="mt-2 text-xl font-extrabold tabular-nums text-slate-900">0</p>
+
+                <p class="mt-1 text-[10px] text-slate-400">Across all matching records</p>
+
+            </div>
+
+            <div class="rounded-xl border border-slate-100 bg-slate-50/80 p-3.5">
+
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Top income source</p>
+
+                <p id="is-top-source" class="mt-2 break-words text-base font-extrabold text-slate-900">—</p>
+
+                <p class="mt-1 text-[10px] text-slate-400">Highest total in the active result</p>
+
+            </div>
+
+            <div class="rounded-xl border border-teal-100 bg-teal-50/60 p-3.5">
+
+                <p class="text-[10px] font-bold uppercase tracking-wider text-teal-800">Total income in result</p>
+
+                <p id="is-total-income" class="mt-2 text-xl font-extrabold tabular-nums text-[#153030]">₹0.00</p>
+
+                <p class="mt-1 text-[10px] text-teal-700/70">All statuses in the active result</p>
+
+            </div>
+
+        </div>
+
+        <div class="p-4 sm:p-5">
+
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+
+                <div>
+
+                    <h3 class="text-sm font-extrabold text-slate-800">Income trend by source</h3>
+
+                    <p class="mt-1 text-[11px] text-slate-400">Hover or tap the chart to inspect source-wise daily income</p>
+
+                </div>
+
+                <span class="rounded-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-bold text-slate-500">Currency: INR (₹)</span>
+
+            </div>
+
+            <div class="income-source-chart-wrap" id="is-chart-wrapper">
+
+                <canvas id="incomeSourceLineChart" role="img" aria-label="Area line chart showing all matching daily income amounts grouped by source"></canvas>
+
+                <div id="is-chart-empty" class="income-source-empty" role="status" aria-live="polite" hidden>
+
+                    No dated income records are available for the selected result.
+
+                </div>
+
+            </div>
+
+            <p id="is-chart-note" class="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-[10px] leading-5 text-slate-500">
+
+                The chart includes every record matching the current filters, not only the visible table page.
+
+            </p>
+
+        </div>
+
+        <!-- Chart source rows use the paginator object_list: the full filtered queryset, not the 25-row page slice. -->
+
+        <div id="income-source-chart-data" class="hidden" aria-hidden="true">
+            {% for payment in page_obj.paginator.object_list %}
+                <span class="income-source-point"
+                      data-date='{% if payment.payment_date %}{{ payment.payment_date|date:"Y-m-d" }}{% endif %}'
+                      data-source='{{ payment.income_source.name|default:"Unassigned"|escape }}'
+                      data-amount="{{ payment.amount|default:0 }}"></span>
+            {% endfor %}
+        </div>
+
+    </section>
 
     <!-- TRANSACTIONS TABLE -->
 
@@ -1037,8 +1221,6 @@
 
             </div>
 
-
-
             <span class="inline-flex w-fit items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500">
 
                 <i class="ri-file-excel-2-line text-emerald-700"></i>
@@ -1048,8 +1230,6 @@
             </span>
 
         </div>
-
-
 
         <!-- DESKTOP / TABLET TABLE -->
 
@@ -1077,8 +1257,6 @@
 
                 </thead>
 
-
-
                 <tbody class="divide-y divide-slate-100">
 
                     {% for payment in payments %}
@@ -1098,8 +1276,6 @@
                                 {% endif %}
 
                             </td>
-
-
 
                             <td class="px-5 py-4">
 
@@ -1135,8 +1311,6 @@
 
                             </td>
 
-
-
                             <td class="px-5 py-4">
 
                                 <p class="break-all text-xs font-bold text-slate-700">
@@ -1153,15 +1327,11 @@
 
                             </td>
 
-
-
                             <td class="whitespace-nowrap px-5 py-4 text-xs font-medium text-slate-600">
 
                                 {{ payment.get_payment_method_display|default:payment.payment_method|default:"—" }}
 
                             </td>
-
-
 
                             <td class="whitespace-nowrap px-5 py-4">
 
@@ -1209,27 +1379,19 @@
 
                             </td>
 
-
-
                             <td class="whitespace-nowrap px-5 py-4 text-right">
 
                                 <div class="flex items-start justify-end gap-2">
 
-
                                     <p class="text-sm font-extrabold tabular-nums text-slate-900"><span class="income-money" data-amount="{{ payment.amount|default:0 }}">₹{{ payment.amount|floatformat:2 }}</span></p>
-
 
                                     <button type="button" class="ledger-copy-amount no-print" data-copy-amount="{{ payment.amount|default:0 }}" title="Copy amount in numbers and words" aria-label="Copy payment amount">
 
-
                                         <i class="ri-file-copy-line"></i>
-
 
                                     </button>
 
-
                                 </div>
-
 
                                 </td>
 
@@ -1281,8 +1443,6 @@
 
         </div>
 
-
-
         <!-- MOBILE TRANSACTION LIST -->
 
         <div class="income-mobile-list divide-y divide-slate-100 md:hidden">
@@ -1300,8 +1460,6 @@
                                 <i class="ri-exchange-dollar-line text-xl"></i>
 
                             </span>
-
-
 
                             <div class="min-w-0">
 
@@ -1335,8 +1493,6 @@
 
                         </div>
 
-
-
                         <div class="shrink-0 text-right">
 
                             <p class="break-words text-sm font-extrabold tabular-nums text-slate-900">
@@ -1347,21 +1503,15 @@
 
                             <p class="mt-1 text-[11px] text-slate-500">{{ payment.get_payment_method_display|default:payment.payment_method|default:"—" }}</p>
 
-
                             <button type="button" class="ledger-copy-amount no-print mt-2" data-copy-amount="{{ payment.amount|default:0 }}" title="Copy amount in numbers and words" aria-label="Copy payment amount">
-
 
                                 <i class="ri-file-copy-line"></i>
 
-
                             </button>
-
 
                             </div>
 
                     </div>
-
-
 
                     <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
 
@@ -1407,8 +1557,6 @@
 
                         {% endif %}
 
-
-
                         <span class="text-[10px] font-medium text-slate-400">
 
                             Record #{{ payment.pk }}
@@ -1416,8 +1564,6 @@
                         </span>
 
                     </div>
-
-
 
                     {% if payment.description %}
 
@@ -1447,8 +1593,6 @@
 
         </div>
 
-
-
         <!-- PAGINATION -->
 
         {% if page_obj.paginator.num_pages > 1 %}
@@ -1456,8 +1600,6 @@
             <nav class="ledger-pagination flex flex-col gap-3 border-t border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5"
 
                  aria-label="Income transaction pagination">
-
-
 
                 <p class="text-xs leading-5 text-slate-500">
 
@@ -1468,8 +1610,6 @@
                     of <strong class="text-slate-800"><span class="indian-count">{{ page_obj.paginator.count }}</span></strong> records
 
                 </p>
-
-
 
                 <div class="flex flex-wrap items-center gap-2">
 
@@ -1485,8 +1625,6 @@
 
                         </a>
 
-
-
                         <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.previous_page_number }}#income-records"
 
                            class="ledger-button ledger-button-secondary">
@@ -1499,15 +1637,11 @@
 
                     {% endif %}
 
-
-
                     <span class="inline-flex min-h-10 items-center rounded-xl bg-[#153030] px-4 text-xs font-extrabold text-white">
 
                         <span class="indian-count">{{ page_obj.number }}</span> / <span class="indian-count">{{ page_obj.paginator.num_pages }}</span>
 
                     </span>
-
-
 
                     {% if page_obj.has_next %}
 
@@ -1520,8 +1654,6 @@
                             <i class="ri-arrow-right-s-line"></i>
 
                         </a>
-
-
 
                         <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_obj.paginator.num_pages }}#income-records"
 
@@ -1543,8 +1675,6 @@
 
     </section>
 
-
-
     <!-- EXPORT FOOTNOTE -->
 
     <footer class="flex flex-col gap-1 border-t border-slate-200 pt-4 text-[11px] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
@@ -1557,195 +1687,591 @@
 
 </div>
 
-
-
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
 <script>
+
 (function () {
+
     "use strict";
 
     const root = document.getElementById("incomeLedger");
+
     if (!root) return;
 
     const moneyFormatter = new Intl.NumberFormat("en-IN", {
+
         minimumFractionDigits: 2,
+
         maximumFractionDigits: 2
+
     });
+
     const integerFormatter = new Intl.NumberFormat("en-IN", {
+
         maximumFractionDigits: 0
+
     });
 
     const ones = [
+
         "Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+
         "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+
         "Seventeen", "Eighteen", "Nineteen"
+
     ];
+
     const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
 
     function underThousandToWords(value) {
+
         let number = Math.floor(value);
+
         const words = [];
+
         if (number >= 100) {
+
             words.push(ones[Math.floor(number / 100)] + " Hundred");
+
             number %= 100;
+
         }
+
         if (number >= 20) {
+
             words.push(tens[Math.floor(number / 10)]);
+
             number %= 10;
+
         }
+
         if (number > 0) words.push(ones[number]);
+
         return words.join(" ");
+
     }
 
     function indianIntegerToWords(value) {
+
         const number = Math.floor(value);
+
         if (number < 1000) return underThousandToWords(number) || "Zero";
+
         const groups = [
+
             [100000000000, "Kharab"],
+
             [1000000000, "Arab"],
+
             [10000000, "Crore"],
+
             [100000, "Lakh"],
+
             [1000, "Thousand"]
+
         ];
+
         for (const [size, label] of groups) {
+
             if (number >= size) {
+
                 const quotient = Math.floor(number / size);
+
                 const remainder = number % size;
+
                 return indianIntegerToWords(quotient) + " " + label +
+
                     (remainder ? " " + indianIntegerToWords(remainder) : "");
+
             }
+
         }
+
         return underThousandToWords(number);
+
     }
 
     function amountToWords(value) {
+
         const amount = Number(value);
+
         if (!Number.isFinite(amount)) return "Amount unavailable";
+
         const absolute = Math.abs(amount);
+
         if (absolute > Number.MAX_SAFE_INTEGER) return "Amount is too large to spell out";
+
         const fixed = absolute.toFixed(2).split(".");
+
         const rupees = Number.parseInt(fixed[0], 10) || 0;
+
         const paise = Number.parseInt(fixed[1], 10) || 0;
+
         const parts = [];
+
         if (rupees > 0 || paise === 0) {
+
             parts.push(indianIntegerToWords(rupees) + (rupees === 1 ? " Rupee" : " Rupees"));
+
         }
+
         if (paise > 0) {
+
             parts.push(indianIntegerToWords(paise) + (paise === 1 ? " Paisa" : " Paise"));
+
         }
+
         return (amount < 0 ? "Minus " : "") + parts.join(" and ") + " Only";
+
     }
 
     function formatAllAmounts() {
+
         root.querySelectorAll(".income-money").forEach(function (element) {
+
             if (element.dataset.formatted === "true") return;
+
             const raw = element.dataset.amount;
+
             const value = Number(raw);
+
             if (!Number.isFinite(value)) return;
+
             element.textContent = "₹" + moneyFormatter.format(value);
+
             const words = document.createElement("span");
+
             words.className = "income-money-words";
+
             words.textContent = amountToWords(value);
+
             element.appendChild(words);
+
             element.dataset.formatted = "true";
+
         });
+
     }
 
     function formatCounts() {
+
         root.querySelectorAll(".indian-count").forEach(function (element) {
+
             const value = Number((element.textContent || "").replace(/,/g, "").trim());
+
             if (Number.isFinite(value)) element.textContent = integerFormatter.format(value);
+
         });
+
     }
 
+    function initIncomeSourceChart() {
+        const dataRoot = document.getElementById("income-source-chart-data");
+        const points = Array.from((dataRoot || root).querySelectorAll(".income-source-point"))
+            .map(function (element) {
+                const rawAmount = Number(element.dataset.amount || 0);
+                const date = (element.dataset.date || "").trim();
+                return {
+                    date: date,
+                    source: (element.dataset.source || "Unassigned").trim() || "Unassigned",
+                    amount: Number.isFinite(rawAmount) ? rawAmount : 0
+                };
+            });
+
+        const sourceCountNode = document.getElementById("is-source-count");
+        const topSourceNode = document.getElementById("is-top-source");
+        const totalIncomeNode = document.getElementById("is-total-income");
+        const canvas = document.getElementById("incomeSourceLineChart");
+        const emptyState = document.getElementById("is-chart-empty");
+        const note = document.getElementById("is-chart-note");
+
+        if (!canvas || !emptyState) return;
+
+        const sourceTotals = new Map();
+        const dailyBySource = new Map();
+        let totalIncome = 0;
+        let datedTransactionCount = 0;
+
+        points.forEach(function (point) {
+            totalIncome += point.amount;
+            sourceTotals.set(point.source, (sourceTotals.get(point.source) || 0) + point.amount);
+
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(point.date)) return;
+            datedTransactionCount += 1;
+
+            if (!dailyBySource.has(point.date)) dailyBySource.set(point.date, new Map());
+            const bySource = dailyBySource.get(point.date);
+            bySource.set(point.source, (bySource.get(point.source) || 0) + point.amount);
+        });
+
+        const rankedSources = Array.from(sourceTotals.entries()).sort(function (a, b) {
+            return b[1] - a[1];
+        });
+        const dates = Array.from(dailyBySource.keys()).sort();
+
+        if (sourceCountNode) sourceCountNode.textContent = integerFormatter.format(rankedSources.length);
+        if (topSourceNode) topSourceNode.textContent = rankedSources.length ? rankedSources[0][0] : "—";
+        if (totalIncomeNode) totalIncomeNode.textContent = "₹" + moneyFormatter.format(totalIncome);
+
+        if (!points.length || !dates.length) {
+            canvas.hidden = true;
+            emptyState.hidden = false;
+            emptyState.textContent = points.length
+                ? "Income records were found, but none has a usable payment date for the daily chart."
+                : "No income transactions match the current filters.";
+            if (note) {
+                note.textContent = "The summary uses all matching records. The daily area-line chart needs at least one record with a payment date.";
+            }
+            return;
+        }
+
+        if (typeof window.Chart === "undefined") {
+            canvas.hidden = true;
+            emptyState.hidden = false;
+            emptyState.textContent = "The chart library could not be loaded. Check your internet connection and refresh the page.";
+            if (note) note.textContent = "The income summary is available above; the area-line chart requires Chart.js to load.";
+            return;
+        }
+
+        // Keep the chart readable when there are many source categories.
+        // The top four sources are shown separately and the rest are combined.
+        const maxVisibleSources = 5;
+        const visibleSources = rankedSources.length > maxVisibleSources
+            ? rankedSources.slice(0, maxVisibleSources - 1).map(function (item) { return item[0]; })
+            : rankedSources.map(function (item) { return item[0]; });
+        const remainingSources = rankedSources
+            .slice(visibleSources.length)
+            .map(function (item) { return item[0]; });
+
+        const palette = [
+            { line: "#153030", fill: "rgba(21, 48, 48, 0.16)" },
+            { line: "#26847b", fill: "rgba(38, 132, 123, 0.14)" },
+            { line: "#60a5a0", fill: "rgba(96, 165, 160, 0.15)" },
+            { line: "#d49b43", fill: "rgba(212, 155, 67, 0.14)" },
+            { line: "#64748b", fill: "rgba(100, 116, 139, 0.12)" }
+        ];
+
+        const datasets = visibleSources.map(function (source, index) {
+            const colors = palette[index % palette.length];
+            return {
+                label: source,
+                data: dates.map(function (date) {
+                    return dailyBySource.get(date).get(source) || 0;
+                }),
+                borderColor: colors.line,
+                backgroundColor: colors.fill,
+                borderWidth: 2.5,
+                pointRadius: dates.length <= 24 ? 2.8 : 1.2,
+                pointHoverRadius: 5,
+                pointHitRadius: 12,
+                pointBackgroundColor: colors.line,
+                pointBorderColor: "#ffffff",
+                pointBorderWidth: 1.5,
+                tension: 0.34,
+                fill: "origin",
+                spanGaps: true
+            };
+        });
+
+        if (remainingSources.length) {
+            datasets.push({
+                label: "Other sources",
+                data: dates.map(function (date) {
+                    const bySource = dailyBySource.get(date);
+                    return remainingSources.reduce(function (sum, source) {
+                        return sum + (bySource.get(source) || 0);
+                    }, 0);
+                }),
+                borderColor: palette[4].line,
+                backgroundColor: palette[4].fill,
+                borderWidth: 2.5,
+                pointRadius: dates.length <= 24 ? 2.8 : 1.2,
+                pointHoverRadius: 5,
+                pointHitRadius: 12,
+                pointBackgroundColor: palette[4].line,
+                pointBorderColor: "#ffffff",
+                pointBorderWidth: 1.5,
+                tension: 0.34,
+                fill: "origin",
+                spanGaps: true
+            });
+        }
+
+        const dateLabelFormatter = new Intl.DateTimeFormat("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        });
+        const compactMoneyFormatter = new Intl.NumberFormat("en-IN", {
+            notation: "compact",
+            maximumFractionDigits: 1
+        });
+
+        // Re-initialization protection in case this script is included more than once.
+        if (canvas._incomeSourceChart) {
+            canvas._incomeSourceChart.destroy();
+        }
+
+        canvas.hidden = false;
+        emptyState.hidden = true;
+
+        canvas._incomeSourceChart = new window.Chart(canvas.getContext("2d"), {
+            type: "line",
+            data: {
+                labels: dates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+                elements: {
+                    line: { capBezierPoints: true },
+                    point: { hoverBorderWidth: 2 }
+                },
+                plugins: {
+                    filler: { propagate: false },
+                    legend: {
+                        display: true,
+                        position: "bottom",
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: "circle",
+                            boxWidth: 7,
+                            boxHeight: 7,
+                            padding: 18,
+                            color: "#64736f",
+                            font: { size: 10, weight: "600" }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: "#153030",
+                        padding: 11,
+                        titleFont: { size: 11, weight: "700" },
+                        bodyFont: { size: 11, weight: "600" },
+                        callbacks: {
+                            title: function (items) {
+                                if (!items.length) return "";
+                                const date = dates[items[0].dataIndex];
+                                return dateLabelFormatter.format(new Date(date + "T00:00:00"));
+                            },
+                            label: function (context) {
+                                return context.dataset.label + ": ₹" + moneyFormatter.format(Number(context.parsed.y || 0));
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            color: "#87958f",
+                            maxTicksLimit: 9,
+                            maxRotation: 0,
+                            autoSkip: true,
+                            font: { size: 10 },
+                            callback: function (value) {
+                                const date = dates[value];
+                                return date
+                                    ? dateLabelFormatter.format(new Date(date + "T00:00:00")).replace(/, \d{4}$/, "")
+                                    : "";
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        border: { display: false, dash: [3, 4] },
+                        grid: { color: "rgba(21, 48, 48, 0.07)" },
+                        ticks: {
+                            color: "#87958f",
+                            maxTicksLimit: 6,
+                            font: { size: 10 },
+                            callback: function (value) {
+                                return "₹" + compactMoneyFormatter.format(Number(value));
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (note) {
+            note.textContent = "Showing all " + integerFormatter.format(points.length) +
+                " matching transaction(s), across " + integerFormatter.format(dates.length) +
+                " date(s). The chart is independent of the 25-row table pagination and updates when you apply or clear filters.";
+        }
+    }
+
+    initIncomeSourceChart();
+
     formatAllAmounts();
+
     formatCounts();
 
     const feedback = document.getElementById("income-action-feedback");
+
     let feedbackTimer = null;
+
     function showFeedback(message) {
+
         if (!feedback) return;
+
         feedback.textContent = message;
+
         window.clearTimeout(feedbackTimer);
+
         feedbackTimer = window.setTimeout(function () {
+
             feedback.textContent = "";
+
         }, 2800);
+
     }
 
     async function copyText(text) {
+
         if (navigator.clipboard && window.isSecureContext) {
+
             await navigator.clipboard.writeText(text);
+
             return;
+
         }
+
         const helper = document.createElement("textarea");
+
         helper.value = text;
+
         helper.setAttribute("readonly", "");
+
         helper.style.position = "fixed";
+
         helper.style.opacity = "0";
+
         document.body.appendChild(helper);
+
         helper.select();
+
         const copied = document.execCommand("copy");
+
         helper.remove();
+
         if (!copied) throw new Error("Copy is not available in this browser.");
+
     }
 
     const privacyButton = document.getElementById("income-privacy-toggle");
+
     const privacyLabel = document.getElementById("income-privacy-label");
+
     const privacyIcon = document.getElementById("income-privacy-icon");
+
     if (privacyButton) {
+
         privacyButton.addEventListener("click", function () {
+
             const hidden = root.classList.toggle("amounts-hidden");
+
             privacyButton.setAttribute("aria-pressed", hidden ? "true" : "false");
+
             if (privacyLabel) privacyLabel.textContent = hidden ? "Show amounts" : "Hide amounts";
+
             if (privacyIcon) privacyIcon.className = hidden ? "ri-eye-line text-sm" : "ri-eye-off-line text-sm";
+
             showFeedback(hidden ? "Financial amounts hidden." : "Financial amounts visible.");
+
         });
+
     }
 
     const copySummaryButton = document.getElementById("income-copy-summary");
+
     if (copySummaryButton) {
+
         copySummaryButton.addEventListener("click", async function () {
+
             const amountValues = Array.from(root.querySelectorAll(".ledger-stat .income-money"));
+
             const labels = ["Recorded amount", "Completed amount", "Pending amount"];
+
             const lines = [
+
                 "YAARLYNX — Income Transactions",
+
                 "Period: {{ period_label|default:'All time'|escapejs }}",
+
                 "Matching records: " + (root.querySelector(".ledger-stat:nth-child(1) .indian-count")?.textContent.trim() || "{{ stats.count|default:0 }}"),
+
             ];
+
             amountValues.slice(0, 3).forEach(function (element, index) {
+
                 const raw = Number(element.dataset.amount || 0);
+
                 lines.push(labels[index] + ": ₹" + moneyFormatter.format(raw));
+
                 lines.push(amountToWords(raw));
+
             });
+
             try {
+
                 await copyText(lines.join("\n"));
+
                 showFeedback("Income summary copied.");
+
             } catch (error) {
+
                 showFeedback(error.message || "Unable to copy summary.");
+
             }
+
         });
+
     }
 
     root.querySelectorAll(".ledger-copy-amount").forEach(function (button) {
+
         button.addEventListener("click", async function () {
+
             const value = Number(button.dataset.copyAmount || 0);
+
             try {
+
                 await copyText("₹" + moneyFormatter.format(value) + "\n" + amountToWords(value));
+
                 showFeedback("Amount copied in numbers and words.");
+
             } catch (error) {
+
                 showFeedback(error.message || "Unable to copy amount.");
+
             }
+
         });
+
     });
 
     const printButton = document.getElementById("income-print-page");
+
     if (printButton) {
+
         printButton.addEventListener("click", function () {
+
             window.print();
+
         });
+
     }
+
 })();
+
 </script>
 
 {% endblock %}
