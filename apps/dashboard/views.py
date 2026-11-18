@@ -110,6 +110,8 @@ from apps.dashboard.models import (
     NotificationRecipient,
     IncomeSource,
     IncomePayment,
+    Item,
+    PartyPurchaseItem
 )
 
 from apps.pdf_overlay.models import OverlayImage
@@ -936,7 +938,7 @@ def party_detail(request, pk):
 def party_orders_view(request, party_id):
     """
     Display all purchase orders for a particular party
-    with purchase, paid and outstanding summaries.
+    with purchase items, paid and outstanding summaries.
     """
 
     party = get_object_or_404(
@@ -944,12 +946,43 @@ def party_orders_view(request, party_id):
         pk=party_id,
     )
 
+    # ---------------------------------------------------------
+    # FETCH PURCHASE ITEMS
+    # ---------------------------------------------------------
+
+    purchase_items = (
+        PartyPurchaseItem.objects
+        .select_related(
+            "item",
+            "measurement",
+        )
+        .order_by("created_at")
+    )
+
+    # ---------------------------------------------------------
+    # FETCH PURCHASE ORDERS
+    # ---------------------------------------------------------
+
     orders = (
         PartyPurchase.objects
         .filter(party=party)
         .select_related("party")
-        .order_by("-purchase_date", "-created_at")
+        .prefetch_related(
+            Prefetch(
+                "items",
+                queryset=purchase_items,
+                to_attr="prefetched_items",
+            )
+        )
+        .order_by(
+            "-purchase_date",
+            "-created_at",
+        )
     )
+
+    # ---------------------------------------------------------
+    # PURCHASE SUMMARY
+    # ---------------------------------------------------------
 
     summary = orders.aggregate(
         total_purchase=Sum("grand_total"),
@@ -957,21 +990,30 @@ def party_orders_view(request, party_id):
         total_due=Sum("due_amount"),
     )
 
+    # ---------------------------------------------------------
+    # CONTEXT
+    # ---------------------------------------------------------
+
     context = {
         "party": party,
+
         "orders": orders,
+
         "total_orders": orders.count(),
 
         "total_purchase": (
-            summary["total_purchase"] or Decimal("0.00")
+            summary["total_purchase"]
+            or Decimal("0.00")
         ),
 
         "total_paid": (
-            summary["total_paid"] or Decimal("0.00")
+            summary["total_paid"]
+            or Decimal("0.00")
         ),
 
         "total_due": (
-            summary["total_due"] or Decimal("0.00")
+            summary["total_due"]
+            or Decimal("0.00")
         ),
     }
 
@@ -980,18 +1022,34 @@ def party_orders_view(request, party_id):
         "dashboard/party_orders.html",
         context,
     )
-
-
 def party_purchase_detail_view(request, purchase_id):
     """
-    Display individual purchase details and installment summary.
+    Display individual purchase details,
+    purchase items and installment summary.
     """
 
+    # Fetch purchase items with their related item and measurement
+    purchase_items_queryset = (
+        PartyPurchaseItem.objects
+        .select_related("item", "measurement")
+        .order_by("created_at", "pk")
+    )
+
+    # Fetch purchase with party, items and installments
     purchase = get_object_or_404(
-        PartyPurchase.objects.select_related("party"),
+        PartyPurchase.objects
+        .select_related("party")
+        .prefetch_related(
+            Prefetch(
+                "items",
+                queryset=purchase_items_queryset,
+                to_attr="prefetched_items",
+            )
+        ),
         pk=purchase_id,
     )
 
+    # Purchase installments
     installments = (
         PurchasePaymentInstallment.objects
         .filter(purchase=purchase)
@@ -999,19 +1057,42 @@ def party_purchase_detail_view(request, purchase_id):
         .order_by("installment_number")
     )
 
+    # Installment summary
     summary = installments.aggregate(
         total_installment=Sum("installment_amount"),
         total_paid=Sum("paid_amount"),
         total_remaining=Sum("remaining_amount"),
     )
 
+    # Purchase item summary
+    purchase_items = purchase.prefetched_items
+
+    total_item_quantity = sum(
+        (item.quantity or Decimal("0.000"))
+        for item in purchase_items
+    )
+
+    total_items_amount = sum(
+        (item.total_amount or Decimal("0.00"))
+        for item in purchase_items
+    )
+
     context = {
+        # Purchase information
         "purchase": purchase,
         "party": purchase.party,
-        "installments": installments,
 
+        # Purchase items
+        "purchase_items": purchase_items,
+        "total_items": len(purchase_items),
+        "total_item_quantity": total_item_quantity,
+        "total_items_amount": total_items_amount,
+
+        # Installments
+        "installments": installments,
         "total_installments": installments.count(),
 
+        # Installment totals
         "total_installment": (
             summary["total_installment"] or Decimal("0.00")
         ),

@@ -6,11 +6,12 @@ from django.db.models import Sum
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from apps.master.models import BaseModel
+from apps.master.models import BaseModel, MeasurementUnit
 from apps.accounts.models import UserAccount
 
 from apps.master.utils import get_instance_file_path
 from apps.master.mixins import FileReplaceMixin
+
 
 
 class Party(BaseModel):
@@ -141,14 +142,12 @@ class Party(BaseModel):
     def __str__(self):
         return self.name
 
-
 def party_payment_qr_upload_path(instance, filename):
     return get_instance_file_path(
         "parties/payment_qr",
         instance,
         filename
     )
-
 
 class PartyPaymentQR(
     FileReplaceMixin,
@@ -201,7 +200,6 @@ class PartyPaymentQR(
     def __str__(self):
         return f"{self.party.name} - {self.qr_name}"
 
-
 class PaymentMethod(BaseModel):
 
     name = models.CharField(
@@ -223,14 +221,12 @@ class PaymentMethod(BaseModel):
     def __str__(self):
         return self.name
 
-
 def party_purchase_invoice_upload_path(instance, filename):
     return get_instance_file_path(
         "party_bills",
         instance,
         filename
     )
-
 
 class PartyPurchase(
     FileReplaceMixin,
@@ -995,7 +991,6 @@ class PartyPurchase(
 
         self.update_payment_summary()
 
-
 class PurchasePaymentInstallment(BaseModel):
 
     # =========================================================
@@ -1323,7 +1318,6 @@ class PurchasePaymentInstallment(BaseModel):
 
         return result
 
-
 class QuickLinkCategory(BaseModel):
 
     name = models.CharField(
@@ -1358,7 +1352,6 @@ class QuickLinkCategory(BaseModel):
 
     def __str__(self):
         return self.name
-
 
 class QuickLink(BaseModel):
 
@@ -1412,14 +1405,12 @@ class QuickLink(BaseModel):
     def __str__(self):
         return self.name
 
-
 def notification_image_upload_path(instance, filename):
     return get_instance_file_path(
         "notifications",
         instance,
         filename
     )
-
 
 class Notification(
     FileReplaceMixin,
@@ -1565,7 +1556,6 @@ class Notification(
 
         return True
 
-
 class NotificationRecipient(BaseModel):
 
     notification = models.ForeignKey(
@@ -1636,7 +1626,6 @@ class NotificationRecipient(BaseModel):
                 ]
             )
 
-
 class IncomeSource(BaseModel):
 
     class SourceType(models.TextChoices):
@@ -1679,7 +1668,6 @@ class IncomeSource(BaseModel):
 
     def __str__(self):
         return self.name
-
 
 class IncomePayment(BaseModel):
 
@@ -1751,3 +1739,242 @@ class IncomePayment(BaseModel):
             f"{self.income_source.name} - "
             f"₹{self.amount} - {self.payment_date}"
         )
+
+class Item(BaseModel):
+
+    name = models.CharField(
+        max_length=200,
+        unique=True,
+        db_index=True
+    )
+
+    item_code = models.CharField(
+        max_length=100,
+        unique=True,
+        null=True,
+        blank=True
+    )
+
+    default_measurement = models.ForeignKey(
+        MeasurementUnit,
+        on_delete=models.PROTECT,
+        related_name="items"
+    )
+
+    description = models.TextField(
+        blank=True
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True
+    )
+
+    class Meta:
+        db_table = "purchase_items"
+        ordering = ["name"]
+        verbose_name = "Item"
+        verbose_name_plural = "Items"
+
+    def __str__(self):
+        return self.name
+
+class PartyPurchaseItem(BaseModel):
+
+    purchase = models.ForeignKey(
+        "PartyPurchase",
+        on_delete=models.CASCADE,
+        related_name="items"
+    )
+
+    item = models.ForeignKey(
+        Item,
+        on_delete=models.PROTECT,
+        related_name="purchase_entries"
+    )
+
+    # Preserve the item name used at purchase time.
+    item_name = models.CharField(
+        max_length=200,
+        editable=False
+    )
+
+    measurement = models.ForeignKey(
+        MeasurementUnit,
+        on_delete=models.PROTECT,
+        related_name="purchase_entries"
+    )
+
+    quantity = models.DecimalField(
+        max_digits=15,
+        decimal_places=3,
+        default=Decimal("0.000")
+    )
+
+    item_price = models.DecimalField(
+        max_digits=15,
+        decimal_places=5,
+        default=Decimal("0.00"),
+        help_text="Price per selected measurement unit."
+    )
+
+    total_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        editable=False
+    )
+
+    notes = models.TextField(
+        blank=True
+    )
+
+    class Meta:
+        db_table = "party_purchase_items"
+
+        ordering = ["created_at"]
+
+        verbose_name = "Party Purchase Item"
+        verbose_name_plural = "Party Purchase Items"
+
+    def __str__(self):
+
+        return (
+            f"{self.item_name} - "
+            f"{self.purchase.purchase_number}"
+        )
+
+    # ---------------------------------------------------------
+    # CALCULATE ITEM TOTAL
+    # ---------------------------------------------------------
+
+    def calculate_total(self):
+
+        quantity = Decimal(
+            self.quantity or 0
+        )
+
+        item_price = Decimal(
+            self.item_price or 0
+        )
+
+        if quantity < 0:
+            raise ValidationError(
+                "Item quantity cannot be negative."
+            )
+
+        if item_price < 0:
+            raise ValidationError(
+                "Item price cannot be negative."
+            )
+
+        self.total_amount = (
+            quantity * item_price
+        ).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP
+        )
+
+    # ---------------------------------------------------------
+    # SYNC PURCHASE SUBTOTAL
+    # ---------------------------------------------------------
+
+    @staticmethod
+    def update_purchase_subtotal(purchase_id):
+
+        if not purchase_id:
+            return
+
+        purchase = PartyPurchase.objects.get(
+            pk=purchase_id
+        )
+
+        subtotal = (
+            PartyPurchaseItem.objects.filter(
+                purchase_id=purchase_id
+            ).aggregate(
+                total=Sum("total_amount")
+            )["total"]
+            or Decimal("0.00")
+        )
+
+        purchase.subtotal = subtotal
+
+        # Automatically recalculates discount, GST,
+        # round off and grand total.
+        purchase.save()
+
+    # ---------------------------------------------------------
+    # SAVE
+    # ---------------------------------------------------------
+
+    def save(self, *args, **kwargs):
+
+        previous_purchase_id = None
+
+        if self.pk:
+
+            previous_purchase_id = (
+                PartyPurchaseItem.objects.filter(
+                    pk=self.pk
+                ).values_list(
+                    "purchase_id",
+                    flat=True
+                ).first()
+            )
+
+        # Automatically select the item's default unit
+        # if no measurement is supplied.
+        if not self.measurement_id and self.item_id:
+
+            self.measurement = (
+                self.item.default_measurement
+            )
+
+        if not self.item_id:
+            raise ValidationError(
+                "Please select an item."
+            )
+
+        if not self.measurement_id:
+            raise ValidationError(
+                "Please select a measurement unit."
+            )
+
+        self.item_name = self.item.name
+
+        self.calculate_total()
+
+        super().save(*args, **kwargs)
+
+        # Update the current purchase subtotal.
+        self.update_purchase_subtotal(
+            self.purchase_id
+        )
+
+        # If an item was moved to another purchase,
+        # also update its previous purchase.
+        if (
+            previous_purchase_id
+            and previous_purchase_id != self.purchase_id
+        ):
+            self.update_purchase_subtotal(
+                previous_purchase_id
+            )
+
+    # ---------------------------------------------------------
+    # DELETE
+    # ---------------------------------------------------------
+
+    def delete(self, *args, **kwargs):
+
+        purchase_id = self.purchase_id
+
+        result = super().delete(*args, **kwargs)
+
+        # Recalculate purchase after deleting an item.
+        self.update_purchase_subtotal(
+            purchase_id
+        )
+
+        return result

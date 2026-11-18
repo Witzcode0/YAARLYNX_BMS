@@ -1,13 +1,13 @@
 from decimal import Decimal
 from django.contrib import admin, messages
 from django.utils.html import format_html, mark_safe
-from .models import (
+from apps.dashboard.models import (
     Party,
     PartyPaymentQR,
     PaymentMethod,
     PartyPurchase,
     PurchasePaymentInstallment,
-    QuickLinkCategory, QuickLink, Notification, NotificationRecipient, IncomeSource, IncomePayment
+    QuickLinkCategory, QuickLink, Notification, NotificationRecipient, IncomeSource, IncomePayment, PartyPurchaseItem, Item
 )
 from django.utils import timezone
 from pathlib import Path as FilePath
@@ -756,6 +756,67 @@ class PartyPurchaseAdminForm(forms.ModelForm):
         return cleaned_data
 
 
+@admin.register(Item)
+class ItemAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "name",
+        "item_code",
+        "default_measurement",
+        "is_active",
+    )
+
+    search_fields = (
+        "name",
+        "item_code",
+    )
+
+    list_filter = (
+        "is_active",
+        "default_measurement",
+    )
+
+
+
+
+class PartyPurchaseItemInline(admin.TabularInline):
+
+    model = PartyPurchaseItem
+
+    extra = 1
+
+    min_num = 1
+
+    fields = (
+        "item",
+        "item_name",
+        "measurement",
+        "quantity",
+        "item_price",
+        "total_amount",
+        "notes",
+    )
+
+    readonly_fields = (
+        "item_name",
+        "total_amount",
+    )
+
+    autocomplete_fields = (
+        "item",
+        "measurement",
+    )
+
+    show_change_link = True
+
+    verbose_name = "Purchase Item"
+
+    verbose_name_plural = "Purchase Items"
+
+    classes = (
+        "wide",
+    )
+
 # ============================================================
 # PARTY PURCHASE ADMIN
 # ============================================================
@@ -822,6 +883,10 @@ class PartyPurchaseAdmin(admin.ModelAdmin):
     preserve_filters = True
     save_on_top = True
     empty_value_display = "—"
+
+    inlines = [
+        PartyPurchaseItemInline,
+    ]
 
     # --------------------------------------------------------
     # READONLY / CALCULATED FIELDS
