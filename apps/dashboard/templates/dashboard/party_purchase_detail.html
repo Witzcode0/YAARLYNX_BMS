@@ -2935,6 +2935,57 @@
   .yl-purchase-page .yp-total-grand-value { width:100%; text-align:left; }
   .yl-purchase-page .yp-total-grand-value .yp-amount-words { text-align:left; }
 }
+
+/* ================= REAL BLACK & WHITE PURCHASE BILL ================= */
+.yp-print-bill { display:none; }
+.yp-print-bill, .yp-print-bill * { box-sizing:border-box; }
+.yp-print-bill { font-family: Arial, Helvetica, sans-serif; color:#000; background:#fff; }
+.yp-print-bill .bill-top { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; border-bottom:2px solid #000; padding-bottom:12px; }
+.yp-print-bill .bill-brand { font-size:25px; font-weight:900; letter-spacing:1.5px; margin:0; }
+.yp-print-bill .bill-company { font-size:10px; line-height:1.5; margin-top:5px; }
+.yp-print-bill .bill-title { text-align:right; }
+.yp-print-bill .bill-title h2 { font-size:22px; margin:0 0 6px; letter-spacing:1px; }
+.yp-print-bill .bill-title strong { font-size:12px; }
+.yp-print-bill .bill-meta { display:grid; grid-template-columns:1fr 1fr; border:1px solid #000; margin:12px 0; }
+.yp-print-bill .bill-meta > div { padding:9px 10px; font-size:10px; line-height:1.5; }
+.yp-print-bill .bill-meta > div:nth-child(odd) { border-right:1px solid #000; }
+.yp-print-bill .bill-meta > div:nth-child(-n+2) { border-bottom:1px solid #000; }
+.yp-print-bill .bill-section-title { font-size:10px; font-weight:800; text-transform:uppercase; border-bottom:1px solid #000; padding:5px 0; margin:12px 0 6px; letter-spacing:.5px; }
+.yp-print-bill table { width:100%; border-collapse:collapse; font-size:9.5px; }
+.yp-print-bill th, .yp-print-bill td { border:1px solid #000; padding:6px 5px; }
+.yp-print-bill th { font-weight:800; text-align:center; background:#fff !important; }
+.yp-print-bill td.numeric { text-align:right; white-space:nowrap; }
+.yp-print-bill .bill-item { font-weight:700; }
+.yp-print-bill .bill-code { display:block; font-size:8px; font-weight:400; margin-top:2px; }
+.yp-print-bill .bill-summary-wrap { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-top:10px; }
+.yp-print-bill .bill-words { flex:1; font-size:9px; border:1px solid #000; padding:8px; line-height:1.5; min-height:60px; }
+.yp-print-bill .bill-totals { width:260px; border-collapse:collapse; }
+.yp-print-bill .bill-totals td { border:0; border-bottom:1px solid #aaa; padding:5px 3px; }
+.yp-print-bill .bill-totals td:last-child { text-align:right; font-weight:700; }
+.yp-print-bill .bill-grand { border:2px solid #000; font-size:12px; font-weight:900; }
+.yp-print-bill .bill-grand td { border:0; padding:8px 5px; }
+.yp-print-bill .bill-grand td:last-child { text-align:right; }
+.yp-print-bill .bill-payment { border:1px solid #000; padding:8px 10px; font-size:9px; display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px; }
+.yp-print-bill .bill-receiving { border:1px solid #000; padding:8px 10px; font-size:9px; line-height:1.5; margin-top:8px; }
+.yp-print-bill .bill-signatures { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:38px; font-size:9px; }
+.yp-print-bill .bill-signatures div { border-top:1px solid #000; padding-top:6px; text-align:center; }
+.yp-print-bill .bill-foot { text-align:center; border-top:1px solid #000; margin-top:16px; padding-top:7px; font-size:8px; }
+@media print {
+  @page { size: A4 portrait; margin: 8mm; }
+  html, body { margin:0 !important; padding:0 !important; width:100% !important; height:auto !important; min-height:0 !important; overflow:visible !important; background:#fff !important; }
+  /* Hide every page element so dashboard wrappers cannot leave blank pages. */
+  body > * { display:none !important; visibility:hidden !important; }
+  /* The print script moves the bill directly under body before printing. */
+  body > #yp-print-bill { display:block !important; visibility:visible !important; position:absolute !important; top:0 !important; left:0 !important; width:100% !important; height:auto !important; margin:0 !important; padding:0 !important; overflow:visible !important; }
+  body > #yp-print-bill, body > #yp-print-bill * { visibility:visible !important; box-sizing:border-box !important; background:#fff !important; color:#000 !important; box-shadow:none !important; text-shadow:none !important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+  #yp-print-bill { font-size:9px !important; }
+  #yp-print-bill table { page-break-inside:auto; break-inside:auto; }
+  #yp-print-bill tr { page-break-inside:avoid; break-inside:avoid; }
+  #yp-print-bill .bill-summary-wrap, #yp-print-bill .bill-payment, #yp-print-bill .bill-receiving, #yp-print-bill .bill-signatures { page-break-inside:avoid; break-inside:avoid; }
+  #yp-print-bill .bill-signatures { margin-top:14px !important; }
+  #yp-print-bill .bill-meta > div, #yp-print-bill th, #yp-print-bill td { padding:4px !important; }
+}
+
 </style>
 
 
@@ -3271,7 +3322,7 @@
 
 
 
-          <span>Print / Save PDF</span>
+          <span>Print Bill</span>
 
 
 
@@ -5222,6 +5273,52 @@
 
 
 
+
+    <!-- PRINT-ONLY A4 PURCHASE BILL -->
+    <section class="yp-print-bill" id="yp-print-bill" aria-label="Printable purchase bill">
+      <header class="bill-top">
+        <div>
+          <h1 class="bill-brand">BHARATOXEN</h1>
+          <div class="bill-company"><strong>Purchase Bill</strong><br>GSTIN: 24ABFFB2905F1ZY<br>Ground Floor, Plot No. 80, Bal Krushna Society,<br>Sagar to Punagam Road, Punagam, Surat, Gujarat - 395010<br>Constitution: Partnership | Registration: Regular</div>
+        </div>
+        <div class="bill-title"><h2>PURCHASE BILL</h2><strong>{% if purchase.bill_type == "GST" %}GST BILL{% else %}NON-GST BILL{% endif %}</strong></div>
+      </header>
+      <div class="bill-meta">
+        <div><strong>Supplier / Party:</strong><br>{{ party.name|default:"—" }}<br>{% if party.contact_person %}Contact: {{ party.contact_person }}<br>{% endif %}{% if party.phone %}Phone: {{ party.phone }}<br>{% endif %}{% if party.gst_number %}GSTIN: {{ party.gst_number }}{% endif %}</div>
+        <div><strong>Purchase Order Details:</strong><br>PO No.: {{ purchase.purchase_number|default:"—" }}<br>PO Date: {% if purchase.purchase_date %}{{ purchase.purchase_date|date:"d M Y" }}{% else %}—{% endif %}<br>Supplier Invoice: {{ purchase.invoice_number|default:"—" }}<br>Invoice Date: {% if purchase.invoice_date %}{{ purchase.invoice_date|date:"d M Y" }}{% else %}—{% endif %}</div>
+        <div><strong>Bill Type:</strong> {% if purchase.bill_type == "GST" %}GST{% else %}Non-GST{% endif %}<br><strong>Purchase Status:</strong> {{ purchase.get_status_display|default:purchase.status }}</div>
+        <div><strong>Reference:</strong> {{ purchase.purchase_number|default:"—" }}</div>
+      </div>
+      <div class="bill-section-title">Item Details</div>
+      <table>
+        <thead><tr><th style="width:28px;">No.</th><th>Item / Description</th><th>Qty</th><th>Unit</th><th>Rate (₹)</th><th>Amount (₹)</th></tr></thead>
+        <tbody>
+        {% for purchase_item in purchase_items %}
+          <tr><td style="text-align:center;">{{ forloop.counter }}</td><td><span class="bill-item">{{ purchase_item.item_name|default:purchase_item.item.name|default:"Unnamed item" }}</span>{% if purchase_item.notes %}<span class="bill-code">Code / Notes: {{ purchase_item.notes }}</span>{% endif %}</td><td class="numeric">{{ purchase_item.quantity|floatformat:3 }}</td><td style="text-align:center;">{{ purchase_item.measurement.short_name|default:purchase_item.measurement.name|default:"—" }}</td><td class="numeric">₹ {{ purchase_item.item_price|default:0|floatformat:2 }}</td><td class="numeric">₹ {{ purchase_item.total_amount|default:0|floatformat:2 }}</td></tr>
+        {% empty %}<tr><td colspan="6" style="text-align:center;">No purchase items available.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+      <div class="bill-summary-wrap">
+        <div class="bill-words"><strong>Amount in words:</strong><br><span class="yp-amount-words" data-bill-words-for="grand-total"></span><br><br><strong>Notes:</strong> {{ purchase.notes|default:"—" }}</div>
+        <table class="bill-totals">
+          <tr><td>Subtotal</td><td>₹ {{ purchase.subtotal|default:0|floatformat:2 }}</td></tr>
+          <tr><td>Discount{% if purchase.discount_percent %} ({{ purchase.discount_percent|floatformat:2 }}%){% endif %}</td><td>− ₹ {{ purchase.discount_amount|default:0|floatformat:2 }}</td></tr>
+          <tr><td>Taxable Amount</td><td>₹ {{ purchase.taxable_amount|default:0|floatformat:2 }}</td></tr>
+          <tr><td>Other Charges</td><td>₹ {{ purchase.other_charges|default:0|floatformat:2 }}</td></tr>
+          {% if purchase.bill_type == "GST" %}
+            {% if purchase.igst_amount %}<tr><td>IGST ({{ purchase.igst_percent|default:0|floatformat:2 }}%)</td><td>₹ {{ purchase.igst_amount|default:0|floatformat:2 }}</td></tr>
+            {% else %}<tr><td>CGST ({{ purchase.cgst_percent|default:0|floatformat:2 }}%)</td><td>₹ {{ purchase.cgst_amount|default:0|floatformat:2 }}</td></tr><tr><td>SGST ({{ purchase.sgst_percent|default:0|floatformat:2 }}%)</td><td>₹ {{ purchase.sgst_amount|default:0|floatformat:2 }}</td></tr>{% endif %}
+          {% endif %}
+          <tr class="bill-grand"><td>GRAND TOTAL</td><td>₹ {{ purchase.grand_total|default:0|floatformat:2 }}</td></tr>
+        </table>
+      </div>
+      <div class="bill-payment"><div><strong>Total Bill</strong><br>₹ {{ purchase.grand_total|default:0|floatformat:2 }}</div><div><strong>Paid Amount</strong><br>₹ {{ purchase.paid_amount|default:0|floatformat:2 }}</div><div><strong>Outstanding</strong><br>₹ {{ purchase.due_amount|default:0|floatformat:2 }}</div></div>
+      <div class="bill-receiving"><strong>Purchase Receiving Summary</strong><br>Status: {{ purchase.get_status_display|default:purchase.status }}<br>Received and pending item quantities / receiving dates are not available in the current purchase detail template context.</div>
+      <div class="bill-signatures"><div>Supplier Signature</div><div>Authorized Signature — YAARLYNX</div></div>
+      <div class="bill-foot">This is a purchase record generated by YAARLYNX. Please retain it for your records.</div>
+    </section>
+
+
     <!-- FOOTER -->
 
 
@@ -5637,11 +5734,28 @@
 
 
     const printButton = root.querySelector("#yp-print-record");
+    const printBill = root.querySelector("#yp-print-bill");
+    let printBillOriginalParent = null;
+    let printBillOriginalNextSibling = null;
 
-    if (printButton) printButton.addEventListener("click", function () {
-
+    if (printButton && printBill) printButton.addEventListener("click", function () {
+      // Detach the bill from dashboard wrappers so their layout cannot create extra print pages.
+      printBillOriginalParent = printBill.parentNode;
+      printBillOriginalNextSibling = printBill.nextSibling;
+      document.body.appendChild(printBill);
       window.print();
+    });
 
+    window.addEventListener("afterprint", function () {
+      if (printBill && printBillOriginalParent) {
+        if (printBillOriginalNextSibling && printBillOriginalNextSibling.parentNode === printBillOriginalParent) {
+          printBillOriginalParent.insertBefore(printBill, printBillOriginalNextSibling);
+        } else {
+          printBillOriginalParent.appendChild(printBill);
+        }
+        printBillOriginalParent = null;
+        printBillOriginalNextSibling = null;
+      }
     });
 
   }
